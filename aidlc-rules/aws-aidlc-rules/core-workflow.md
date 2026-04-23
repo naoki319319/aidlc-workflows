@@ -482,6 +482,7 @@ The Operations stage will eventually include:
 - **CRITICAL**: NEVER use file writing tools and commands that overwrite the entire contents of audit.md, as this causes duplication
 - Use ISO 8601 format for timestamps (YYYY-MM-DDTHH:MM:SSZ)
 - Include stage context for each entry
+- **For Construction phase per-unit stages**: Include unit name in Context field (e.g., "CONSTRUCTION - Code Generation - Unit: user-service")
 
 ### Audit Log Format:
 ```markdown
@@ -490,6 +491,17 @@ The Operations stage will eventually include:
 **User Input**: "[Complete raw user input - never summarized]"
 **AI Response**: "[AI's response or action taken]"
 **Context**: [Stage, action, or decision made]
+
+---
+```
+
+**Example with unit context:**
+```markdown
+## Code Generation
+**Timestamp**: 2024-02-09T14:30:00Z
+**User Input**: "Approve code generation plan"
+**AI Response**: "Code generation plan approved"
+**Context**: CONSTRUCTION - Code Generation - Unit: user-service
 
 ---
 ```
