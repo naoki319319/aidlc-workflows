@@ -4,8 +4,8 @@
 This script is invoked by run.py and delegates to the trend_reports package.
 
 Usage:
-    python run_trend_report.py --baseline test_cases/sci-calc/golden.yaml
-    python run_trend_report.py --baseline test_cases/sci-calc/golden.yaml --format html --gate
+    python run_trend_report.py --baseline test_cases/sci-calc-v2/golden.yaml
+    python run_trend_report.py --baseline test_cases/sci-calc-v2/golden.yaml --format html --gate
 """
 
 from __future__ import annotations

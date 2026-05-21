@@ -369,7 +369,7 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Proxy golden: use the current sci-calc golden (v2 restructured) as baseline scorer
-    proxy_golden = TEST_CASES_DIR / "sci-calc" / "golden-aidlc-docs"
+    proxy_golden = TEST_CASES_DIR / "sci-calc-v2" / "golden-aidlc-docs"
     if not proxy_golden.is_dir():
         log("WARN: proxy golden not found — qualitative scoring will score 0")
 

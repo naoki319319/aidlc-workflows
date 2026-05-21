@@ -52,8 +52,8 @@ def main() -> None:
         help="Only check IDE prerequisites, don't run evaluation",
     )
     parser.add_argument(
-        "--scenario", type=str, default="sci-calc",
-        help="Scenario name or path to test case directory (default: sci-calc)",
+        "--scenario", type=str, default="sci-calc-v2",
+        help="Scenario name or path to test case directory (default: sci-calc-v2)",
     )
     parser.add_argument("--vision", type=Path, default=None)
     parser.add_argument("--tech-env", type=Path, default=None)

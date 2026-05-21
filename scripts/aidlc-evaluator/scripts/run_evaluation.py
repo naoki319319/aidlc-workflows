@@ -573,8 +573,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     # Scenario selection
     parser.add_argument(
-        "--scenario", type=str, default="sci-calc",
-        help="Scenario name or path to test case directory (default: sci-calc)",
+        "--scenario", type=str, default="sci-calc-v2",
+        help="Scenario name or path to test case directory (default: sci-calc-v2)",
     )
 
     # Execution config

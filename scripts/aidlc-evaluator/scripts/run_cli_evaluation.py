@@ -159,11 +159,11 @@ def main() -> None:
         default=REPO_ROOT / "config" / "default.yaml",
         help="Path to YAML config file (default: config/default.yaml)",
     )
-    parser.add_argument("--vision", type=Path, default=REPO_ROOT / "test_cases" / "sci-calc" / "vision.md")
-    parser.add_argument("--tech-env", type=Path, default=REPO_ROOT / "test_cases" / "sci-calc" / "tech-env.md")
-    parser.add_argument("--golden", type=Path, default=REPO_ROOT / "test_cases" / "sci-calc" / "golden-aidlc-docs")
-    parser.add_argument("--openapi", type=Path, default=REPO_ROOT / "test_cases" / "sci-calc" / "openapi.yaml")
-    parser.add_argument("--baseline", type=Path, default=REPO_ROOT / "test_cases" / "sci-calc" / "golden.yaml")
+    parser.add_argument("--vision", type=Path, default=REPO_ROOT / "test_cases" / "sci-calc-v2" / "vision.md")
+    parser.add_argument("--tech-env", type=Path, default=REPO_ROOT / "test_cases" / "sci-calc-v2" / "tech-env.md")
+    parser.add_argument("--golden", type=Path, default=REPO_ROOT / "test_cases" / "sci-calc-v2" / "golden-aidlc-docs")
+    parser.add_argument("--openapi", type=Path, default=REPO_ROOT / "test_cases" / "sci-calc-v2" / "openapi.yaml")
+    parser.add_argument("--baseline", type=Path, default=REPO_ROOT / "test_cases" / "sci-calc-v2" / "golden.yaml")
     parser.add_argument(
         "--rules-ref", default=None,
         help="Git ref (branch/tag/commit) for AIDLC rules (overrides config value)",

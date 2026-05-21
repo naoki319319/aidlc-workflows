@@ -427,8 +427,8 @@ def main() -> None:
 
     # Scenario and test configuration
     parser.add_argument(
-        "--scenario", type=str, default="sci-calc",
-        help="Scenario name or path to test case directory (default: sci-calc)",
+        "--scenario", type=str, default="sci-calc-v2",
+        help="Scenario name or path to test case directory (default: sci-calc-v2)",
     )
     parser.add_argument(
         "--configs", type=str, default=None,

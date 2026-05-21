@@ -57,25 +57,25 @@ The recommended way to run evaluations is through the master `run.py` script in 
 
 ```bash
 # Full pipeline evaluation
-python run.py full --vision test_cases/sci-calc/vision.md
+python run.py full --vision test_cases/sci-calc-v2/vision.md
 
 # CLI evaluation
-python run.py cli --cli kiro-cli --scenario sci-calc
+python run.py cli --cli kiro-cli --scenario sci-calc-v2
 
 # IDE evaluation
-python run.py ide --ide cursor --scenario sci-calc
+python run.py ide --ide cursor --scenario sci-calc-v2
 
 # Batch evaluation across models
-python run.py batch --models all --scenario sci-calc
+python run.py batch --models all --scenario sci-calc-v2
 
 # Generate comparison report
-python run.py compare --scenario sci-calc
+python run.py compare --scenario sci-calc-v2
 
 # Test extension hooks (all yes vs all no)
-python run.py ext-test --scenario sci-calc
+python run.py ext-test --scenario sci-calc-v2
 
 # Generate trend report across releases
-python run.py trend --baseline test_cases/sci-calc/golden.yaml
+python run.py trend --baseline test_cases/sci-calc-v2/golden.yaml
 
 # Run tests
 python run.py test
@@ -87,19 +87,19 @@ Scripts can also be invoked directly if needed:
 
 ```bash
 # Full evaluation
-python scripts/run_evaluation.py --vision test_cases/sci-calc/vision.md
+python scripts/run_evaluation.py --vision test_cases/sci-calc-v2/vision.md
 
 # CLI evaluation
-python scripts/run_cli_evaluation.py --cli kiro-cli --scenario sci-calc
+python scripts/run_cli_evaluation.py --cli kiro-cli --scenario sci-calc-v2
 
 # Batch evaluation
-python scripts/run_batch_evaluation.py --models all --scenario sci-calc
+python scripts/run_batch_evaluation.py --models all --scenario sci-calc-v2
 
 # Extension hook testing
-python scripts/run_extension_test.py --scenario sci-calc
+python scripts/run_extension_test.py --scenario sci-calc-v2
 
 # Trend report
-python scripts/run_trend_report.py --baseline test_cases/sci-calc/golden.yaml
+python scripts/run_trend_report.py --baseline test_cases/sci-calc-v2/golden.yaml
 ```
 
 ## Path Resolution
