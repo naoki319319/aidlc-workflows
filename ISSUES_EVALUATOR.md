@@ -6,24 +6,17 @@ Issues specific to `scripts/aidlc-evaluator` discovered during v2 integration te
 
 ## EVAL-001: process_checker not running — protocol violations not caught
 
-**Status:** Open
-**Area:** `scripts/aidlc-evaluator/packages/execution/src/aidlc_runner/runner.py`
+**Status:** Fixed (2026-05-21)
+**Area:** `scripts/aidlc-evaluator/packages/execution/src/aidlc_runner/progress.py`, `runner.py`
 **Found during:** sci-calc evaluator runs (2026-05-19)
 
 ### Description
 
-The evaluator orchestrator prompt falls back to manual state machine enforcement when `process_checker.js` cannot run. This means protocol violations (missing audit entries, wrong state transitions, missing artifacts) are never caught and the workflow proceeds silently regardless.
+The evaluator had no equivalent of the Kiro `process-check-hook.json` that fires after every `invokeSubAgent` call. Protocol violations (wrong state transitions, missing artifacts) were not caught.
 
-In the Kiro environment `process_checker` is enforced via a hook after every sub-agent call. The evaluator has no equivalent mechanism.
+### Fix applied
 
-### Expected behaviour
-
-After each builder/validator handoff returns, the evaluator should invoke `process_checker.js`. If Node.js is not available, the run should surface a warning (or halt) rather than continuing unchecked.
-
-### Options
-
-1. Add Node.js to the evaluator sandbox/dependencies and wire `process_checker` calls into `runner.py` after each Strands handoff completes.
-2. Port the `process_checker` logic to Python inside the evaluator so it runs without Node.js.
+Added `ProcessCheckerHook` to `progress.py` — a Strands `SwarmHook` that fires on `AfterNodeCallEvent` after builder and validator turns. It finds the most recent `process-checkpoint.json` in the run folder, runs `node aidlc-process-checker.js --from-state <checkpoint>`, parses the JSON result, and logs PASS/FAIL with the next expected step. Silently skips if Node.js is not available (with a one-time warning).
 
 ---
 
@@ -127,20 +120,17 @@ Added a `MANDATORY VALIDATION RULE` section to the orchestrator system prompt wi
 
 ## EVAL-008: High repeated context tokens with multi-agent swarm (27 handoffs → 42.7M tokens)
 
-**Status:** Open — monitoring
-**Area:** Strands swarm architecture / `scripts/aidlc-evaluator/packages/execution/`
+**Status:** Fixed (2026-05-21)
+**Area:** All agent files in `scripts/aidlc-evaluator/packages/execution/src/aidlc_runner/agents/`
 **Found during:** sci-calc full evaluation report (2026-05-19)
 
 ### Description
 
-With 27 handoffs, the Strands swarm re-sends the full conversation history to each agent on every turn. Unique tokens were 6.8M but API total was 49.5M — a 7.2x multiplier. The v1 two-agent run had 3 handoffs and 0 repeated context tokens.
+With 27 handoffs, the Strands swarm re-sent the full conversation history on every turn — 6.8M unique tokens ballooned to 49.5M API tokens (7.2x multiplier).
 
-This is expected Strands behavior but will compound significantly on longer workflows (all-stages test case).
+### Fix applied
 
-### Options
-
-1. Investigate Strands context pruning / summarization between handoffs.
-2. Accept as a known cost of the multi-agent architecture and track in baselines.
+Added `SlidingWindowConversationManager(window_size=20)` to all five agents (orchestrator, builder, validator, simulator, executor). This prunes messages beyond the 20-turn window before each API call, capping context growth regardless of handoff count.
 
 ---
 

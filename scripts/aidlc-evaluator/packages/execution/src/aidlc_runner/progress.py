@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import json
+import shutil
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from strands.hooks.events import AfterNodeCallEvent, BeforeNodeCallEvent
@@ -119,6 +123,76 @@ class SwarmProgressHook:
 
         if self._collector is not None:
             self._collector.record_handoff(self._handoff_count, event.node_id, duration_ms)
+
+
+class ProcessCheckerHook:
+    """Runs aidlc-process-checker.js after every builder or validator handoff.
+
+    Enforces the v2 state machine deterministically, mirroring what the
+    process-check-hook.json does in the Kiro environment.
+
+    Only active when Node.js is available and the v2 src/ layout is in use.
+    Silently skips if Node.js is absent (falls back to EVAL-001 behaviour).
+    """
+
+    # Only run after these agents — orchestrator and simulator don't need checking
+    _CHECKED_AGENTS = frozenset({"builder", "validator"})
+
+    def __init__(self, run_folder: Path, rules_dir: Path) -> None:
+        self._run_folder = run_folder
+        self._rules_dir = rules_dir
+        self._node = shutil.which("node")
+        self._checker = rules_dir / "aidlc-common" / "scripts" / "aidlc-process-checker.js"
+        if self._node:
+            _print_status(f"  [process-checker] node found at {self._node}")
+        else:
+            _print_status("  [process-checker] node not found — process_checker disabled (EVAL-001)")
+
+    def register_hooks(self, registry: HookRegistry, **kwargs: Any) -> None:
+        registry.add_callback(AfterNodeCallEvent, self._on_after_node)
+
+    def _on_after_node(self, event: AfterNodeCallEvent) -> None:
+        if event.node_id not in self._CHECKED_AGENTS:
+            return
+        if not self._node or not self._checker.exists():
+            return
+
+        # Find the most recent process-checkpoint.json in the run folder
+        checkpoints = sorted(self._run_folder.rglob("process-checkpoint.json"))
+        if not checkpoints:
+            return
+
+        checkpoint = checkpoints[-1]
+        try:
+            # nosec B603, B607 - Executing trusted process_checker.js from AIDLC rules
+            result = subprocess.run(
+                [self._node, str(self._checker), "--from-state", str(checkpoint)],
+                capture_output=True, text=True, timeout=30,
+            )
+            try:
+                data = json.loads(result.stdout)
+            except json.JSONDecodeError:
+                _print_status(f"  [process-checker] non-JSON output: {result.stdout[:200]}")
+                return
+
+            error = data.get("error")
+            next_step = data.get("next", {}).get("step", "?")
+            current = data.get("current", {})
+
+            if error:
+                _print_status(
+                    f"  [process-checker] FAIL after {event.node_id}: "
+                    f"{error.get('message', '?')} — action: {error.get('action', '?')}"
+                )
+            else:
+                _print_status(
+                    f"  [process-checker] PASS after {event.node_id}: "
+                    f"{current.get('skill','?')} {current.get('step','?')} → next: {next_step}"
+                )
+        except subprocess.TimeoutExpired:
+            _print_status("  [process-checker] timed out")
+        except Exception as exc:
+            _print_status(f"  [process-checker] error: {exc}")
 
 
 def _print_status(msg: str) -> None:

@@ -5,6 +5,46 @@ For evaluator-specific issues see `ISSUES_EVALUATOR.md`.
 
 ---
 
+## ISSUE-007: Builder skips clarification questions when intent is detailed (0.17 score)
+
+**Status:** Open
+**Area:** `src/aidlc-common/protocols/aidlc-builder-protocol.md`, `src/skills/aidlc-requirements-analysis/SKILL.md`
+**Found during:** kiro v2 evaluation runs (2026-05-21)
+
+### Description
+
+When the vision document is highly detailed (as in the sci-calc benchmark), the builder declares "no clarification needed" and writes an empty or near-empty `requirements-analysis-questions.md`. This causes qualitative scores of 0.17 for that document vs the golden which has 7 substantive questions with trade-off analysis.
+
+The builder protocol says to assess whether clarification is needed "based on available context and the validation-spec" — but gives no minimum bar. For a detailed spec, zero questions is a reasonable interpretation, but it diverges from what a human analyst would produce.
+
+### Expected behaviour
+
+Even with a detailed spec, the builder should produce a minimum set of questions covering genuine ambiguities (e.g. error handling edge cases, NFR thresholds, out-of-scope boundaries). The validation-spec should require at least N questions for skills where clarification is expected.
+
+### Fix
+
+Add to `aidlc-requirements-analysis/validation-spec.md`: a rule requiring at least 3 clarification questions unless the builder explicitly documents why zero questions are justified with specific references to spec sections that pre-answer each potential ambiguity.
+
+---
+
+## ISSUE-008: Code generation occasionally returns 400 instead of 422 for missing fields
+
+**Status:** Open
+**Area:** `src/skills/aidlc-code-generation/SKILL.md`
+**Found during:** kiro v2 evaluation runs (2026-05-21)
+
+### Description
+
+Generated FastAPI apps occasionally return HTTP 400 for missing required fields instead of FastAPI's native 422 (Unprocessable Entity). This fails the contract test `add missing field → 422`.
+
+Root cause: the builder generates custom input validation that raises a 400 `INVALID_INPUT` error, overriding FastAPI/Pydantic's automatic 422 validation. The tech-env specifies FastAPI and Pydantic but doesn't mandate that missing-field validation must use Pydantic's native behaviour (which returns 422 automatically).
+
+### Fix
+
+Add to `aidlc-code-generation/SKILL.md`: "Do not override FastAPI/Pydantic's automatic request validation for missing or malformed fields. Let Pydantic raise `RequestValidationError` which FastAPI converts to 422. Only use custom 400 errors for domain logic violations (e.g. divide by zero), not for missing input fields."
+
+---
+
 ## ISSUE-001: Builder protocol missing audit-write responsibility
 
 **Status:** Open

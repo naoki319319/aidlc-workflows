@@ -8,6 +8,7 @@ from typing import Any, Callable
 import boto3
 from botocore.config import Config as BotoConfig
 from strands import Agent
+from strands.agent.conversation_manager import SlidingWindowConversationManager
 from strands.models.bedrock import BedrockModel
 
 from aidlc_runner.config import ExecutionConfig, ModelConfig
@@ -109,4 +110,5 @@ def create_validator(
         model=model,
         tools=tools,
         callback_handler=callback_handler,
+        conversation_manager=SlidingWindowConversationManager(window_size=20),
     )

@@ -24,7 +24,7 @@ from aidlc_runner.agents.validator import create_validator
 from aidlc_runner.config import AidlcConfig, RunnerConfig
 from aidlc_runner.metrics import MetricsCollector
 from aidlc_runner.post_run import run_post_evaluation
-from aidlc_runner.progress import AgentProgressHandler, SwarmProgressHook
+from aidlc_runner.progress import AgentProgressHandler, ProcessCheckerHook, SwarmProgressHook
 
 _SLUG_MAX_LEN = 80
 
@@ -328,6 +328,11 @@ def run(config: RunnerConfig, vision_path: Path, tech_env_path: Path | None = No
     # Register progress hook for node-level events
     progress_hook = SwarmProgressHook(collector=collector)
     swarm.hooks.add_hook(progress_hook)
+
+    # Register process_checker hook for v2 runs (enforces state machine after each agent turn)
+    if is_v2:
+        checker_hook = ProcessCheckerHook(run_folder=run_folder, rules_dir=rules_dir)
+        swarm.hooks.add_hook(checker_hook)
 
     result = swarm(initial_prompt)
 
