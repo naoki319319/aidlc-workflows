@@ -404,6 +404,29 @@ function parseStateFile() {
   return null;
 }
 
+/**
+ * Parses the Active Lenses table from intent-state.md.
+ * Returns an array of lens names (bare names without the aidlc- prefix).
+ */
+function parseActiveLenses() {
+  if (!fileExists(stateFile)) return [];
+  const content = fs.readFileSync(stateFile, "utf-8");
+  const lenses = [];
+  // Find the Active Lenses section
+  const lensSection = content.match(/## Active Lenses[\s\S]*?(?=\n## |\n$)/);
+  if (!lensSection) return [];
+  const lines = lensSection[0].split("\n");
+  for (const line of lines) {
+    // Skip header rows and separator
+    if (line.includes("| Lens") || line.includes("|---") || !line.includes("|")) continue;
+    const cols = line.split("|").map((c) => c.trim()).filter(Boolean);
+    if (cols.length >= 1 && cols[0] && cols[0] !== "—") {
+      lenses.push(cols[0]);
+    }
+  }
+  return lenses;
+}
+
 // =============================================================================
 // VALIDATION RESULT PARSING
 // Reads the validator's report and extracts the machine-readable block at the
@@ -426,6 +449,7 @@ function parseValidationResult() {
     status: null,
     rulesChecked: [],
     toolsInvoked: [],
+    lensRulesChecked: {},
     raw: content,
   };
 
@@ -445,6 +469,22 @@ function parseValidationResult() {
         const toolsStr = line.replace("TOOLS:", "").trim();
         if (toolsStr !== "none") {
           result.toolsInvoked = toolsStr.split(",").map((t) => t.trim());
+        }
+      } else if (line.startsWith("LENS-RULES:")) {
+        const lensRulesStr = line.replace("LENS-RULES:", "").trim();
+        if (lensRulesStr !== "none") {
+          // Format: owasp:1,2,3;accessibility:1,2,3
+          const lensEntries = lensRulesStr.split(";").map((e) => e.trim());
+          for (const entry of lensEntries) {
+            const colonIdx = entry.indexOf(":");
+            if (colonIdx > 0) {
+              const lensName = entry.substring(0, colonIdx).trim();
+              const ruleNums = entry.substring(colonIdx + 1).split(",")
+                .map((r) => parseInt(r.trim(), 10))
+                .filter((r) => !isNaN(r));
+              result.lensRulesChecked[lensName] = ruleNums;
+            }
+          }
         }
       } else if (line.startsWith("RULES:")) {
         const rulesStr = line.replace("RULES:", "").trim();
@@ -489,6 +529,52 @@ function getValidationRuleCount() {
   const content = fs.readFileSync(validationSpecFile, "utf-8");
   const ruleMatches = content.match(/^\d+\./gm);
   return ruleMatches ? ruleMatches.length : 0;
+}
+
+/**
+ * Counts applicable lens rules for a given stage.
+ * Lens validation-spec.md files organize rules into sections:
+ *   ### All Stages — always applies
+ *   ### <stage-1>, <stage-2>, ... — applies when currentStage is in the list
+ * Rules within a section are lines matching /^\d+\./.
+ * Returns the total count of rules across all applicable sections.
+ */
+function countApplicableLensRules(lensContent, currentStage) {
+  const lines = lensContent.split("\n");
+  let applicableRuleCount = 0;
+  let inApplicableSection = false;
+  let inRulesArea = false;
+
+  for (const line of lines) {
+    // Detect the top-level ## Rules header — everything before it is preamble
+    if (/^## Rules\s*$/.test(line)) {
+      inRulesArea = true;
+      continue;
+    }
+
+    if (!inRulesArea) continue;
+
+    // Detect section headers (### ...)
+    const sectionMatch = line.match(/^### (.+)$/);
+    if (sectionMatch) {
+      const sectionHeader = sectionMatch[1].trim();
+      if (/^all stages$/i.test(sectionHeader)) {
+        inApplicableSection = true;
+      } else {
+        // Parse comma-separated stage list
+        const stages = sectionHeader.split(",").map((s) => s.trim().toLowerCase());
+        inApplicableSection = stages.includes(currentStage.toLowerCase());
+      }
+      continue;
+    }
+
+    // Count rules in applicable sections
+    if (inApplicableSection && /^\d+\./.test(line)) {
+      applicableRuleCount++;
+    }
+  }
+
+  return applicableRuleCount;
 }
 
 // =============================================================================
@@ -782,6 +868,51 @@ function checkValidation() {
       );
     } else {
       addDetail(`All ${ruleCount} rules reported`);
+    }
+  }
+
+  // --- Check all active lens validation-spec rules were checked ---
+  // Read intent-state.md for the Active Lenses table, then for each active
+  // lens, count rules in applicable sections of its validation-spec.md and
+  // verify coverage. Sections are determined by headers:
+  //   ### All Stages — always applies
+  //   ### <stage-1>, <stage-2>, ... — applies when current stage is in the list
+
+  const activeLenses = parseActiveLenses();
+  if (activeLenses.length > 0) {
+    for (const lensName of activeLenses) {
+      const lensValidationSpec = path.join(
+        INSTALL_ROOT,
+        "skills",
+        `aidlc-${lensName}`,
+        "validation-spec.md"
+      );
+      if (!fileExists(lensValidationSpec)) {
+        addDetail(`Lens '${lensName}' has no validation-spec.md — skipping`);
+        continue;
+      }
+      const lensContent = fs.readFileSync(lensValidationSpec, "utf-8");
+      const applicableRuleCount = countApplicableLensRules(lensContent, stageName);
+
+      if (applicableRuleCount > 0) {
+        addDetail(`Lens '${lensName}' expected applicable rules: 1..${applicableRuleCount}`);
+        const reportedLensRules = new Set(
+          (result.lensRulesChecked && result.lensRulesChecked[lensName]) || []
+        );
+        const missingLensRules = [];
+        for (let n = 1; n <= applicableRuleCount; n++) {
+          if (!reportedLensRules.has(n)) missingLensRules.push(n);
+        }
+        if (missingLensRules.length > 0) {
+          addFailure(
+            `Lens '${lensName}' validation result missing rule numbers: ${missingLensRules.join(", ")}`
+          );
+        } else {
+          addDetail(`Lens '${lensName}' all ${applicableRuleCount} applicable rules reported`);
+        }
+      } else {
+        addDetail(`Lens '${lensName}' has no applicable rules for stage '${stageName}'`);
+      }
     }
   }
 }

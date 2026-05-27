@@ -84,3 +84,46 @@ Both bootstrap skills set `human-clarification: false` and `plan-creation: false
 The orchestrator or the human may override flags per-intent when composing the workflow.
 
 When a skill is implemented, flip its Status to ✅ and ensure the folder contains `SKILL.md` and `validation-spec.md` at minimum.
+
+---
+
+## Lenses
+
+Lenses are a distinct skill type (`type: lens`) that apply a perspective across the entire lifecycle. Unlike stage skills, lenses do not run as discrete steps in the workflow. Instead, they are activated during workflow-composition and their definitions are injected into every builder and validator invocation for the duration of the intent.
+
+A lens provides:
+- **Principles and definitions** — generic guidance the builder applies in context of whatever stage it is executing
+- **Validation rules** — generic rules the validator checks against whatever artifacts it is validating
+
+Lenses are composable and additive. Multiple lenses can be active simultaneously — they are independent perspectives on the same artifacts.
+
+### Lens folder layout
+
+```
+skills/<lens-name>/
+├── SKILL.md              ← type: lens, purpose, definitions, principles, question guidance
+└── validation-spec.md    ← validation rules applied at every stage
+```
+
+### Lens frontmatter metadata
+
+- `type` — `"lens"` (distinguishes from stage skills)
+- `applies-to` — `"all"` or a list of stages where the lens is relevant (e.g. `"requirements-analysis, application-design, code-generation"`)
+- `default-activation` — `"true"` (active unless explicitly deactivated) or `"false"` (opt-in per intent)
+
+### Activation
+
+Lenses are activated or deactivated during `workflow-composition`. The activation decision is recorded in `intent-state.md` under a `## Active Lenses` section. Once activated, the lens's one-time clarification questions (from its Question Guidance) are asked as part of workflow-composition's clarification pass. Answers are stored in `bootstrap/workflow-composition/lens-<lens-name>-answers.md`.
+
+### Runtime behaviour
+
+- **Builder:** Before every builder invocation, the orchestrator includes each active lens's `SKILL.md` (definitions and principles) and its one-time answers. The builder interprets these in context of the current stage.
+- **Validator:** Before every validator invocation, the orchestrator includes each active lens's `validation-spec.md`. The validator checks these rules alongside the stage skill's own validation-spec. Lens rule failures are real failures — same weight as stage-native rules.
+
+Lens `validation-spec.md` files may organize rules into sections by stage applicability. The `### All Stages` section is checked everywhere; sections headed with a comma-separated stage list (e.g., `### application-design, functional-design, code-generation`) are checked only when the current stage matches. See `aidlc-common/protocols/aidlc-validator-protocol.md` for how the validator interprets sectional rules.
+
+### Available lenses
+
+| Lens | Applies To | Default Activation | Status |
+|---|---|---|---|
+| aidlc-owasp | all | true | ✅ |

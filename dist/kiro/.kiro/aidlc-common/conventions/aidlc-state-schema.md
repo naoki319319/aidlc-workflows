@@ -11,12 +11,28 @@ intent: <intent-name>
 created: <timestamp>
 updated: <timestamp>
 
+## Active Lenses
+
+| Lens | Activated | Answers |
+|---|---|---|
+| <lens-name> | <timestamp> | <answers-file-path or —> |
+
 ## Workflow Progress
 
 | Skill | Step | Status | Attempt | Artifacts |
 |---|---|---|---|---|
 | <skill-name> | <step> | <status> | <n> | <comma-separated bare filenames or —> |
 ```
+
+## Active Lenses section
+
+The `## Active Lenses` table records which lenses are active for this intent. It is written by `workflow-composition` during its execution step. Each row contains:
+
+- **Lens** — the lens name (e.g., `owasp`)
+- **Activated** — timestamp when the lens was activated
+- **Answers** — path to the lens's one-time clarification answers file (relative to intent root), or `—` if no questions were asked
+
+The orchestrator reads this table to determine which lens SKILL.md and validation-spec.md files to inject into builder and validator invocations.
 
 ## Rules
 

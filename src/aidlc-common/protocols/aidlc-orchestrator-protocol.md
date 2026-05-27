@@ -86,6 +86,7 @@ Use `invokeSubAgent` with name `aidlc-builder-agent`. Include in the prompt:
 - Answered question file path — for clarification-answered invocations
 - Approved plan file path — for execution invocations
 - Validation report path — for fix invocations
+- Active lens files — for each lens listed in `intent-state.md` under `## Active Lenses`: include `skills/<lens-name>/SKILL.md` and the lens answers file (if it exists)
 
 ### Invoking the validator
 
@@ -97,6 +98,7 @@ Use `invokeSubAgent` with name `aidlc-validator-agent`. Include in the prompt:
 - Answered question file path
 - Skill output directory path
 - Skill scripts directory path (`skills/<skill-name>/scripts/`) if it exists
+- Active lens validation specs — for each lens listed in `intent-state.md` under `## Active Lenses`: include `skills/<lens-name>/validation-spec.md`
 
 ### process_checker contract
 
@@ -166,7 +168,32 @@ Skills that run multiple times within the same phase use `--scope <scope-name>` 
 
 The §3 flow is identical — just scoped to one instance at a time.
 
-## 6. See Also
+## 6. Lenses
+
+Lenses are skills with `type: lens` that apply a perspective across the entire lifecycle. They do not run as discrete steps — they augment every builder and validator invocation.
+
+### Activation
+
+Lenses are activated during `workflow-composition`. The orchestrator reads the `## Active Lenses` table in `intent-state.md` to determine which lenses are active. `workflow-composition` writes this table during its execution step.
+
+### Injection
+
+For every builder and validator invocation in the §3 loop:
+
+1. Read `intent-state.md` → `## Active Lenses` table.
+2. For each active lens where the current stage is in the lens's `applies-to` list (or `applies-to` is `"all"`):
+   - **Builder:** include `skills/<lens-name>/SKILL.md` and the lens answers file.
+   - **Validator:** include `skills/<lens-name>/validation-spec.md`.
+
+### Lens applicability
+
+If a lens's `applies-to` field lists specific stages, only inject it when the current skill's `stage` matches one of those stages. If `applies-to` is `"all"`, inject it for every skill.
+
+### Exception
+
+Lenses are NOT injected during the bootstrap pre-loop (§1.1). They take effect from the first downstream skill onwards — after `workflow-composition` has activated them.
+
+## 7. See Also
 
 - `aidlc-common/protocols/aidlc-builder-protocol.md` — builder behaviour
 - `aidlc-common/protocols/aidlc-validator-protocol.md` — validator behaviour

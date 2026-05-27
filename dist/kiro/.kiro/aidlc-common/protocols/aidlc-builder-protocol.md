@@ -10,6 +10,7 @@ The builder receives from the orchestrator:
 
 - Input file paths (one or more)
 - Path to `aidlc-common/conventions/aidlc-folder-structure.md`
+- Active lens files (zero or more): each active lens's `SKILL.md` (definitions and principles) and its one-time answers file
 
 Each invocation may also include:
 - Answered question file path (after clarification)
@@ -101,6 +102,7 @@ Skip this step entirely when the skill's `plan-creation: "false"` — go straigh
    - **functional-design**: technology-agnostic domain/business logic only.
 5. **Gap handling.** If you discover a requirement or capability not covered by the inputs, raise it as a follow-up question. Do not silently add functionality beyond what is documented upstream.
 6. **Brownfield context.** When a skill's prerequisites mention brownfield, accept brownfield context from any available source: RE-kb, reverse-engineering artifacts, org-level knowledge base, or LLM analysis of the existing codebase. Do not restate this in the skill's `SKILL.md`.
+7. **Lens application.** When active lens files are provided, read each lens's SKILL.md to understand its principles and definitions. Apply the lens's perspective to the current stage's artifacts — interpret the generic principles in context of whatever you are currently producing. Lens guidance is additive: it does not override the stage skill's instructions but augments them with additional considerations. If a lens principle conflicts with the stage skill's instructions, flag the conflict as a clarification question rather than silently resolving it.
 
 ## 4. State File Responsibilities
 

@@ -37,6 +37,13 @@ Apply §1 to evaluate every catalogue skill against the intent. Derive what you 
 - For a tiny bug fix, should user-stories or application-design be skipped?
 - Any per-skill flag overrides (`plan-verification`, `artefact-verification`)?
 
+Additionally, evaluate lenses from the catalogue's "Lenses" section:
+
+- Which lenses should be active for this intent? Present available lenses with their purpose and default-activation status.
+- For lenses with `default-activation: "true"`, confirm activation unless the intent clearly doesn't warrant it (e.g., OWASP for a documentation-only change).
+- For lenses with `default-activation: "false"`, ask whether the human wants to opt in.
+- For each activated lens, ask the lens's own Question Guidance (from its SKILL.md) to tailor the lens to this intent. Record answers in `bootstrap/workflow-composition/lens-<lens-name>-answers.md`.
+
 ## 1. Composition Rules
 
 1. Start from the catalogue; evaluate each skill against the intent. Never assume a fixed pipeline.
@@ -154,9 +161,17 @@ When this skill runs, `workflow.md` is a stub containing only the line that invo
 
 Routing flags are required for non-inception skills, per `aidlc-workflow-format.md`: construction skills use `--unit <unit>` (per-unit) or `--phase construction` (single pass); operations skills use `--phase operations`; inception skills omit both.
 
+### intent-state.md — Active Lenses table
+
+Write the `## Active Lenses` table to `intent-state.md` with one row per activated lens. Format per `aidlc-state-schema.md`. This table is the orchestrator's source for lens injection throughout the intent.
+
+### lens-<lens-name>-answers.md (in this skill's output dir, one per activated lens)
+
+For each activated lens that has Question Guidance, record the one-time clarification answers. These files are passed to the builder alongside the lens's SKILL.md on every invocation.
+
 ### workflow-rationale.md (in this skill's output dir)
 
-One short bullet per skill explaining inclusion or skip, grouped by phase.
+One short bullet per skill explaining inclusion or skip, grouped by phase. Additionally, one bullet per lens explaining activation or deactivation.
 
 ## Validation
 

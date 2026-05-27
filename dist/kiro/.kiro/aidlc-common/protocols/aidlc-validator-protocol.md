@@ -13,6 +13,7 @@ The validator receives from the orchestrator:
 - Upstream artifact paths (for traceability checks) — listed in the skill's `validation-spec.md` "Inputs" section
 - Skill output directory path
 - Skill scripts directory path (may be absent if the skill has no scripts)
+- Active lens validation specs (zero or more): each active lens's `validation-spec.md`
 
 ## 2. Protocol
 
@@ -23,6 +24,11 @@ The validator receives from the orchestrator:
 5. Run every script in the skill's `scripts/` directory **exactly once**. Capture output and exit code of each. If the directory is absent or empty, record "no scripts". If any script fails, the overall validation status MUST be `fail` regardless of your other findings — but do not stop; run the remaining scripts first.
 6. Validate:
    - **Spec compliance** — every rule in `validation-spec.md` is checked against the artifacts.
+   - **Lens compliance** — lens `validation-spec.md` files may organize rules into sections by stage applicability. The validator checks:
+     - All rules under the `### All Stages` section (always checked when the lens is active).
+     - All rules under any section header whose comma-separated stage list includes the current skill's stage (e.g., if the current stage is `application-design` and a section is headed `### application-design, functional-design, code-generation`, check those rules).
+     - Rules in sections whose stage list does NOT include the current stage are skipped entirely — they are not checked and not reported.
+     - Lens rule failures within applicable sections carry the same weight as stage-native rule failures.
    - **Script results** — fold the exit codes captured in step 5 into the findings. Do not re-run the scripts.
    - **Clarification consistency** — artifacts are consistent with the answers in the question file.
    - **Completeness** — gaps the spec may not have anticipated (missing coverage, unstated assumptions, logical inconsistencies).
@@ -39,8 +45,9 @@ Write in whatever markdown format is natural. Include:
 
 - **Status:** `pass` or `fail`
 - **Rules checked:** list of validation-spec rules with pass/fail per rule
+- **Lens rules checked:** for each active lens, list of lens validation-spec rules with pass/fail per rule
 - **Scripts invoked:** list of every script in `scripts/` with exit code and output
-- **Findings:** for each failure, the rule violated (or script that failed), the artifact and section where the violation occurs, and a description of the issue
+- **Findings:** for each failure, the rule violated (or script that failed), the artifact and section where the violation occurs, and a description of the issue. For lens rule failures, prefix with the lens name (e.g., `[owasp] Rule 3: ...`)
 - **Recommendations:** suggested fixes (the validator does not fix, only recommends)
 
 ### 3.2 Machine-Readable Block
@@ -52,6 +59,7 @@ At the very end of the report, append a plain-text block with fixed delimiters. 
 STATUS: PASS
 TOOLS: verify-structure.sh,check-coverage.py
 RULES: 1,2,3,4,5
+LENS-RULES: owasp:1,2,3,4,5;accessibility:1,2,3
 ---END-PROCESS-CHECK-DATA---
 ```
 
@@ -59,6 +67,7 @@ Rules:
 - `STATUS` must be exactly `PASS` or `FAIL` (uppercase)
 - `TOOLS` is a comma-separated list of script filenames that were executed. If no scripts exist, use `TOOLS: none`. (The field is named `TOOLS` for backward compatibility with process_checker; it holds the `scripts/` filenames.)
 - `RULES` is a comma-separated list of rule numbers from `validation-spec.md` that were checked
+- `LENS-RULES` is a semicolon-separated list of `<lens-name>:<comma-separated rule numbers>` for each active lens. Rule numbers are reported as the union of all applicable sections (`All Stages` + matching stage sections), numbered sequentially across applicable sections. For example, if "All Stages" has 4 rules and the matching stage section has 3 rules, report `owasp:1,2,3,4,5,6,7`. Rules from non-applicable sections are excluded from the count entirely. If no lenses are active, use `LENS-RULES: none`.
 - Delimiters must appear exactly as shown
 - This block must be the last thing in the file
 
