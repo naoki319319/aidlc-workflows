@@ -8,4 +8,4 @@ clean:
 	rm -rf $(DIST)
 
 build-kiro:
-	@bash targets/kiro/build.sh
+	@bash src/kiro/build.sh
