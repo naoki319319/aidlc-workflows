@@ -57,12 +57,12 @@ All skills we supply are prefixed `aidlc-` to distinguish them from customer-con
 
 The bootstrap phase runs once per intent. The orchestrator drives `intent-bootstrap` outside `process_checker` (it has to — the file `process_checker` reads doesn't exist yet). After `intent-bootstrap` completes, the intent skeleton exists with a stub `workflow.md` containing only the `workflow-composition` line. From there, `workflow-composition` runs through the standard loop and rewrites `workflow.md` with the chosen downstream skills. Setup skills are never present in `workflow.md`.
 
-Both setup skills set `human-clarification: false` and `plan-creation: false` because their decisions follow rote patterns: question files are auto-answered with the builder's recommendations (recorded for audit), planning is skipped, and execution proceeds directly. `workflow-composition` keeps `artefact-verification: true` so the human still approves the composed workflow.
+Both setup skills set `plan-creation: false` because planning is not needed for bootstrap decisions. `intent-bootstrap` sets `human-clarification: false` because its decisions follow rote patterns (question files are auto-answered with the builder's recommendations, recorded for audit). `workflow-composition` sets `human-clarification: true` because it asks critical decisions — which skills to include, which lenses to activate, and lens-specific tailoring questions — that require human judgement. `workflow-composition` also keeps `artefact-verification: true` so the human approves the composed workflow.
 
 | Skill | Stage | Human-Clar | Plan | Artefact-Verify | Status |
 |---|---|---|---|---|---|
 | aidlc-intent-bootstrap     | intent-bootstrap     | false | false | false | ✅ |
-| aidlc-workflow-composition | workflow-composition | false | false | true  | ✅ |
+| aidlc-workflow-composition | workflow-composition | true  | false | true  | ✅ |
 
 ---
 

@@ -8,7 +8,7 @@ metadata:
   phase: bootstrap
   stage: workflow-composition
   per-unit: "false"
-  human-clarification: "false"
+  human-clarification: "true"
   plan-creation: "false"
   plan-verification: "false"
   artefact-verification: "true"
