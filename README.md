@@ -89,23 +89,27 @@ The orchestrator right-sizes the workflow to your intent. You approve before it 
 The source is platform-agnostic. Build scripts transform it for specific targets:
 
 - **Kiro IDE** — `node build/kiro-ide/build.js` → `dist/kiro-ide/.kiro/`
-- **Claude Code** — (planned)
+- **Claude Code** — `node build/claude-code/build.js` → `dist/claude-code/.claude/`
 
 ## Getting Started
 
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/)
-- [Kiro IDE](https://kiro.dev/) or another supported platform
+- [Kiro IDE](https://kiro.dev/) or [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
 
 ### Build and Install (Kiro)
 
 ```bash
-# Build
 node build/kiro-ide/build.js
-
-# Install — copy to your project
 cp -R dist/kiro-ide/.kiro /path/to/your/project/
+```
+
+### Build and Install (Claude Code)
+
+```bash
+node build/claude-code/build.js
+cp -R dist/claude-code/.claude /path/to/your/project/
 ```
 
 ### Usage

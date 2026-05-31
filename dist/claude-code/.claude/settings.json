@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[AI-DLC] Sub-agent completed. Run process checker: node .claude/tools/process-checker.js <intent-dir>' >> .claude/agent.log"
+          }
+        ]
+      }
+    ]
+  }
+}

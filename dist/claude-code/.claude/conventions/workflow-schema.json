@@ -1,0 +1,57 @@
+{
+  "title": "Composed Workflow",
+  "description": "The adaptive workflow composed for a specific intent. Persisted at workflow.json in the intent directory.",
+  "type": "object",
+  "required": ["intent", "path", "composed", "stages"],
+  "properties": {
+    "intent": {
+      "type": "string",
+      "description": "Intent name/slug"
+    },
+    "path": {
+      "type": "string",
+      "description": "Which standard path was chosen (A, B, C, D, or custom)"
+    },
+    "composed": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the workflow was composed"
+    },
+    "stages": {
+      "type": "array",
+      "description": "Ordered list of stages to execute",
+      "items": {
+        "type": "object",
+        "required": ["stage", "owner"],
+        "properties": {
+          "stage": {
+            "type": "string",
+            "description": "Stage name (must match a stage directory under stages/)"
+          },
+          "owner": {
+            "type": "string",
+            "description": "Persona assigned as owner for this stage"
+          },
+          "contributors": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Personas assigned as contributors"
+          },
+          "rationale": {
+            "type": "string",
+            "description": "Why this stage was included (or why it was ordered here)"
+          },
+          "skipped": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, this stage was considered but explicitly skipped"
+          },
+          "skip-reason": {
+            "type": "string",
+            "description": "Why the stage was skipped (only when skipped: true)"
+          }
+        }
+      }
+    }
+  }
+}
