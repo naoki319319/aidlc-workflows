@@ -28,7 +28,6 @@ aidlc-sw-dev-engineer-agent
 
 ## Contributors
 
-- aidlc-security-architect-agent: validate secure coding patterns, input validation, secrets handling
 - aidlc-systems-architect-agent: validate code aligns with design artifacts
 
 ## Reviewer

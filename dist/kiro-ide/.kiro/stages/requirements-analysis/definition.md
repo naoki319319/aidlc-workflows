@@ -21,7 +21,6 @@ aidlc-product-manager-agent
 
 ## Contributors
 
-- aidlc-security-architect-agent
 - aidlc-systems-architect-agent
 
 ## Reviewer

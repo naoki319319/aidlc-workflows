@@ -10,11 +10,11 @@ The framework has five building blocks: Stages, Personas, Skills, Tools, and Con
 
 **Stages** are tasks to be done. A stage defines what goes in, what comes out, and who owns it. It does not say how to do the work — that's the persona's job. Each stage has exactly one owner (the persona who produces the artifact), zero or more contributors (personas who review from a specific lens), and an optional reviewer (the quality gate). Example: `requirements-analysis` takes an intent and produces `requirements.md`.
 
-**Personas** are specialized agents with a worldview and domain expertise. They are simulated professionals — a Product Manager thinks in user value and scope discipline, a Security Architect thinks in threats and trust boundaries. Multiple personas collaborate at a stage through mob elaboration.
+**Personas** are specialized agents with a worldview and domain expertise. They are simulated professionals — a Product Manager thinks in user value and scope discipline, a Systems Architect thinks in trade-offs and constraints. Multiple personas collaborate at a stage through mob elaboration.
 
 **Skills** are reusable capabilities personas carry. A skill defines principles and knowledge that shape how work is done. Skills are not tied to one stage — they transfer wherever relevant. Common skills (under `skills/common/`) are auto-included in every persona at build time.
 
-**Tools** are computational instruments that personas use during their work — things an LLM can't do alone. Security scanners, dependency checkers, build runners. A persona's skills tell it what to look for; a tool provides the raw data.
+**Tools** are computational instruments that personas use during their work — things an LLM can't do alone. Dependency checkers, build runners, linters. A persona's skills tell it what to look for; a tool provides the raw data.
 
 **Conventions** are schemas and format definitions for runtime artifacts (state tracking, audit logs, folder structure, question format). They are the source of truth for where things go and what format they take.
 
@@ -63,7 +63,6 @@ src/
 ├── personas/                        ← agent definitions (YAML)
 │   ├── aidlc-product-manager-agent.yaml
 │   ├── aidlc-systems-architect-agent.yaml
-│   ├── aidlc-security-architect-agent.yaml
 │   ├── aidlc-ux-designer-agent.yaml
 │   ├── aidlc-architecture-reviewer-agent.yaml
 │   └── aidlc-sw-quality-reviewer.yaml
@@ -135,7 +134,7 @@ Artifacts this stage can produce. The owner's plan determines which are relevant
 aidlc-systems-architect-agent
 
 ## Contributors
-- aidlc-security-architect-agent: [optional brief — what lens to apply]
+- aidlc-systems-architect-agent: [optional brief — what lens to apply]
 
 ## Reviewer
 aidlc-architecture-reviewer-agent

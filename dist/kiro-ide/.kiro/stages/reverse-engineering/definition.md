@@ -27,7 +27,7 @@ aidlc-systems-architect-agent
 
 ## Contributors
 
-- aidlc-security-architect-agent
+(none)
 
 ## Reviewer
 

@@ -23,7 +23,6 @@ aidlc-ux-designer-agent
 ## Contributors
 
 - aidlc-product-manager-agent
-- aidlc-security-architect-agent
 
 ## Reviewer
 

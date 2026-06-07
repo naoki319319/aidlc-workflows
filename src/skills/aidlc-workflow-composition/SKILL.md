@@ -61,7 +61,7 @@ These are internal reasoning aids. Do not reference them by name to the human.
 >
 > Orchestrator: "Story-2041 — adding a dropdown to an existing page. Small brownfield UI change. I need the story details. Would you like to paste it, point me to a file, or should I generate it from what you've described?
 >
-> For the implementation I'd suggest: code-generation → build-and-test. Do you want the code reviewed by a security engineer or solutions architect, or is this straightforward enough to skip reviews?"
+> For the implementation I'd suggest: code-generation → build-and-test. Do you want the code reviewed by a solutions architect, or is this straightforward enough to skip reviews?"
 
 **Example 3: Greenfield system**
 > Human: "Build a library management app with admin and member roles"
@@ -70,17 +70,17 @@ These are internal reasoning aids. Do not reference them by name to the human.
 >
 > | # | Stage | Owner | Contributors | Reviewer |
 > |---|---|---|---|---|
-> | 1 | Requirements analysis | aidlc-product-manager-agent | aidlc-security-architect-agent, aidlc-systems-architect-agent | aidlc-sw-quality-reviewer |
-> | 2 | Story generation | aidlc-product-manager-agent | aidlc-security-architect-agent | aidlc-sw-quality-reviewer |
+> | 1 | Requirements analysis | aidlc-product-manager-agent | aidlc-systems-architect-agent | aidlc-sw-quality-reviewer |
+> | 2 | Story generation | aidlc-product-manager-agent | aidlc-systems-architect-agent | aidlc-sw-quality-reviewer |
 > | 3 | Wireframe design | aidlc-ux-designer-agent | aidlc-product-manager-agent, aidlc-systems-architect-agent | aidlc-sw-quality-reviewer |
-> | 4 | Application design | aidlc-systems-architect-agent | aidlc-security-architect-agent | aidlc-architecture-reviewer-agent |
+> | 4 | Application design | aidlc-systems-architect-agent | — | aidlc-architecture-reviewer-agent |
 > | 5 | Code generation | (tbd) | — | — |
 > | 6 | Build and test | (tbd) | — | — |
 >
 > Rationale: full system with auth, integrations, and two user roles warrants the complete workflow with reviews.
 >
 > A couple of questions:
-> 1. Do you want security and architecture review at each stage? I'd recommend it, but if you want a faster pass I can skip.
+> 1. Do you want architecture review at each stage? I'd recommend it, but if you want a faster pass I can skip.
 > 2. Any existing artifacts (requirements, wireframes, designs) you want to bring in?"
 
 **Example 4: Human has artifacts**
@@ -95,7 +95,7 @@ These are internal reasoning aids. Do not reference them by name to the human.
 >
 > Orchestrator: "Wireframes first — makes sense for a UI-heavy app. I'll compose: wireframe-design as the primary stage.
 >
-> Do you want a security review on the wireframes, or keep it lightweight?"
+> Do you want an architecture review on the wireframes, or keep it lightweight?"
 
 **Example 6: Migration**
 > Human: "Migrate our Express API to Fastify"

@@ -24,7 +24,7 @@ aidlc-systems-architect-agent
 
 ## Contributors
 
-- aidlc-security-architect-agent: validate network boundaries, access controls, secrets management
+(none)
 
 ## Reviewer
 
