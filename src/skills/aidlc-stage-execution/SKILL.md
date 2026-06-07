@@ -1,5 +1,5 @@
 ---
-name: stage-execution
+name: aidlc-stage-execution
 description: |
   AI-DLC stage execution. Defines how to drive each stage through its cycle — state transitions, persona invocation format, and rules. Read by the orchestrator when executing stages.
 ---

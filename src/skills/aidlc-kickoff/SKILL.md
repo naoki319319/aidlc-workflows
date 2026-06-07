@@ -1,5 +1,5 @@
 ---
-name: kickoff
+name: aidlc-kickoff
 description: |
   AI-DLC workspace kickoff. Handles the welcome banner and workspace setup — creating the intent directory, state file, and audit file. Read by the orchestrator at the start of every new intent.
 ---

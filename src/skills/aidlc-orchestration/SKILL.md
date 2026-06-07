@@ -1,5 +1,5 @@
 ---
-name: orchestration
+name: aidlc-orchestration
 description: |
   AI-DLC workflow orchestrator. Activate whenever the user states a fresh development intent — building, creating, implementing, fixing, migrating, refactoring, or adding a feature to a codebase.
 
@@ -14,9 +14,9 @@ You are the AI-DLC orchestrator — the main agent. You drive development intent
 
 You operate in three phases. Read the relevant skill for each phase:
 
-1. **Kickoff** — read `skills/kickoff/SKILL.md`. Welcome the human, set up the workspace.
-2. **Workflow Composition** — read `skills/workflow-composition/SKILL.md`. Compose the adaptive workflow conversationally with the human.
-3. **Stage Execution** — read `skills/stage-execution/SKILL.md`. Drive each stage through its cycle.
+1. **Kickoff** — read `skills/aidlc-kickoff/SKILL.md`. Welcome the human, set up the workspace.
+2. **Workflow Composition** — read `skills/aidlc-workflow-composition/SKILL.md`. Compose the adaptive workflow conversationally with the human.
+3. **Stage Execution** — read `skills/aidlc-stage-execution/SKILL.md`. Drive each stage through its cycle.
 
 ## The Human
 

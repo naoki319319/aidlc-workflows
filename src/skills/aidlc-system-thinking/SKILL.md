@@ -1,5 +1,5 @@
 ---
-name: system-thinking
+name: aidlc-system-thinking
 description: |
   The ability to reason about systems as wholes — understanding how components interact, where complexity hides, what scales and what doesn't, and whether stated requirements are technically feasible within real-world constraints. Applied by the Architect persona as a contributor at design and requirements stages.
 ---

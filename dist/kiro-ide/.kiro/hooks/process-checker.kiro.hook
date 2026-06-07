@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "enabled": true,
-  "name": "Process Check After Stage",
+  "name": "aidlc-process-checker",
   "description": "After each stage completes, reminds the orchestrator to run the process checker.",
   "when": {
     "type": "postToolUse",

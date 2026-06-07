@@ -1,5 +1,5 @@
 ---
-name: prioritization
+name: aidlc-prioritization
 description: |
   The skill of weighing risk, outcome, and reward to determine what matters most. Applied when ordering requirements, stories, or design decisions. Every persona uses this to focus effort where it counts.
 ---

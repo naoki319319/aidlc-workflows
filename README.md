@@ -70,7 +70,7 @@ src/
 ├── skills/                          ← domain skills (SKILL.md)
 │   ├── common/                      ← auto-included in ALL personas at build time
 │   │   ├── aidlc-work-method/
-│   │   └── prioritization/
+│   │   └── aidlc-prioritization/
 │   ├── aidlc-requirements-analysis-skill/
 │   ├── aidlc-reverse-engineering-skill/
 │   ├── aidlc-domain-modeling-skill/

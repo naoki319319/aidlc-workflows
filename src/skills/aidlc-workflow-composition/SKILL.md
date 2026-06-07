@@ -1,5 +1,5 @@
 ---
-name: workflow-composition
+name: aidlc-workflow-composition
 description: |
   AI-DLC workflow composition. Composes the adaptive workflow conversationally with the human — selecting stages, assigning personas, and handling artifact sourcing. Read by the orchestrator after kickoff.
 ---
