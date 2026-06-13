@@ -167,13 +167,17 @@ function loadWorkflow(intentDir) {
   return readJson(wfPath);
 }
 
-function appendAudit(intentDir, stage, presented, decision) {
+function appendAudit(intentDir, event, fields) {
   const auditPath = path.join(intentDir, "audit", "audit.json");
   let audit = readJson(auditPath);
   if (!audit) {
     audit = { intent: path.basename(intentDir), entries: [] };
   }
-  audit.entries.push({ timestamp: now(), stage, presented, decision });
+  audit.entries.push({
+    timestamp: now(),
+    event,
+    ...fields,
+  });
   writeJson(auditPath, audit);
 }
 
@@ -289,14 +293,21 @@ function handleTransition(args) {
   stage.status = toStatus;
   saveState(intentDir, state);
 
-  // Audit entry for human-facing decisions
-  if (toStatus === "complete" || toStatus === "changes-requested") {
-    appendAudit(
-      intentDir,
-      stageName,
-      `Stage '${stageName}' presented for approval`,
-      args.decision || toStatus
-    );
+  // Emit typed audit events based on transition
+  if (previousStatus === "pending" && toStatus === "plan-and-clarify") {
+    appendAudit(intentDir, "STAGE_STARTED", { stage: stageName, actor, unit: unit || undefined });
+  }
+  if (toStatus === "complete") {
+    appendAudit(intentDir, "STAGE_COMPLETED", { stage: stageName, decision: args.decision });
+  }
+  if (toStatus === "complete" && args.decision) {
+    appendAudit(intentDir, "HUMAN_DECISION", { stage: stageName, presented: "Stage artifact for approval", decision: args.decision });
+  }
+  if (toStatus === "changes-requested") {
+    appendAudit(intentDir, "HUMAN_DECISION", { stage: stageName, presented: "Stage artifact for approval", decision: args.decision || "changes-requested" });
+  }
+  if (toStatus === "clarification-provided" && previousStatus === "clarification-asked") {
+    appendAudit(intentDir, "HUMAN_INPUT", { stage: stageName, context: "clarification-answers" });
   }
 
   succeed(`${previousStatus} → ${toStatus}`, {
@@ -576,6 +587,39 @@ function handleCheckResume(args) {
   succeed("All intents complete.", { hasActiveIntent: false });
 }
 
+// Valid audit event types
+const VALID_EVENTS = [
+  "WORKFLOW_STARTED",
+  "WORKFLOW_COMPLETED",
+  "STAGE_STARTED",
+  "STAGE_COMPLETED",
+  "HUMAN_DECISION",
+  "HUMAN_INPUT",
+  "VALIDATION_PASSED",
+  "VALIDATION_FAILED",
+  "LEARNING_CAPTURED",
+];
+
+function handleAudit(args) {
+  const intentDir = resolveIntentDir(args);
+  const event = args.event;
+
+  if (!event) fail("Missing --event <event-type>", 2);
+  if (!VALID_EVENTS.includes(event)) {
+    fail(`Invalid event type '${event}'. Valid events: [${VALID_EVENTS.join(", ")}]`);
+  }
+
+  // Build fields from remaining args (exclude intent and event)
+  const fields = {};
+  for (const [key, value] of Object.entries(args)) {
+    if (key === "intent" || key === "event") continue;
+    fields[key] = value;
+  }
+
+  appendAudit(intentDir, event, fields);
+  succeed(`Audit event '${event}' recorded.`, { event, fields });
+}
+
 // --- Main Dispatch ---
 
 const subcommand = process.argv[2];
@@ -602,6 +646,9 @@ switch (subcommand) {
     break;
   case "allowed":
     handleAllowed(args);
+    break;
+  case "audit":
+    handleAudit(args);
     break;
   default:
     console.error(`Usage: node state-manager.js <subcommand> [options]
@@ -650,6 +697,14 @@ Subcommands:
     --stage <name>       Stage name (required)
     --actor <role>       Filter by actor (optional)
     --unit <name>        Unit name (for per-unit stages)
+
+  audit                  Record a typed audit event
+    --intent <dir>       Intent directory (required)
+    --event <type>       Event type (required). Valid: WORKFLOW_STARTED, WORKFLOW_COMPLETED,
+                         STAGE_STARTED, STAGE_COMPLETED, HUMAN_DECISION, HUMAN_INPUT,
+                         VALIDATION_PASSED, VALIDATION_FAILED, LEARNING_CAPTURED
+    --stage <name>       Stage context (optional, depends on event)
+    --<any key> <value>  Additional fields recorded with the event
 `);
     process.exit(2);
 }
