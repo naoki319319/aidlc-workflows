@@ -115,7 +115,7 @@ Once the human approves (or modifies and approves), ask about templates:
 
 > "Do you have a template or format preference for this stage's output? (provide a file, paste it, or say 'skip')"
 
-If provided, save to `org-ai-kb/<team>/memory/templates/<output-filename>`. If skipped, use existing team template or framework default. **Do NOT skip this question for guided and supervised stages.**
+If provided, save to `org-ai-kb/<team>/memory/templates/<output-filename>`. If skipped, use existing team template or framework default. **Ask this for ALL stages regardless of autonomy mode** — this is the human's chance to influence output format before the stage runs.
 
 Then register the stage in BOTH workflow.json and state.json:
 
