@@ -24,11 +24,7 @@ From workspace state + intent language + existing artifacts, classify internally
 | Exploration | prototype, POC, spike, experiment, test, demo, learning | requirements → code | no reviewer |
 | Wireframes only | UI design, screen flows, mockups | wireframe-design | product-lead review |
 
-## Step 2: Check Team Preferences
-
-Read `org-ai-kb/<team>/memory/preferences.md` and `org-ai-kb/<team>/memory/corrections.md`.
-
-**Autonomy modes (know these — don't ask the human to clarify):**
+## Autonomy Modes (reference — do not ask the human to clarify these)
 
 | Mode | Meaning |
 |---|---|
@@ -36,20 +32,11 @@ Read `org-ai-kb/<team>/memory/preferences.md` and `org-ai-kb/<team>/memory/corre
 | `guided` | Human answers questions, artifact auto-approves (no human review of output) |
 | `full` | No human involvement — AI self-answers questions and auto-approves |
 
-If preferences exist, surface them for confirmation:
+## Step 2: Apply Learned Preferences (internal — no interaction)
 
-> "I see these team preferences:
-> - [list each preference from the file]
->
-> Want to keep these for this intent, or change anything?"
+Read `org-ai-kb/<team>/memory/preferences.md`. If it contains a structured preference table for the deduced category, use those defaults (autonomy, reviewers, contributors) when proposing stages. If no preferences exist for this category, use framework defaults. Do NOT surface preferences to the human — just apply them silently. The human can override per-stage during proposal; overrides are captured by the learnings hook for future intents.
 
-If no preferences exist (file empty or missing):
-
-> "No team preferences set yet. Want to set any defaults for autonomy, formats, or stage composition? Or just proceed and I'll propose as we go?"
-
-**STOP HERE. Wait for the human to confirm before continuing.**
-
-Apply confirmed preferences to all downstream decisions: autonomy per stage, output formats, contributor/reviewer defaults, depth. If the human changes a preference for this intent, note whether it should also update the preferences file for future intents.
+Also read `org-ai-kb/<team>/memory/corrections.md` and apply any NEVER/ALWAYS rules.
 
 ## Step 3: Surface Integrations and Confirm Context
 

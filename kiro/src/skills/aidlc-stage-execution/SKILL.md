@@ -14,10 +14,21 @@ For each stage:
 
 1. Read **only** the current stage's `definition.md` (do NOT read all stage definitions upfront)
 2. Verify inputs exist (outputs from prior stages)
-3. **Stage brief** — compose a brief statement for the human explaining what will happen in this stage: what inputs are being used, what will be produced, and what's needed from them (if anything). Derive this from the definition and current context. Present it before starting work.
+3. **Stage brief + template check:**
+   - Compose a brief statement explaining what will happen: inputs, outputs, what's needed from the human.
+   - **If this stage's autonomy is guided or supervised:** Ask "Do you have a template or format preference for this stage's output? (provide file/paste, or skip)" If provided, save to `org-ai-kb/<team>/memory/templates/<output-filename>` for future use.
+   - **If full autonomy:** Skip the template question (templates were requested once before the first stage — see below).
 4. Drive the stage execution cycle (below)
 5. After stage completes, update `state/state.json` outputs array with each output as `{"name": "<filename>", "locationRelativeToIntentRoot": "<path>/"}`
 6. **Return to workflow composition** — after every stage completion, invoke `aidlc-workflow-composition` to propose the next stage. Do NOT auto-advance to the next stage mechanically. Composition proposes, human approves, then execution begins.
+
+## Full-Autonomy Template Gate
+
+When the entire workflow is set to full autonomy, there is ONE interaction point before execution begins:
+
+> "You've chosen full autonomy — I'll run end-to-end without stopping. Before I begin: do you have any output templates to provide? (This is your only chance to influence formats — I won't stop between stages.)"
+
+If the human provides templates, save them to `org-ai-kb/<team>/memory/templates/`. If they skip, use existing team templates or framework defaults. Then run all stages without interaction.
 
 ## Checkpoint
 
