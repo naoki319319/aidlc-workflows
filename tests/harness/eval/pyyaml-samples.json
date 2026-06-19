@@ -1,0 +1,95 @@
+[
+{
+"data": {
+"run_folder": "consensus-median-40-conforming-runs",
+"promoted_at": "",
+"executor_model": "global.anthropic.claude-opus-4-6-v1",
+"execution": {
+"wall_clock_ms": 2648974,
+"total_tokens": 85565,
+"executor": {
+"input_tokens": 78628,
+"output_tokens": 7060,
+"total_tokens": 85565
+}
+},
+"context_size": {
+"max_tokens": 0
+},
+"unit_tests": {
+"passed": 114,
+"failed": 0,
+"pass_pct": 100.0,
+"coverage_pct": 97.0
+},
+"qualitative": {
+"overall_score": 0.7702,
+"inception_score": 0.7532
+}
+},
+"yaml": "run_folder: consensus-median-40-conforming-runs\npromoted_at: ''\nexecutor_model: global.anthropic.claude-opus-4-6-v1\nexecution:\n  wall_clock_ms: 2648974\n  total_tokens: 85565\n  executor:\n    input_tokens: 78628\n    output_tokens: 7060\n    total_tokens: 85565\ncontext_size:\n  max_tokens: 0\nunit_tests:\n  passed: 114\n  failed: 0\n  pass_pct: 100.0\n  coverage_pct: 97.0\nqualitative:\n  overall_score: 0.7702\n  inception_score: 0.7532\n"
+},
+{
+"data": {
+"status": "completed",
+"cases": [
+{
+"name": "health",
+"path": "/health",
+"method": "GET",
+"passed": true,
+"latency_ms": 5.2
+},
+{
+"name": "add",
+"passed": false,
+"failures": [
+"status mismatch"
+]
+}
+],
+"node_history": [
+"executor",
+"simulator",
+"executor"
+],
+"empty_list": [],
+"coverage_pct": null
+},
+"yaml": "status: completed\ncases:\n- name: health\n  path: /health\n  method: GET\n  passed: true\n  latency_ms: 5.2\n- name: add\n  passed: false\n  failures:\n  - status mismatch\nnode_history:\n- executor\n- simulator\n- executor\nempty_list: []\ncoverage_pct: null\n"
+},
+{
+"data": {
+"phases": [
+{
+"phase": "inception",
+"avg_overall": 0.9,
+"documents": [
+{
+"path": "inception/component.md",
+"intent_similarity": 0.95,
+"notes": "Good alignment overall."
+}
+]
+}
+],
+"unmatched_reference": [],
+"unmatched_candidate": [
+"x/y.md"
+]
+},
+"yaml": "phases:\n- phase: inception\n  avg_overall: 0.9\n  documents:\n  - path: inception/component.md\n    intent_similarity: 0.95\n    notes: Good alignment overall.\nunmatched_reference: []\nunmatched_candidate:\n- x/y.md\n"
+},
+{
+"data": {
+"a": 1.0,
+"b": 100.0,
+"c": -0.0,
+"slash": "construction/sci-calc/code.md",
+"quoted": "yes: no",
+"empty": "",
+"leading_zero": "007"
+},
+"yaml": "a: 1.0\nb: 100.0\nc: -0.0\nslash: construction/sci-calc/code.md\nquoted: 'yes: no'\nempty: ''\nleading_zero: '007'\n"
+}
+]
