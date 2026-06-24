@@ -27,10 +27,16 @@
 //
 // Each `fragments` entry's prose is the body H2 block headed `## fragment: <anchor>`.
 
-export const ALLOWED_ANCHORS = ["end-of-steps"] as const;
-// after-step:<n> / before-step:<n> are also allowed (validated by regex, not the
-// literal set, since they carry a number).
+// Anchors with no parameter. `after-questions` lands a fragment after the
+// stage's questions-generating step (the `### Step` whose heading mentions
+// "Questions"); `end-of-steps` appends at the end of the `## Steps` block.
+export const ALLOWED_ANCHORS = ["end-of-steps", "after-questions"] as const;
+// Parameterised anchors (validated by regex, not the literal set):
+//   after-step:<n> / before-step:<n> — relative to `### Step <n>`
+//   in:<Compartment>                 — append within a named `## <Compartment>`
+//                                      H2 block (e.g. in:Sensors, in:Learn)
 const STEP_ANCHOR_RE = /^(after-step|before-step):\d+$/;
+const COMPARTMENT_ANCHOR_RE = /^in:[A-Za-z][A-Za-z0-9 ]*$/;
 
 export type ContributionConsume = {
   artifact: string;
@@ -63,7 +69,11 @@ export type Contribution = {
 const KEBAB_RE = /^[a-z][a-z0-9-]*$/;
 
 function anchorValid(anchor: string): boolean {
-  return (ALLOWED_ANCHORS as readonly string[]).includes(anchor) || STEP_ANCHOR_RE.test(anchor);
+  return (
+    (ALLOWED_ANCHORS as readonly string[]).includes(anchor) ||
+    STEP_ANCHOR_RE.test(anchor) ||
+    COMPARTMENT_ANCHOR_RE.test(anchor)
+  );
 }
 
 // --- Parser (zero-dep, narrow — only the shapes the contribution format uses) ---
@@ -245,7 +255,10 @@ export function validateContribution(c: Contribution, ctx: ContributionContext):
   }
   for (const f of c.fragments) {
     if (!anchorValid(f.anchor)) {
-      errors.push(`fragment anchor "${f.anchor}" is not allowed (after-step:<n> | before-step:<n> | end-of-steps)`);
+      errors.push(
+        `fragment anchor "${f.anchor}" is not allowed ` +
+          `(after-step:<n> | before-step:<n> | end-of-steps | after-questions | in:<Compartment>)`,
+      );
     }
     if (!Number.isInteger(f.order)) errors.push(`fragment "${f.anchor}" order must be an integer`);
     if (!f.body) errors.push(`fragment "${f.anchor}" has no prose body (expected a "## fragment: ${f.anchor}" block)`);

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.9] - 2026-06-24
+
+Richer §4 contribution fragment anchors (issue #430 workstream B) plus the additive-only boundary made explicit. No runtime behaviour change; base trees byte-identical.
+
+* **New fragment anchors** for contributions, in addition to `after-step:<n>` / `before-step:<n>` / `end-of-steps`: `after-questions` (splice after a stage's questions-generating step) and `in:<Compartment>` (append at the end of a named `## <Compartment>` H2 block, e.g. `in:Sensors`, `in:Learn`). Lets a bundle enrich a stage's questions, sensors compartment, or learn ritual — not just insert a step.
+* **Additive-only boundary documented** (`docs/reference/18-extension-mechanism.md` §6, author guide): contributions can only ADD — never override or remove a core stage's fields, agent, or prose. A genuine need to change upstream behaviour is a framework design decision, not a bundle concern.
+* Author guide anchor catalog updated.
+
 ## [2.0.8] - 2026-06-24
 
 Adds extension author tooling and multi-tenant (cross-bundle) validation

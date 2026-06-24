@@ -196,14 +196,25 @@ function unionList(base: unknown, add: string[]): string[] {
 }
 
 // Splice fragment prose into a stage body at a fragment anchor. Anchors:
-//   after-step:<n>  → before the next "### " heading (or next "## " H2) after Step n
-//   before-step:<n> → immediately before "### Step <n>"
-//   end-of-steps    → before the first "## " H2 that follows the "## Steps" block
+//   after-step:<n>   → before the next "### "/"## " heading after Step n
+//   before-step:<n>  → immediately before "### Step <n>"
+//   after-questions  → after the questions-generating "### Step …" (heading
+//                      mentions "Question"), i.e. before the next "###"/"##"
+//   end-of-steps     → before the first "## " H2 that follows the "## Steps" block
+//   in:<Compartment> → at the end of the "## <Compartment>" H2 block (e.g.
+//                      in:Sensors, in:Learn) — before the next "## " or EOF
 function spliceFragment(body: string, frag: Fragment): string {
   const lines = body.split("\n");
   const block = ["", frag.body, ""]; // blank-line padded
   const insertAt = (idx: number): string =>
     [...lines.slice(0, idx), ...block, ...lines.slice(idx)].join("\n");
+  // First "## "/"### " heading at or after `from` (the block boundary / EOF).
+  const nextHeadingAfter = (from: number, level3 = true): number => {
+    for (let i = from; i < lines.length; i++) {
+      if (/^##\s/.test(lines[i]) || (level3 && /^###\s/.test(lines[i]))) return i;
+    }
+    return lines.length;
+  };
 
   const stepRe = (n: number) => new RegExp(`^###\\s+Step\\s+${n}\\b`);
   const m = frag.anchor.match(/^(after-step|before-step):(\d+)$/);
@@ -212,19 +223,27 @@ function spliceFragment(body: string, frag: Fragment): string {
     const stepIdx = lines.findIndex((l) => stepRe(n).test(l.trim()));
     if (stepIdx === -1) throw new Error(`fragment anchor "${frag.anchor}": no "### Step ${n}" in target body`);
     if (m[1] === "before-step") return insertAt(stepIdx);
-    // after-step: insert before the next ### or ## after this step
-    for (let i = stepIdx + 1; i < lines.length; i++) {
-      if (/^###\s/.test(lines[i]) || /^##\s/.test(lines[i])) return insertAt(i);
-    }
-    return insertAt(lines.length);
+    return insertAt(nextHeadingAfter(stepIdx + 1));
+  }
+  if (frag.anchor === "after-questions") {
+    // The questions-generating step is the "### Step …" whose heading mentions
+    // "Question(s)" (e.g. "### Step 4: Generate Questions").
+    const qIdx = lines.findIndex((l) => /^###\s.*Question/i.test(l.trim()));
+    if (qIdx === -1) throw new Error(`fragment anchor "after-questions": no questions step ("### … Question…") in target body`);
+    return insertAt(nextHeadingAfter(qIdx + 1));
   }
   if (frag.anchor === "end-of-steps") {
     const stepsIdx = lines.findIndex((l) => l.trim() === "## Steps");
     const from = stepsIdx === -1 ? 0 : stepsIdx + 1;
-    for (let i = from; i < lines.length; i++) {
-      if (/^##\s/.test(lines[i])) return insertAt(i);
-    }
-    return insertAt(lines.length);
+    return insertAt(nextHeadingAfter(from, false));
+  }
+  const inMatch = frag.anchor.match(/^in:(.+)$/);
+  if (inMatch) {
+    const compartment = inMatch[1].trim();
+    const h2Idx = lines.findIndex((l) => l.trim() === `## ${compartment}`);
+    if (h2Idx === -1) throw new Error(`fragment anchor "${frag.anchor}": no "## ${compartment}" compartment in target body`);
+    // Append at the end of that compartment — before the next "## " H2 or EOF.
+    return insertAt(nextHeadingAfter(h2Idx + 1, false));
   }
   throw new Error(`fragment anchor "${frag.anchor}" unsupported`);
 }

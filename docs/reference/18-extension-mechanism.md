@@ -396,29 +396,29 @@ dependency (`requiresBundle: ["compliance@^1"]`), checked at discovery — the s
 way harness manifests declare their shape, extended to bundle-to-bundle. Enables
 an ecosystem to layer.
 
-## 6. The honest caveat — structural vs prose contributions
+## 6. Contribution guarantees — structural vs prose, and the additive-only boundary
 
-Two surfaces are **agent-interpreted prose, not machine-parsed data**:
+A contribution's surfaces fall in two tiers:
 
-- **Required sections:** the tool only counts `≥2 H2`
-  (`core/tools/aidlc-sensor-required-sections.ts:75`); the per-stage override is
-  prose the LLM reads, not data the tool enforces.
-- **Questions:** pure body prose; the protocol states stages list "topic areas
-  and example questions… guidance, not a script" (`stage-protocol.md:257`).
+- **Structural contributions** (`produces` / `consumes` / `requires_stage` /
+  `sensors` / `required_sections`) — machine-merged into the compiled node and
+  validated; **full guarantee**. As of §4 (v2.0.7) `required_sections` is
+  **enforced**: the required-sections sensor reads the node's `required_sections`
+  (passed via `--required-sections`) and machine-checks each named `## ` H2, on
+  top of its ≥2-H2 default.
+- **Prose contributions** (`fragments` of step prose) — spliced into the stage
+  body at the declared anchor, ordered by `(order, bundle, anchor)`, then read by
+  the agent at runtime. Composed and ordered deterministically, but
+  **agent-interpreted** (best-effort), exactly like the stage's own step prose.
 
-So a contributed required-section or question is, today, **advisory** — nothing
-verifies a stranger's contribution. Make this an explicit, documented tier
-distinction:
-
-- **Structural contributions** (`produces`/`consumes`/`requires_stage`/`sensors`)
-  — machine-merged and validated; full guarantee.
-- **Prose contributions** (`questions`/`steps`) — composed and ordered but
-  agent-interpreted; best-effort.
-
-To make contributed required-sections genuinely _enforced_, promote per-stage
-required-sections to real machine-checked data the sensor consults (a per-stage
-section list, bundle-contributable). Decide explicitly per surface: enforced or
-guided. Authors must know which guarantee they get.
+**Additive-only is a hard boundary (the #6 non-goal).** A contribution can only
+*add*. It cannot override or remove a core stage's fields, change its
+`lead_agent`, relax a `consumes[].required`, or replace existing step prose. This
+is the deliberate core-immutability guarantee that keeps base trees
+byte-identical and the drift guard meaningful. If a genuine need to *change*
+upstream behavior appears (e.g. an operation phase that must alter, not just
+enrich, a construction stage), that is a framework-level design decision — a
+separate, auditable mechanism — never a quiet patch layer inside a bundle.
 
 ## 7. Worked example — the operation phase as first consumer
 

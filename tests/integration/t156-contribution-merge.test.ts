@@ -122,4 +122,19 @@ describe("t156 §4 contribution seam", () => {
       rmSync(tmp, { recursive: true, force: true });
     }
   });
+
+  // Workstream B (#5): the richer fragment anchors are accepted by the validator.
+  test("richer anchors validate (after-questions, in:Compartment) and bad ones reject", () => {
+    const mk = (anchor: string) =>
+      parseContribution(
+        `---\ntarget: nfr-requirements\nbundle: ops-min\nfragments:\n  - anchor: ${anchor}\n    order: 1\n---\n\n## fragment: ${anchor}\n\nbody\n`,
+      );
+    const ctx = { coreSlugs: new Set(["nfr-requirements"]), bundle: "ops-min" };
+    for (const ok of ["after-questions", "in:Sensors", "in:Learn", "after-step:6", "before-step:2", "end-of-steps"]) {
+      expect(validateContribution(mk(ok), ctx)).toEqual([]);
+    }
+    for (const bad of ["sideways", "in:", "after-step:x", "in:bad/name"]) {
+      expect(validateContribution(mk(bad), ctx).some((e) => e.includes("anchor"))).toBe(true);
+    }
+  });
 });

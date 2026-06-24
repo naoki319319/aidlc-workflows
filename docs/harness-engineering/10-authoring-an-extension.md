@@ -116,11 +116,13 @@ What you can add (all additive — **no override or removal**, by design):
 
 ### Fragment anchors
 
-| Anchor            | Inserts the fragment…                                   |
-| ----------------- | ------------------------------------------------------- |
-| `after-step:<n>`  | right after `### Step <n>` (before the next `###`/`##`) |
-| `before-step:<n>` | immediately before `### Step <n>`                       |
-| `end-of-steps`    | at the end of the `## Steps` block                      |
+| Anchor             | Inserts the fragment…                                              |
+| ------------------ | ------------------------------------------------------------------ |
+| `after-step:<n>`   | right after `### Step <n>` (before the next `###`/`##`)            |
+| `before-step:<n>`  | immediately before `### Step <n>`                                  |
+| `after-questions`  | after the questions-generating step (the `### Step …` whose heading mentions "Question") |
+| `end-of-steps`     | at the end of the `## Steps` block                                 |
+| `in:<Compartment>` | at the end of the named `## <Compartment>` block (e.g. `in:Sensors`, `in:Learn`) |
 
 Fragments are ordered deterministically by `(order, bundle, anchor)`. Two
 fragments with the same `(anchor, order, bundle)` is a build error.
