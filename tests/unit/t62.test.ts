@@ -247,11 +247,8 @@ describe("t62 stage-schema — validateStageFrontmatter (migrated from t62-stage
   // Exact strings pin RESERVED_KEYS map (aidlc-stage-schema.ts:67-73).
   // ============================================================
 
-  test("reserved: when", () => {
-    expect(errs({ ...fixture(), when: "x" })).toContain(
-      "when is reserved (fitness compiler); not active yet",
-    );
-  });
+  // when is NO LONGER reserved — it is an active structured predicate (Layer 4).
+  // Positive + shape tests live in the "when predicate" describe block below.
 
   test("reserved: on_failure", () => {
     expect(errs({ ...fixture(), on_failure: "x" })).toContain(
@@ -274,6 +271,44 @@ describe("t62 stage-schema — validateStageFrontmatter (migrated from t62-stage
   test("reserved: retry", () => {
     expect(errs({ ...fixture(), retry: "x" })).toContain(
       "retry is reserved (loop driver); not active yet",
+    );
+  });
+
+  // ============================================================
+  // when predicate (Layer 4) — accepted structured field + shape checks
+  // ============================================================
+
+  test("when producer-in-plan valid", () => {
+    expect(errs({ ...fixture(), when: { "producer-in-plan": "deploy-record" } })).toBe("VALID");
+  });
+
+  test("when scalar -> must be object", () => {
+    expect(errs({ ...fixture(), when: "x" })).toContain("when must be object, got string");
+  });
+
+  test("when empty -> exactly one key", () => {
+    expect(errs({ ...fixture(), when: {} })).toContain("when must have exactly one predicate key, got 0");
+  });
+
+  test("when two keys -> exactly one key", () => {
+    expect(
+      errs({ ...fixture(), when: { "producer-in-plan": "a", "bundle-active": "b" } }),
+    ).toContain("when must have exactly one predicate key, got 2");
+  });
+
+  test("when unknown predicate", () => {
+    expect(errs({ ...fixture(), when: { bogus: "x" } })).toContain('when has unknown predicate "bogus"');
+  });
+
+  test("when value non-string", () => {
+    expect(errs({ ...fixture(), when: { "producer-in-plan": 5 } })).toContain(
+      "when.producer-in-plan must be string, got number",
+    );
+  });
+
+  test("when value non-kebab", () => {
+    expect(errs({ ...fixture(), when: { "producer-in-plan": "Bad_Slug" } })).toContain(
+      'when.producer-in-plan must be kebab-case, got "Bad_Slug"',
     );
   });
 

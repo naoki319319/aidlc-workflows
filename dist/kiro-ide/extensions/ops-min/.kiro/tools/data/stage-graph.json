@@ -2754,5 +2754,54 @@
       }
     ],
     "sensors_applicable": []
+  },
+  {
+    "slug": "ops-min-verify",
+    "number": "4.51",
+    "name": "Ops-Min Verify",
+    "bundle": "ops-min",
+    "phase": "operation",
+    "execution": "CONDITIONAL",
+    "condition": "Execute when the ops-min deploy record is on this scope's resolved plan.",
+    "lead_agent": "aidlc-operations-agent",
+    "support_agents": [],
+    "mode": "inline",
+    "produces": [],
+    "consumes": [
+      {
+        "artifact": "ops-min-deploy-record",
+        "required": true
+      }
+    ],
+    "requires_stage": [],
+    "sensors": [],
+    "scopes": [
+      "enterprise",
+      "feature"
+    ],
+    "when": {
+      "producer-in-plan": "ops-min-deploy-record"
+    },
+    "inputs": "The deploy record from ops-min-deploy",
+    "outputs": "aidlc-docs/operation/ops-min-verify/ops-min-verify-report.md",
+    "rules_in_context": [
+      {
+        "path": ".kiro/steering/aidlc-org.md",
+        "scope": "org"
+      },
+      {
+        "path": ".kiro/steering/aidlc-team.md",
+        "scope": "team"
+      },
+      {
+        "path": ".kiro/steering/aidlc-project.md",
+        "scope": "project"
+      },
+      {
+        "path": ".kiro/steering/aidlc-phase-operation.md",
+        "scope": "phase"
+      }
+    ],
+    "sensors_applicable": []
   }
 ]

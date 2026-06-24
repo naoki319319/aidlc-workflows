@@ -33,7 +33,8 @@
       "incident-response": "SKIP",
       "performance-validation": "SKIP",
       "feedback-optimization": "SKIP",
-      "ops-min-deploy": "SKIP"
+      "ops-min-deploy": "SKIP",
+      "ops-min-verify": "SKIP"
     }
   },
   "enterprise": {
@@ -70,7 +71,8 @@
       "incident-response": "EXECUTE",
       "performance-validation": "EXECUTE",
       "feedback-optimization": "EXECUTE",
-      "ops-min-deploy": "EXECUTE"
+      "ops-min-deploy": "EXECUTE",
+      "ops-min-verify": "EXECUTE"
     }
   },
   "feature": {
@@ -107,7 +109,8 @@
       "incident-response": "EXECUTE",
       "performance-validation": "EXECUTE",
       "feedback-optimization": "EXECUTE",
-      "ops-min-deploy": "SKIP"
+      "ops-min-deploy": "SKIP",
+      "ops-min-verify": "SKIP"
     }
   },
   "infra": {
@@ -144,7 +147,8 @@
       "incident-response": "SKIP",
       "performance-validation": "SKIP",
       "feedback-optimization": "SKIP",
-      "ops-min-deploy": "SKIP"
+      "ops-min-deploy": "SKIP",
+      "ops-min-verify": "SKIP"
     }
   },
   "mvp": {
@@ -181,7 +185,8 @@
       "incident-response": "SKIP",
       "performance-validation": "SKIP",
       "feedback-optimization": "SKIP",
-      "ops-min-deploy": "SKIP"
+      "ops-min-deploy": "SKIP",
+      "ops-min-verify": "SKIP"
     }
   },
   "poc": {
@@ -218,7 +223,8 @@
       "incident-response": "SKIP",
       "performance-validation": "SKIP",
       "feedback-optimization": "SKIP",
-      "ops-min-deploy": "SKIP"
+      "ops-min-deploy": "SKIP",
+      "ops-min-verify": "SKIP"
     }
   },
   "refactor": {
@@ -255,7 +261,8 @@
       "incident-response": "SKIP",
       "performance-validation": "SKIP",
       "feedback-optimization": "SKIP",
-      "ops-min-deploy": "SKIP"
+      "ops-min-deploy": "SKIP",
+      "ops-min-verify": "SKIP"
     }
   },
   "security-patch": {
@@ -292,7 +299,8 @@
       "incident-response": "SKIP",
       "performance-validation": "SKIP",
       "feedback-optimization": "SKIP",
-      "ops-min-deploy": "SKIP"
+      "ops-min-deploy": "SKIP",
+      "ops-min-verify": "SKIP"
     }
   },
   "workshop": {
@@ -329,7 +337,8 @@
       "incident-response": "EXECUTE",
       "performance-validation": "EXECUTE",
       "feedback-optimization": "EXECUTE",
-      "ops-min-deploy": "SKIP"
+      "ops-min-deploy": "SKIP",
+      "ops-min-verify": "SKIP"
     }
   }
 }

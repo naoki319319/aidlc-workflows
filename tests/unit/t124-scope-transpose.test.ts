@@ -66,6 +66,7 @@ import { join } from "node:path";
 import { AIDLC_SRC } from "../harness/fixtures.ts";
 import {
   __resetGraphCache,
+  applyPredicates,
   canonicalScopeGridJson,
   compileStageGraph,
   loadGraph,
@@ -158,6 +159,87 @@ describe("transposeScopeGrid() — pure transpose (in-process)", () => {
     const g = transposeScopeGrid(synthetic);
     // beta column: a and b both named it; c did not.
     expect(g.beta.stages).toEqual({ a: "EXECUTE", b: "EXECUTE", c: "SKIP" });
+  });
+});
+
+// ===========================================================================
+// applyPredicates() — the Layer 4 when:{producer-in-plan} fixpoint pass.
+// Composes AFTER transposeScopeGrid; gates EXECUTE on a producer being EXECUTE.
+// ===========================================================================
+describe("applyPredicates() — producer-in-plan fixpoint (in-process)", () => {
+  // helper: build stages with optional produces/when, transpose, then gate.
+  const gate = (stages: unknown[]) =>
+    applyPredicates(
+      transposeScopeGrid(stages as Parameters<typeof transposeScopeGrid>[0]),
+      stages as Parameters<typeof applyPredicates>[1],
+    );
+
+  test("is a callable export", () => {
+    expect(typeof applyPredicates).toBe("function");
+  });
+
+  test("producer present in scope -> gated stage stays EXECUTE", () => {
+    const g = gate([
+      { slug: "prod", number: "4.1", scopes: ["s"], produces: ["art"] },
+      { slug: "cons", number: "4.2", scopes: ["s"], when: { "producer-in-plan": "art" } },
+    ]);
+    expect(g.s.stages).toEqual({ prod: "EXECUTE", cons: "EXECUTE" });
+  });
+
+  test("producer NOT in scope -> gated stage flips to SKIP", () => {
+    // prod is scoped to "other" only; cons names "s" but its producer isn't on s.
+    const g = gate([
+      { slug: "prod", number: "4.1", scopes: ["other"], produces: ["art"] },
+      { slug: "cons", number: "4.2", scopes: ["s"], when: { "producer-in-plan": "art" } },
+    ]);
+    expect(g.s.stages.cons).toBe("SKIP");
+  });
+
+  test("transitive chain A->B->C cascades SKIP", () => {
+    // A produces artA but is off-scope; B gates on artA (SKIP), produces artB;
+    // C gates on artB -> also SKIP once B is removed.
+    const g = gate([
+      { slug: "A", number: "4.1", scopes: ["other"], produces: ["artA"] },
+      { slug: "B", number: "4.2", scopes: ["s"], produces: ["artB"], when: { "producer-in-plan": "artA" } },
+      { slug: "C", number: "4.3", scopes: ["s"], when: { "producer-in-plan": "artB" } },
+    ]);
+    expect(g.s.stages.B).toBe("SKIP");
+    expect(g.s.stages.C).toBe("SKIP");
+  });
+
+  test("mutual producing 2-cycle is self-sustaining (both stay EXECUTE)", () => {
+    // X produces artX and gates on artY; Y produces artY and gates on artX.
+    // Each is the other's producer, both seed EXECUTE, so neither is ever the
+    // "no producer present" case — the greatest fixpoint keeps both. (Removal
+    // only fires when NO producer is EXECUTE; here each sustains the other.)
+    const g = gate([
+      { slug: "X", number: "4.1", scopes: ["s"], produces: ["artX"], when: { "producer-in-plan": "artY" } },
+      { slug: "Y", number: "4.2", scopes: ["s"], produces: ["artY"], when: { "producer-in-plan": "artX" } },
+    ]);
+    expect(g.s.stages).toEqual({ X: "EXECUTE", Y: "EXECUTE" });
+  });
+
+  test("gated stage whose producer-artifact is produced by NOBODY -> SKIP", () => {
+    // The clean 'never satisfiable' case: the artifact has no producer at all.
+    const g = gate([
+      { slug: "lonely", number: "4.1", scopes: ["s"], when: { "producer-in-plan": "ghost" } },
+    ]);
+    expect(g.s.stages.lonely).toBe("SKIP");
+  });
+
+  test("self-producing predicate is a no-op (satisfied by own EXECUTE seed)", () => {
+    const g = gate([
+      { slug: "self", number: "4.1", scopes: ["s"], produces: ["artS"], when: { "producer-in-plan": "artS" } },
+    ]);
+    expect(g.s.stages.self).toBe("EXECUTE");
+  });
+
+  test("no-predicate stages are unaffected", () => {
+    const g = gate([
+      { slug: "a", number: "4.1", scopes: ["s"] },
+      { slug: "b", number: "4.2", scopes: ["s"] },
+    ]);
+    expect(g.s.stages).toEqual({ a: "EXECUTE", b: "EXECUTE" });
   });
 });
 

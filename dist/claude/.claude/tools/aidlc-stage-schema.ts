@@ -50,6 +50,14 @@ export interface StageFrontmatter {
   // treated identically) so a fixture stage with no membership still
   // validates. `aidlc-graph compile` reads this to emit the compiled grid.
   scopes?: string[];
+  // when — structured activation predicate (extension mechanism, Layer 4). A
+  // single-key map: the key selects a predicate, the value is its argument. Today
+  // the only key is `producer-in-plan: <artifact-slug>` — the stage is EXECUTE
+  // under a scope only if some stage producing that artifact is also EXECUTE on
+  // that scope's resolved plan; otherwise the compile-time grid pass SKIPs it.
+  // Open-map-with-known-keys (like consumes[].conditional_on) so a future
+  // predicate slots in as one more optional key + one WHEN_PREDICATE_KEYS entry.
+  when?: { "producer-in-plan"?: string };
   // reviewer — agent slug to invoke as a quality gate after the stage body
   // (stage-protocol.md §12a). Optional; absent when the stage has no review step.
   reviewer?: string;
@@ -89,6 +97,12 @@ export const VALID_MODES = ["inline", "subagent", "agent-team"] as const;
 
 export const VALID_CONDITIONAL_ON = ["brownfield", "greenfield"] as const;
 
+// Allowed predicate keys for the stage `when:` map (extension mechanism, Layer
+// 4). Today only `producer-in-plan`; the grid-generation pass evaluates it at
+// compile. Adding a predicate (e.g. `bundle-active`) is one entry here + one
+// optional key on StageFrontmatter.when + a case in the grid pass.
+export const WHEN_PREDICATE_KEYS = ["producer-in-plan"] as const;
+
 // The conductor itself, named as a lead_agent on the bootstrap initialization
 // stages. It is a reserved pseudo-agent with no .claude/agents/*.md file by
 // design (the orchestrator session IS the actor), so the Rule 9 registration
@@ -101,7 +115,8 @@ export const RESERVED_AGENT_SLUG = "orchestrator";
 // error message. Each reserved key has a brief reason — the reason
 // describes the intended subsystem, not a target release.
 export const RESERVED_KEYS: Readonly<Record<string, string>> = {
-  when: "fitness compiler",
+  // `when` is no longer reserved — it is an active structured predicate as of
+  // Layer 4 (see WHEN_PREDICATE_KEYS + the when validator below).
   on_failure: "loop driver",
   blocks_on: "construction worktrees",
   timeout: "sensor binding",
@@ -128,7 +143,7 @@ const REQUIRED_FIELDS = [
 // stages. Keeping them optional here preserves the validator's minimal-fixture
 // contract (a unit fixture need not carry display metadata to be structurally
 // valid) while compile still fails loud for a real stage that forgets them.
-const OPTIONAL_FIELDS = ["number", "name", "bundle", "for_each", "sensors", "scopes", "reviewer", "reviewer_max_iterations"] as const;
+const OPTIONAL_FIELDS = ["number", "name", "bundle", "for_each", "sensors", "scopes", "when", "reviewer", "reviewer_max_iterations"] as const;
 
 const KNOWN_FIELDS = new Set<string>([...REQUIRED_FIELDS, ...OPTIONAL_FIELDS]);
 
@@ -339,6 +354,36 @@ export function validateStageFrontmatter(
           errors.push(`scopes[${i}] must be non-empty`);
         }
       });
+    }
+  }
+
+  // when — optional structured activation predicate. When present: a plain
+  // object with exactly one key from WHEN_PREDICATE_KEYS whose value is a
+  // kebab-case artifact slug. Mirrors the consumes[] nested validator's
+  // plain-object + per-field discipline.
+  if ("when" in o && o.when !== undefined) {
+    const w = o.when;
+    if (!isPlainObject(w)) {
+      errors.push(`when must be object, got ${describe(w)}`);
+    } else {
+      const keys = Object.keys(w);
+      if (keys.length !== 1) {
+        errors.push(`when must have exactly one predicate key, got ${keys.length}`);
+      }
+      for (const k of keys) {
+        if (!(WHEN_PREDICATE_KEYS as readonly string[]).includes(k)) {
+          errors.push(
+            `when has unknown predicate "${k}"; allowed: ${WHEN_PREDICATE_KEYS.join(" | ")}`,
+          );
+          continue;
+        }
+        const val = w[k];
+        if (typeof val !== "string") {
+          errors.push(`when.${k} must be string, got ${describe(val)}`);
+        } else if (!ARTIFACT_SLUG_RE.test(val)) {
+          errors.push(`when.${k} must be kebab-case, got "${val}"`);
+        }
+      }
     }
   }
 

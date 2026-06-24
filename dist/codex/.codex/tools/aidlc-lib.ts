@@ -35,6 +35,11 @@ export interface StageEntry {
   // Ownership identity (extension mechanism, Layer 1). Present only when the
   // stage authored it; absent means core. Read via bundleOf().
   bundle?: string;
+  // Activation predicate (extension mechanism, Layer 4). Present only when
+  // authored; read by the scope-grid-fallback guard (lib refuses to transpose
+  // when-bearing stages without the compiled grid). The grid is the runtime
+  // source of truth for EXECUTE/SKIP.
+  when?: { "producer-in-plan"?: string };
 }
 
 // The default bundle for any config item that doesn't declare one. Every
@@ -935,6 +940,16 @@ let _scopeMetadata: Record<string, ScopeMetadata> | null = null;
 type ScopeGridForMapping = Record<string, { stages: Record<string, "EXECUTE" | "SKIP"> }>;
 
 function transposeScopeGridForMapping(stages: StageEntry[]): ScopeGridForMapping {
+  // This fallback runs only when scope-grid.json is absent. A pure transpose
+  // would be WRONG for any stage carrying a `when:` predicate (it would mark it
+  // EXECUTE without evaluating the predicate). The graph-side compile is the
+  // single predicate-aware path; rather than replicate the fixpoint here (and
+  // pull compile logic into the read-only runtime layer), refuse to guess.
+  if (stages.some((s) => s.when)) {
+    throw new Error(
+      "scope-grid.json missing but stages carry when: predicates — run `aidlc-graph compile` to generate the predicate-resolved grid.",
+    );
+  }
   const scopeNames = new Set<string>();
   for (const stage of stages) {
     for (const name of stage.scopes ?? []) scopeNames.add(name);
@@ -1226,9 +1241,11 @@ export function parseStageFrontmatter(
     "scopes",
   ]);
   const CONSUMES_KEY = "consumes";
+  const WHEN_KEY = "when";
 
   for (const key of topLevelKeys) {
     if (key === CONSUMES_KEY) continue;
+    if (key === WHEN_KEY) continue; // nested map — parsed by objectField below
     if (ARRAY_KEYS.has(key)) continue;
     // The key was discovered at the start of some line, so it IS
     // present. scalarField returns "" for both absent AND empty-quoted
@@ -1249,6 +1266,11 @@ export function parseStageFrontmatter(
   }
 
   obj.consumes = objectListField(fm, CONSUMES_KEY);
+
+  // when — optional nested predicate map. Assign only when present so an absent
+  // `when` stays off the object (byte-clean: the emitter and graph skip undefined).
+  const whenObj = objectField(fm, WHEN_KEY);
+  if (whenObj !== undefined) obj.when = whenObj;
 
   // reviewer_max_iterations is the one numeric scalar field. The generic
   // scalar loop above captured it as a string ("2"); coerce it to a real
@@ -1502,6 +1524,7 @@ export function emitStageFrontmatter(obj: Record<string, unknown>): string {
     "requires_stage",
     "sensors",
     "scopes",
+    "when",
     "inputs",
     "outputs",
   ] as const;
@@ -1532,6 +1555,14 @@ export function emitStageFrontmatter(obj: Record<string, unknown>): string {
             lines.push(`    conditional_on: ${emitScalar(e.conditional_on)}`);
           }
         }
+      }
+    } else if (key === "when") {
+      // Nested single-key predicate map (Layer 4): mirrors the parser's
+      // objectField shape so parse -> emit -> parse round-trips (t65).
+      if (!isPlainObject(v)) continue;
+      lines.push("when:");
+      for (const [k, val] of Object.entries(v)) {
+        if (typeof val === "string") lines.push(`  ${k}: ${emitScalar(val)}`);
       }
     } else if (Array.isArray(v)) {
       const arr: unknown[] = v;
@@ -1628,6 +1659,33 @@ function objectListField(
   }
   if (current) items.push(current);
   return items;
+}
+
+// Single nested-map parser (sibling of objectListField) for the `when:` shape:
+//
+//   when:
+//     producer-in-plan: ops-min-deploy-record
+//
+// Returns the sub-map ({ "producer-in-plan": "ops-min-deploy-record" }) or
+// undefined when the key is absent (symmetric with the optional scalar fields).
+// Sub-keys are kebab-case (HYPHENS — unlike objectListField's [a-z_]+ — because
+// predicate keys like `producer-in-plan` carry a hyphen). One indent level only;
+// throws on a malformed line so an authoring error fails loud at compile.
+function objectField(fm: string, key: string): Record<string, unknown> | undefined {
+  const blockRe = new RegExp(
+    `^${key}:\\s*\\n((?:[ \\t]+[a-z][a-z0-9-]*:\\s*[^\\n]+(?:\\r?\\n|$))+)`,
+    "m",
+  );
+  const m = fm.match(blockRe);
+  if (!m) return undefined;
+  const lines = m[1].split(/\r?\n/).filter((l) => l.trim() !== "");
+  const obj: Record<string, unknown> = {};
+  for (const line of lines) {
+    const sub = line.match(/^\s+([a-z][a-z0-9-]*):\s*(.+?)\s*$/);
+    if (!sub) throw new Error(`Malformed ${key}: block entry in frontmatter: ${line.trim()}`);
+    obj[sub[1]] = coerceScalar(sub[2]);
+  }
+  return obj;
 }
 
 // Scalar coercion for objectListField values. Quoted scalars always

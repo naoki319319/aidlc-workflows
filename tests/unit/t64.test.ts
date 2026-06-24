@@ -741,6 +741,43 @@ describe("round-trip parse -> emit -> parse", () => {
   });
 });
 
+// when predicate (Layer 4): the nested map parses to a structured object,
+// validates, and round-trips. Proves objectField + the emitter's when branch.
+const WHEN_STAGE = `---
+slug: test
+phase: operation
+execution: CONDITIONAL
+condition: x
+lead_agent: aidlc-product-agent
+mode: inline
+support_agents: []
+produces: []
+consumes: []
+requires_stage: []
+scopes:
+  - enterprise
+when:
+  producer-in-plan: deploy-record
+inputs: a
+outputs: b
+---
+`;
+
+describe("when predicate (Layer 4)", () => {
+  test("parses to a structured map", () => {
+    const obj = parseStageFrontmatter(WHEN_STAGE) as Record<string, unknown>;
+    expect(obj.when).toEqual({ "producer-in-plan": "deploy-record" });
+  });
+
+  test("parse -> validate = VALID", () => {
+    expect(parseAndValidate(WHEN_STAGE)).toBe("VALID");
+  });
+
+  test("round-trip parse -> emit -> parse = EQ", () => {
+    expect(roundtrip(WHEN_STAGE)).toBe("EQ");
+  });
+});
+
 // ============================================================
 // Reviewer field parse/emit (V1) — reviewer_max_iterations is the one
 // numeric scalar field: the parser returns it as a NUMBER (not the string
@@ -805,12 +842,8 @@ describe("shape regressions via parse -> validate chain", () => {
 // Reserved-key passthrough (.sh assertions 38-42)
 // ============================================================
 describe("reserved-key passthrough (parser keeps key, validator rejects)", () => {
-  test("when", () => {
-    // .sh: "reserved: when"
-    expect(reservedPassthrough("when")).toContain(
-      "when is reserved (fitness compiler); not active yet"
-    );
-  });
+  // when is NO LONGER reserved (Layer 4) — it parses as a structured predicate
+  // map, validates, and round-trips. See the "when predicate" tests below.
 
   test("on_failure", () => {
     // .sh: "reserved: on_failure"

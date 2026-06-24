@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.6] - 2026-06-23
+
+Activates the reserved `when:` stage frontmatter key as a structured activation predicate (Layer 4 of `docs/reference/18-extension-mechanism.md`), implementing `producer-in-plan`. A stage carrying `when: {producer-in-plan: X}` is EXECUTE under a scope only if some stage producing artifact `X` is itself EXECUTE on that scope's resolved plan; otherwise the compile-time grid pass SKIPs it. This promotes the old "producer off-path" advisory into a real EXECUTE/SKIP gate and is a structured replacement for prose `condition:`. Evaluated at compile and baked into `scope-grid.json` — the runtime stays read-only. Core ships no `when:`, so all base compiled artifacts are byte-identical to 2.0.5. Re-copy your `dist/<harness>/` to pick up the regenerated tools.
+
+* **`when:` is no longer reserved** — it is an accepted, validated structured field: a single-key map whose key is in `WHEN_PREDICATE_KEYS` (today only `producer-in-plan`) and whose value is a kebab-case artifact slug. A malformed `when` (non-object, zero/many keys, unknown predicate, non-string or non-kebab value) fails `validateStageFrontmatter` and compile.
+* **Grid generation is now predicate-aware.** `transposeScopeGrid` stays a pure transpose; a new `applyPredicates` pass runs a per-scope fixpoint after it (greatest fixpoint — a stage is SKIPped only when no producer of its artifact is EXECUTE; transitive chains cascade, self-sustaining producing-cycles stay EXECUTE).
+* **Authoring impact:** stages may now declare `when:`. If `scope-grid.json` is absent and a stage carries `when:`, the lib-side fallback now refuses to transpose (directs you to run `aidlc-graph compile`) rather than silently mis-resolving.
+* No runtime behaviour change for `when`-free stages; no new commands or flags. `bundle-active` is intentionally not implemented (redundant with the Layer 3 delta model); the schema accommodates it as a future `WHEN_PREDICATE_KEYS` entry.
+
 ## [2.0.5] - 2026-06-23
 
 Adds the extension/bundle mechanism's build layer (Layers 2–3 of `docs/reference/18-extension-mechanism.md`): an extension authored in `extensions/<name>/` (with an `extension.ts` manifest + core-shaped subtrees) is discovered like a harness and projected by the packager as a **committed delta** at `dist/<name>/extensions/<bundle>/`. The delta is computed as the difference between a base+bundle build and the base build — the bundle's subtrees are merged into the core roots in a temp tree so the compiler sees them, and only the new/differing files are kept. Base `dist/<harness>/` trees stay byte-identical, so existing installs and the core stage/agent counts are unaffected; `bun scripts/package.ts --check` byte-pins every delta. Ships with the `ops-min` fixture extension (one scope-gated operation stage). Re-copy your `dist/<harness>/` to pick up the regenerated tools.

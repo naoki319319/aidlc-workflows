@@ -119,6 +119,11 @@ export interface GraphStage extends StageEntry {
   // identically. Lives on stage YAML, round-trips through parse/emit, and is
   // transposed into the compiled grid (scope-grid.json) at compile time.
   scopes?: string[];
+  // when is the stage-side activation predicate (Layer 4). Present only when
+  // authored. Carried onto the node for transparency; the predicate is RESOLVED
+  // into the compiled scope-grid (applyPredicates) at compile — the grid, not
+  // this field, is the runtime EXECUTE/SKIP source of truth.
+  when?: { "producer-in-plan"?: string };
   inputs: string;
   outputs: string;
   for_each?: string;
@@ -236,7 +241,9 @@ export function loadScopeGrid(): ScopeGrid {
     _scopeGrid = JSON.parse(readFileSync(p, "utf-8")) as ScopeGrid;
   } catch {
     // Derive on the fly from the loaded graph when no compiled grid exists.
-    _scopeGrid = transposeScopeGrid(loadGraph());
+    // Run the same predicate pass as compile so a derived grid is correct.
+    const g = loadGraph();
+    _scopeGrid = applyPredicates(transposeScopeGrid(g), g);
   }
   return _scopeGrid;
 }
@@ -260,6 +267,7 @@ const FIELD_ORDER = [
   "requires_stage",
   "sensors",
   "scopes",
+  "when",
   "reviewer",
   "reviewer_max_iterations",
   "inputs",
@@ -807,8 +815,9 @@ export function resolvePlanForScope(
  *  consumes. Without projectType, conditional consumes are checked as
  *  if they fire; advisories for scope-skipped producers still surface.
  *
- *  Future home of the reserved `when:` predicate evaluation —
- *  contributors extend opts rather than adding a new function. */
+ *  The `when:` predicate (Layer 4) is resolved at COMPILE into the scope grid
+ *  (applyPredicates), so subgraphForScope already reflects it — a stage whose
+ *  predicate failed is SKIP and never visited here. No per-call eval needed. */
 export function validateScope(
   scope: string,
   opts?: { projectType?: "brownfield" | "greenfield" }
@@ -996,6 +1005,68 @@ export function transposeScopeGrid(stages: GraphStage[]): ScopeGrid {
   return grid;
 }
 
+/** Apply the per-stage `when:` activation predicates to a transposed grid
+ *  (extension mechanism, Layer 4). Today the only predicate is
+ *  `producer-in-plan: X` — a stage is kept EXECUTE under a scope only if some
+ *  stage producing artifact X is itself EXECUTE in that same scope column;
+ *  otherwise it is SKIPped. This promotes the old validateScope advisory
+ *  ("producer off-path") into a real compile-time gate.
+ *
+ *  Per scope column, iterate to a FIXPOINT: removing a stage can remove a
+ *  producer, which can flip another `producer-in-plan` stage to SKIP. Removal
+ *  only shrinks the EXECUTE set (monotone over a finite set) so it converges in
+ *  ≤|stages| passes, and the loop is the transitive closure (an A→B→C chain
+ *  cascades over successive passes). This is the GREATEST fixpoint: a stage is
+ *  removed only when NO producer of its artifact is EXECUTE. So a self-producing
+ *  predicate is a no-op, and a mutual *producing* cycle (X produces artX & gates
+ *  on artY; Y produces artY & gates on artX) is self-sustaining — both stay
+ *  EXECUTE because each is the other's producer. Only a genuinely unsatisfiable
+ *  predicate (artifact produced by nobody EXECUTE) flips to SKIP.
+ *
+ *  Pure — operates on the passed grid + stages. Uses an in-memory producer
+ *  index from `stages` (NOT producersOf, which reads the prior on-disk graph). */
+export function applyPredicates(grid: ScopeGrid, stages: GraphStage[]): ScopeGrid {
+  // artifact -> producing slugs, from the freshly-built stages.
+  const producersByArtifact = new Map<string, string[]>();
+  for (const s of stages) {
+    for (const a of s.produces ?? []) {
+      const list = producersByArtifact.get(a) ?? [];
+      list.push(s.slug);
+      producersByArtifact.set(a, list);
+    }
+  }
+  // slug -> its producer-in-plan artifact (undefined when the stage has none).
+  const predicateOf = new Map<string, string | undefined>();
+  for (const s of stages) predicateOf.set(s.slug, s.when?.["producer-in-plan"]);
+
+  for (const scope of Object.keys(grid)) {
+    const cells = grid[scope].stages;
+    const exec = new Set(
+      Object.entries(cells)
+        .filter(([, action]) => action === "EXECUTE")
+        .map(([slug]) => slug),
+    );
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const slug of [...exec]) {
+        const art = predicateOf.get(slug);
+        if (!art) continue; // no predicate → unaffected
+        const producers = producersByArtifact.get(art) ?? [];
+        if (!producers.some((p) => exec.has(p))) {
+          exec.delete(slug);
+          changed = true;
+        }
+      }
+    }
+    // Rewrite the column: EXECUTE iff still in the resolved set.
+    for (const slug of Object.keys(cells)) {
+      cells[slug] = exec.has(slug) ? "EXECUTE" : "SKIP";
+    }
+  }
+  return grid;
+}
+
 /** Canonical JSON emitter for the scope grid. The ONLY place that writes
  *  scope-grid.json bytes — same sole-writer discipline as
  *  canonicalStageGraphJson, so `compile --check` byte-compares are robust.
@@ -1152,7 +1223,7 @@ export function compileStageGraph(): {
 
   return {
     json: canonicalStageGraphJson(stages),
-    gridJson: canonicalScopeGridJson(transposeScopeGrid(stages)),
+    gridJson: canonicalScopeGridJson(applyPredicates(transposeScopeGrid(stages), stages)),
     stages,
   };
 }
@@ -1219,6 +1290,9 @@ function buildGraphStage(
   }
   if (parsed.scopes !== undefined) {
     stage.scopes = parsed.scopes;
+  }
+  if (parsed.when !== undefined) {
+    stage.when = parsed.when;
   }
   if (parsed.reviewer !== undefined) {
     stage.reviewer = parsed.reviewer;

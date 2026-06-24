@@ -223,20 +223,38 @@ projected output is committed as a **separate delta** under
 independently — no count explosion, extension stays optional, ORPHAN scan
 becomes bundle-aware (files under a known bundle delta are not orphans).
 
-### Layer 4 — A real activation predicate (`when:`)
+### Layer 4 — A real activation predicate (`when:`) — IMPLEMENTED (`producer-in-plan`)
 
-Stop overloading scopes (a scope is a whole-pipeline column,
-`transposeScopeGrid`, `aidlc-graph.ts:982-996` — using it as on/off conflates
-"which scope" with "is the bundle active"). Implement the **already-reserved**
-`when:` key (currently in `RESERVED_KEYS`, rejected; documented as the future
-home of conditional logic in `validateScope`). Predicates:
+The reserved `when:` key is now an accepted, validated structured predicate.
 
-- `{bundle-active: ops-pro}` — true when the bundle is enabled for the build/run.
-- `{producer-in-plan: X}` — true when artifact X's producer is on the resolved
-  plan (generalizes today's `required: false` graceful-degradation).
+**As-built:** `when:` is a single-key map; the key is in `WHEN_PREDICATE_KEYS`
+(schema) and the value is a kebab-case artifact slug. The one shipped predicate:
 
-Bundle stages and contributions are gated by `when: {bundle-active: <self>}`, so
-disabling the bundle makes them inert and core compiles byte-identical.
+- **`{producer-in-plan: X}`** — the stage is EXECUTE under a scope only if some
+  stage producing artifact `X` is itself EXECUTE on that scope's resolved plan;
+  otherwise SKIP. This promotes the old `validateScope` "producer off-path"
+  *advisory* into a real compile-time gate, and is a structured replacement for
+  the freeform prose `condition:` field.
+
+**Evaluation is at COMPILE, baked into `scope-grid.json`** — the runtime stays
+read-only (`nextInScopeStage` reads `mapping.stages[slug] === "EXECUTE"`).
+`transposeScopeGrid` stays a pure transpose; a new `applyPredicates` pass runs a
+per-scope **fixpoint** after it (greatest fixpoint: a stage is SKIPped only when
+no producer of its artifact is EXECUTE; transitive chains cascade; self-sustaining
+producing-cycles stay EXECUTE). The lib-side transpose fallback refuses to run
+when a stage carries `when:` and no compiled grid exists (directs to
+`aidlc-graph compile`) rather than mis-resolving.
+
+**`{bundle-active}` is intentionally NOT implemented** — it is redundant with the
+Layer 3 delta model: a bundle's stages only exist in its committed delta, and
+there is no runtime activation signal, so "bundle active" is already a
+compile/install fact. The schema accommodates it as a future `WHEN_PREDICATE_KEYS`
+entry if a genuine need appears.
+
+Fixture: `extensions/ops-min/stages/operation/ops-min-verify.md` carries
+`when: {producer-in-plan: ops-min-deploy-record}` and lists `[enterprise,
+feature]`; its producer is enterprise-only, so verify is EXECUTE under enterprise
+and SKIP under feature — the predicate flip.
 
 ### Layer 5 — Bundle-aware tests
 

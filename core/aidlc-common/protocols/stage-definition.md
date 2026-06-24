@@ -59,10 +59,11 @@ copies this table verbatim.
 | `produces` | string[] | yes | empty allowed; lowercase-kebab artifact names — see [Artifact Vocabulary](../../../../docs/reference/16-artifact-vocabulary.md) for rules and the live registry tool |
 | `consumes` | object[] | yes | empty allowed; each entry `{artifact, required, conditional_on?}` |
 | `consumes[].artifact` | string | yes per entry | lowercase-kebab |
-| `consumes[].required` | boolean | yes per entry | Scoped to the active plan. `true` means "if the producing stage runs, this consume must be satisfied" — not a global assertion that the artifact always exists. Scopes that skip the producer (e.g., `bugfix` skipping `units-generation`) make the consume moot; the stage body handles graceful degradation. The reserved `when:` primitive will eventually let authors express richer predicates |
+| `consumes[].required` | boolean | yes per entry | Scoped to the active plan. `true` means "if the producing stage runs, this consume must be satisfied" — not a global assertion that the artifact always exists. Scopes that skip the producer (e.g., `bugfix` skipping `units-generation`) make the consume moot; the stage body handles graceful degradation. The active `when: {producer-in-plan: X}` predicate lets a stage instead auto-SKIP when its producer is off-plan (a real gate rather than runtime degradation) |
 | `consumes[].conditional_on` | string | optional | `brownfield` \| `greenfield`. Omit for unconditional consumes — no `always` value |
 | `requires_stage` | string[] | yes | empty allowed; each entry a known stage slug. Two roles: (1) semantic data dependency; (2) presentation-order edge for stages with no semantic link but a fixed display order. Compile asserts every edge points from a higher-numbered stage to a lower-numbered one (the authored `number` is the order of record) |
 | `scopes` | string[] | optional | each entry a scope name with a matching `{{HARNESS_DIR}}/scopes/aidlc-<name>.md` file. Naming a scope marks this stage EXECUTE under that scope; absence marks it SKIP. The per-stage transpose of the scope membership matrix — `aidlc-graph compile` reads every stage's `scopes:` and emits the compiled EXECUTE/SKIP grid (`tools/data/scope-grid.json`). The 3 initialization stages name all scopes (always EXECUTE). Absent and `[]` are treated identically |
+| `when` | object | optional | structured activation predicate (a single-key map). Today the one key is `producer-in-plan: <artifact-slug>` — the stage is EXECUTE under a scope only if some stage producing that artifact is also EXECUTE on that scope's resolved plan; otherwise the compile-time grid pass (`applyPredicates`, after the `scopes:` transpose) SKIPs it. A structured replacement for prose `condition:` and a real gate version of `consumes[].required`'s graceful degradation. Absent ⇒ no predicate |
 | `inputs` | string | yes | human prose (preserves today's `**Inputs**:` line) |
 | `outputs` | string | yes | human prose (preserves today's `**Outputs**:` line) |
 
@@ -170,7 +171,6 @@ future contributor additions from colliding with planned primitives.
 
 | Key | Purpose |
 |-----|---------|
-| `when` | Structured replacement for prose `condition`. Supersedes `consumes[].conditional_on` and generalises the scope-aware semantics of `consumes[].required` with richer predicates (e.g. `producer-in-plan`, `mode == brownfield`) |
 | `on_failure` | Declarative error recovery (jump-back, retry-with-adjusted-inputs). Moves revision semantics out of `stage-protocol-recovery.md` prose |
 | `blocks_on` | Completion dependency without data read. Splits today's overloaded `requires_stage` (which conflates "I consume your output" with "I run after you") |
 | `timeout`, `retry` | Execution budgets. Homed in sensor bindings and loop config, not stage frontmatter (mirrors Claude Code's task-API design — no primitive-level retry/timeout) |

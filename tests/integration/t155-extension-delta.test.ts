@@ -31,6 +31,7 @@ const CLAUDE_BASE_GRAPH = join(REPO_ROOT, "dist", "claude", ".claude", "tools", 
 const CLAUDE_BASE_OPS = join(REPO_ROOT, "dist", "claude", ".claude", "aidlc-common", "stages", "operation");
 const DELTA_STAGE = join(CLAUDE_DELTA, ".claude", "aidlc-common", "stages", "operation", "ops-min-deploy.md");
 const DELTA_GRAPH = join(CLAUDE_DELTA, ".claude", "tools", "data", "stage-graph.json");
+const DELTA_SCOPE_GRID = join(CLAUDE_DELTA, ".claude", "tools", "data", "scope-grid.json");
 
 describe("t155 extension delta — Layer 2/3", () => {
   test("the ops-min fixture is discoverable", () => {
@@ -83,5 +84,21 @@ describe("t155 extension delta — Layer 2/3", () => {
       cpSync(saved, DELTA_STAGE);
       rmSync(backup, { recursive: true, force: true });
     }
+  });
+
+  // Layer 4: ops-min-verify carries when:{producer-in-plan: ops-min-deploy-record}
+  // and lists both enterprise + feature in scopes. ops-min-deploy (the producer)
+  // is enterprise-only, so the predicate keeps verify EXECUTE under enterprise and
+  // flips it to SKIP under feature — the headline producer-in-plan behavior.
+  test("when:{producer-in-plan} gates ops-min-verify per scope", () => {
+    const grid = JSON.parse(readFileSync(DELTA_SCOPE_GRID, "utf-8")) as Record<
+      string,
+      { stages: Record<string, "EXECUTE" | "SKIP"> }
+    >;
+    expect(grid.enterprise.stages["ops-min-verify"]).toBe("EXECUTE");
+    expect(grid.feature.stages["ops-min-verify"]).toBe("SKIP");
+    // sanity: the producer itself is enterprise-only.
+    expect(grid.enterprise.stages["ops-min-deploy"]).toBe("EXECUTE");
+    expect(grid.feature.stages["ops-min-deploy"]).toBe("SKIP");
   });
 });
