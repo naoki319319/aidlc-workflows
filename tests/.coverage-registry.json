@@ -20,23 +20,23 @@
     "render-surface": "tui"
   },
   "counts": {
-    "total": 301,
+    "total": 392,
     "enumeratedByClass": {
-      "function": 99,
+      "function": 185,
       "audit": 67,
       "scope": 9,
       "stage": 32,
       "hook": 10,
-      "subcommand": 77,
+      "subcommand": 82,
       "render-surface": 7
     },
     "coveredByClass": {
-      "function": 43,
+      "function": 79,
       "audit": 27,
       "scope": 9,
       "stage": 8,
       "hook": 10,
-      "subcommand": 63,
+      "subcommand": 69,
       "render-surface": 7
     }
   },
@@ -720,11 +720,87 @@
       "minMechanism": "none",
       "coveredBy": [
         {
+          "file": "tests/integration/t163-reaper-steal-race.test.ts",
+          "mechanism": "cli"
+        },
+        {
           "file": "tests/integration/t33-hook-concurrency.test.ts",
           "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t161-per-intent-lock-reaper.test.ts",
+          "mechanism": "none"
         }
       ],
       "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:ACTIVE_INTENT_POINTER",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:ACTIVE_SPACE_POINTER",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:activeIntent",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t160-workspace-record-resolution.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:activeIntentUuid",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t167-session-intent-helpers.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:activeSpace",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t171-birth-gate-registry.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t160-workspace-record-resolution.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:anyIntentRecordExists",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:appendIntentToRegistry",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
     },
     {
       "unitClass": "function",
@@ -765,6 +841,10 @@
         {
           "file": "tests/unit/t106.test.ts",
           "mechanism": "none"
+        },
+        {
+          "file": "tests/unit/t160-workspace-record-resolution.test.ts",
+          "mechanism": "none"
         }
       ],
       "status": "covered"
@@ -776,6 +856,69 @@
       "coveredBy": [
         {
           "file": "tests/integration/t49-bolt-sensor-failures.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t161-per-intent-lock-reaper.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:auditLockIdentity",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:auditShardDir",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t172-migration-audit-trail.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:auditShardName",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t162-per-intent-layout-cli.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t172-migration-audit-trail.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:auditShards",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t172-migration-audit-trail.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:birthIntent",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t165-intent-birth-p4.test.ts",
           "mechanism": "cli"
         }
       ],
@@ -842,6 +985,49 @@
     },
     {
       "unitClass": "function",
+      "unitId": "function:classifyTerminalCommand",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t178-classify-terminal-command.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:CLONE_ID_FILE",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:codekbDir",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t182-codekb-placement.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:codekbRepoName",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t182-codekb-placement.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
       "unitId": "function:compileStageGraph",
       "minMechanism": "none",
       "coveredBy": [
@@ -879,6 +1065,74 @@
     {
       "unitClass": "function",
       "unitId": "function:countCheckboxes",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:CURRENT_SESSION_FILE",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:dateStamp",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:DEFAULT_LOCK_STALE_MS",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:DEFAULT_SPACE",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:detectLeakedLocks",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:discoverSiblingRepos",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t165-intent-birth-p4.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:displaySlugFromDirName",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:docsDir",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:docsRoot",
       "minMechanism": "none",
       "coveredBy": [],
       "status": "UNCOVERED"
@@ -966,8 +1220,13 @@
       "unitClass": "function",
       "unitId": "function:findAllEvents",
       "minMechanism": "none",
-      "coveredBy": [],
-      "status": "UNCOVERED"
+      "coveredBy": [
+        {
+          "file": "tests/integration/t164-shard-ordering-and-lock-bucket.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
     },
     {
       "unitClass": "function",
@@ -977,6 +1236,18 @@
         {
           "file": "tests/integration/t66.test.ts",
           "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:findIntentByUuid",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t167-session-intent-helpers.test.ts",
+          "mechanism": "none"
         }
       ],
       "status": "covered"
@@ -1011,6 +1282,30 @@
     },
     {
       "unitClass": "function",
+      "unitId": "function:frameworkMemorySeedDir",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t-memory-seed.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:frameworkTemplatesDir",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t155-template-override.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
       "unitId": "function:getField",
       "minMechanism": "none",
       "coveredBy": [],
@@ -1040,13 +1335,71 @@
         {
           "file": "tests/integration/t145-state-lock-concurrency.test.ts",
           "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t161-per-intent-lock-reaper.test.ts",
+          "mechanism": "none"
         }
       ],
       "status": "covered"
     },
     {
       "unitClass": "function",
+      "unitId": "function:hooksHealthDir",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:idSuffix",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:intentDirNameBase",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:intentRepos",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t166-multi-repo-construction.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:intentsDir",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:intentsRegistryPath",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
       "unitId": "function:isClaudeCodeHookInput",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:isGitRepoDir",
       "minMechanism": "none",
       "coveredBy": [],
       "status": "UNCOVERED"
@@ -1074,10 +1427,64 @@
     },
     {
       "unitClass": "function",
+      "unitId": "function:isValidRepoName",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:knowledgeDir",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t160-workspace-record-resolution.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
       "unitId": "function:listField",
       "minMechanism": "none",
       "coveredBy": [],
       "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:listIntentDirs",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:listIntents",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t165-intent-birth-p4.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t171-birth-gate-registry.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:listSpaces",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t165-intent-birth-p4.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
     },
     {
       "unitClass": "function",
@@ -1115,6 +1522,14 @@
         {
           "file": "tests/integration/t66.test.ts",
           "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t156-memory-relocation.test.ts",
+          "mechanism": "none"
+        },
+        {
+          "file": "tests/unit/t157-workspace-shell-seed.test.ts",
+          "mechanism": "none"
         }
       ],
       "status": "covered"
@@ -1175,10 +1590,70 @@
     },
     {
       "unitClass": "function",
+      "unitId": "function:memoryDirFor",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:memoryFilePath",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:memoryTemplatesDir",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t155-template-override.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
       "unitId": "function:MERGE_SUCCEEDED_TAG_REGEX",
       "minMechanism": "none",
       "coveredBy": [],
       "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:MIGRATED_MARKER",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:migratedMarkerPath",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:migrateFlatLayout",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t165-intent-birth-p4.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t172-migration-audit-trail.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t160-workspace-record-resolution.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
     },
     {
       "unitClass": "function",
@@ -1197,6 +1672,13 @@
     {
       "unitClass": "function",
       "unitId": "function:mustShift",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:needsFlatMigration",
       "minMechanism": "none",
       "coveredBy": [],
       "status": "UNCOVERED"
@@ -1359,12 +1841,69 @@
     },
     {
       "unitClass": "function",
+      "unitId": "function:planFilePath",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
       "unitId": "function:producersOf",
       "minMechanism": "none",
       "coveredBy": [
         {
           "file": "tests/integration/t66.test.ts",
           "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:READ_ONLY_FLAGS",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t178-classify-terminal-command.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:readAllAuditShards",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t172-migration-audit-trail.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:readCurrentSessionId",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:readIntentRegistry",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:readSessionIntentUuid",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t167-session-intent-helpers.test.ts",
+          "mechanism": "none"
         }
       ],
       "status": "covered"
@@ -1378,7 +1917,79 @@
     },
     {
       "unitClass": "function",
+      "unitId": "function:recordDir",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t162-per-intent-layout-cli.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t160-workspace-record-resolution.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:recordDirMatches",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
       "unitId": "function:recordHookDrop",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:recoveryFilePath",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:relativeCodekbDir",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t182-codekb-placement.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:relativeMemoryPath",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:relativeRecordDir",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t162-per-intent-layout-cli.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t160-workspace-record-resolution.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:relativeSpaceRecordPrefix",
       "minMechanism": "none",
       "coveredBy": [],
       "status": "UNCOVERED"
@@ -1391,6 +2002,10 @@
         {
           "file": "tests/integration/t33-hook-concurrency.test.ts",
           "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t161-per-intent-lock-reaper.test.ts",
+          "mechanism": "none"
         }
       ],
       "status": "covered"
@@ -1410,6 +2025,49 @@
         {
           "file": "tests/unit/t71.test.ts",
           "mechanism": "none"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:REPO_NAME_REGEX",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:repoDir",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t166-multi-repo-construction.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:resolveBirthRepoSet",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t165-intent-birth-p4.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:resolveConstructionRepo",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t166-multi-repo-construction.test.ts",
+          "mechanism": "cli"
         }
       ],
       "status": "covered"
@@ -1473,6 +2131,13 @@
     },
     {
       "unitClass": "function",
+      "unitId": "function:resolveUniqueIntentDir",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
       "unitId": "function:rulesSubdir",
       "minMechanism": "none",
       "coveredBy": [
@@ -1485,6 +2150,13 @@
     },
     {
       "unitClass": "function",
+      "unitId": "function:runtimeGraphPath",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
       "unitId": "function:scalarField",
       "minMechanism": "none",
       "coveredBy": [
@@ -1494,6 +2166,34 @@
         }
       ],
       "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:sensorsDir",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:SESSIONS_DIR",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:setActiveIntentCursor",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:setActiveSpaceCursor",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
     },
     {
       "unitClass": "function",
@@ -1537,6 +2237,36 @@
     },
     {
       "unitClass": "function",
+      "unitId": "function:slugify",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t165-intent-birth-p4.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t160-workspace-record-resolution.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:spacesRoot",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:stageDir",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
       "unitId": "function:stageIndex",
       "minMechanism": "none",
       "coveredBy": [],
@@ -1557,9 +2287,20 @@
         {
           "file": "tests/unit/t106.test.ts",
           "mechanism": "none"
+        },
+        {
+          "file": "tests/unit/t160-workspace-record-resolution.test.ts",
+          "mechanism": "none"
         }
       ],
       "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:stopHookDir",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
     },
     {
       "unitClass": "function",
@@ -1572,6 +2313,18 @@
         },
         {
           "file": "tests/unit/t124-scope-transpose.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:templateEligibleArtifacts",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t155-template-override.test.ts",
           "mechanism": "cli"
         }
       ],
@@ -1604,6 +2357,37 @@
         {
           "file": "tests/unit/t124-scope-transpose.test.ts",
           "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:unitDependencyPath",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:updateIntentStatus",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t165-intent-birth-p4.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:uuidv7",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t160-workspace-record-resolution.test.ts",
+          "mechanism": "none"
         }
       ],
       "status": "covered"
@@ -1651,9 +2435,50 @@
         {
           "file": "tests/integration/t145-state-lock-concurrency.test.ts",
           "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t163-reaper-steal-race.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t161-per-intent-lock-reaper.test.ts",
+          "mechanism": "none"
         }
       ],
       "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:WORKSPACE_LOCK_SENTINEL",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:WORKSPACE_VERBS",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t178-classify-terminal-command.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:worktreeAuditFilePath",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:worktreeDocsDir",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
     },
     {
       "unitClass": "function",
@@ -1669,10 +2494,43 @@
     },
     {
       "unitClass": "function",
+      "unitId": "function:worktreeRuntimeGraphPath",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:worktreeStateFilePath",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:writeCurrentSessionId",
+      "minMechanism": "none",
+      "coveredBy": [],
+      "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
       "unitId": "function:writeFileAtomic",
       "minMechanism": "none",
       "coveredBy": [],
       "status": "UNCOVERED"
+    },
+    {
+      "unitClass": "function",
+      "unitId": "function:writeSessionIntentUuid",
+      "minMechanism": "none",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t167-session-intent-helpers.test.ts",
+          "mechanism": "none"
+        }
+      ],
+      "status": "covered"
     },
     {
       "unitClass": "function",
@@ -1700,6 +2558,10 @@
         },
         {
           "file": "tests/unit/t13-hook-input-robustness.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t170-audit-logger-per-intent.test.ts",
           "mechanism": "cli"
         }
       ],
@@ -1787,6 +2649,10 @@
       "minMechanism": "none",
       "coveredBy": [
         {
+          "file": "tests/integration/t173-session-switch-restamp.test.ts",
+          "mechanism": "cli"
+        },
+        {
           "file": "tests/integration/t40-settings-hook-config.test.ts",
           "mechanism": "none"
         },
@@ -1796,6 +2662,10 @@
         },
         {
           "file": "tests/unit/t13-hook-input-robustness.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t169-session-resume-rebind.test.ts",
           "mechanism": "cli"
         }
       ],
@@ -1807,6 +2677,10 @@
       "minMechanism": "none",
       "coveredBy": [
         {
+          "file": "tests/e2e/t-tui-journey-orientation.serial.test.ts",
+          "mechanism": "tui"
+        },
+        {
           "file": "tests/integration/t40-settings-hook-config.test.ts",
           "mechanism": "none"
         },
@@ -1816,6 +2690,10 @@
         },
         {
           "file": "tests/unit/t13-hook-input-robustness.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t168-statusline-orientation.test.ts",
           "mechanism": "cli"
         }
       ],
@@ -2313,6 +3191,10 @@
       "minMechanism": "none",
       "coveredBy": [
         {
+          "file": "tests/integration/t183-codekb-placement-reverify.sdk.test.ts",
+          "mechanism": "sdk"
+        },
+        {
           "file": "tests/integration/t72-stage-reverse-engineering.test.ts",
           "mechanism": "sdk"
         }
@@ -2794,6 +3676,10 @@
           "mechanism": "cli"
         },
         {
+          "file": "tests/unit/t158-memory-writer-reader-seam.test.ts",
+          "mechanism": "cli"
+        },
+        {
           "file": "tests/unit/t97.test.ts",
           "mechanism": "cli"
         }
@@ -3080,6 +3966,10 @@
       "minMechanism": "cli",
       "coveredBy": [
         {
+          "file": "tests/integration/t164-shard-ordering-and-lock-bucket.test.ts",
+          "mechanism": "cli"
+        },
+        {
           "file": "tests/unit/t76.test.ts",
           "mechanism": "cli"
         }
@@ -3260,6 +4150,18 @@
     },
     {
       "unitClass": "subcommand",
+      "unitId": "aidlc-utility codekb-path",
+      "minMechanism": "cli",
+      "coveredBy": [
+        {
+          "file": "tests/unit/t182-codekb-placement.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "subcommand",
       "unitId": "aidlc-utility config-change",
       "minMechanism": "cli",
       "coveredBy": [
@@ -3408,14 +4310,6 @@
           "mechanism": "cli"
         },
         {
-          "file": "tests/integration/t21.test.ts",
-          "mechanism": "sdk"
-        },
-        {
-          "file": "tests/integration/t21b.test.ts",
-          "mechanism": "sdk"
-        },
-        {
           "file": "tests/integration/t39.test.ts",
           "mechanism": "cli"
         },
@@ -3430,6 +4324,66 @@
         {
           "file": "tests/unit/t27.test.ts",
           "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "subcommand",
+      "unitId": "aidlc-utility intent",
+      "minMechanism": "cli",
+      "coveredBy": [
+        {
+          "file": "tests/integration/t-journey-workspace.sdk.test.ts",
+          "mechanism": "sdk"
+        },
+        {
+          "file": "tests/integration/t165-intent-birth-p4.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "subcommand",
+      "unitId": "aidlc-utility intent-birth",
+      "minMechanism": "cli",
+      "coveredBy": [
+        {
+          "file": "tests/e2e/t-acp-kiro-journey-workspace.serial.test.ts",
+          "mechanism": "none"
+        },
+        {
+          "file": "tests/e2e/t-exec-codex-journey-workspace.serial.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t-journey-workspace.sdk.test.ts",
+          "mechanism": "sdk"
+        },
+        {
+          "file": "tests/integration/t165-intent-birth-p4.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t171-birth-gate-registry.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t172-migration-audit-trail.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t176-new-work-offer-second-intent.test.ts",
+          "mechanism": "sdk"
+        },
+        {
+          "file": "tests/integration/t21.test.ts",
+          "mechanism": "sdk"
+        },
+        {
+          "file": "tests/integration/t21b.test.ts",
+          "mechanism": "sdk"
         }
       ],
       "status": "covered"
@@ -3489,6 +4443,58 @@
       "coveredBy": [
         {
           "file": "tests/unit/t27.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "subcommand",
+      "unitId": "aidlc-utility space",
+      "minMechanism": "cli",
+      "coveredBy": [
+        {
+          "file": "tests/e2e/t-acp-kiro-journey-workspace.serial.test.ts",
+          "mechanism": "none"
+        },
+        {
+          "file": "tests/e2e/t-exec-codex-journey-workspace.serial.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t-journey-workspace.sdk.test.ts",
+          "mechanism": "sdk"
+        },
+        {
+          "file": "tests/integration/t165-intent-birth-p4.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "unitClass": "subcommand",
+      "unitId": "aidlc-utility space-create",
+      "minMechanism": "cli",
+      "coveredBy": [
+        {
+          "file": "tests/e2e/t-acp-kiro-journey-workspace.serial.test.ts",
+          "mechanism": "none"
+        },
+        {
+          "file": "tests/e2e/t-exec-codex-journey-workspace.serial.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t-journey-workspace.sdk.test.ts",
+          "mechanism": "sdk"
+        },
+        {
+          "file": "tests/integration/t165-intent-birth-p4.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t175-space-create-memory-isolation.test.ts",
           "mechanism": "cli"
         }
       ],
@@ -3569,6 +4575,10 @@
         {
           "file": "tests/e2e/t09-halt-and-ask-preservation.test.ts",
           "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t166-multi-repo-construction.test.ts",
+          "mechanism": "cli"
         }
       ],
       "status": "covered"
@@ -3611,6 +4621,10 @@
           "mechanism": "cli"
         },
         {
+          "file": "tests/integration/t164-shard-ordering-and-lock-bucket.test.ts",
+          "mechanism": "cli"
+        },
+        {
           "file": "tests/unit/t72.test.ts",
           "mechanism": "cli"
         }
@@ -3632,6 +4646,10 @@
         {
           "file": "tests/e2e/t03.test.ts",
           "mechanism": "cli"
+        },
+        {
+          "file": "tests/integration/t166-multi-repo-construction.test.ts",
+          "mechanism": "cli"
         }
       ],
       "status": "covered"
@@ -3640,8 +4658,13 @@
       "unitClass": "subcommand",
       "unitId": "aidlc-worktree verify",
       "minMechanism": "cli",
-      "coveredBy": [],
-      "status": "UNCOVERED"
+      "coveredBy": [
+        {
+          "file": "tests/integration/t164-shard-ordering-and-lock-bucket.test.ts",
+          "mechanism": "cli"
+        }
+      ],
+      "status": "covered"
     }
   ]
 }

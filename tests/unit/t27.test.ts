@@ -87,7 +87,15 @@
 
 import { afterAll, describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -95,6 +103,7 @@ import {
   cleanupTestProject,
   createTestProject,
   FIXTURES_DIR,
+  seededAuditShard,
   sedReplaceInFile,
   seedAuditFile,
   seedStateFile,
@@ -152,8 +161,80 @@ function stripScope(overrides?: Record<string, string>): Record<string, string> 
   return { ...base, ...(overrides ?? {}) };
 }
 
-const statePath = (p: string): string => join(p, "aidlc-docs", "aidlc-state.md");
-const auditPath = (p: string): string => join(p, "aidlc-docs", "audit.md");
+// P4: intent-birth writes state into the born intent's per-intent record dir
+// (aidlc/spaces/<space>/intents/<slug>-<id8>/), not the flat aidlc-docs/. Resolve
+// the record dir from the active-space + active-intent cursors, falling back to
+// the flat layout for a not-yet-born / seeded-flat project (the many state-seeding
+// cases below never call init, so they stay flat).
+function recordDirOf(p: string): string {
+  const spaceCursor = join(p, "aidlc", "active-space");
+  const space = existsSync(spaceCursor)
+    ? readFileSync(spaceCursor, "utf-8").trim() || "default"
+    : "default";
+  const intentsDir = join(p, "aidlc", "spaces", space, "intents");
+  const intentCursor = join(intentsDir, "active-intent");
+  if (existsSync(intentCursor)) {
+    const rec = readFileSync(intentCursor, "utf-8").trim();
+    if (rec && existsSync(join(intentsDir, rec, "aidlc-state.md"))) {
+      return join(intentsDir, rec);
+    }
+  }
+  return join(p, "aidlc-docs");
+}
+// SPACE-level domain-knowledge dir (sibling of intents), resolved off the same
+// active-space cursor recordDirOf uses.
+function spaceKnowledgeOf(p: string): string {
+  const spaceCursor = join(p, "aidlc", "active-space");
+  const space = existsSync(spaceCursor)
+    ? readFileSync(spaceCursor, "utf-8").trim() || "default"
+    : "default";
+  return join(p, "aidlc", "spaces", space, "knowledge");
+}
+const statePath = (p: string): string => join(recordDirOf(p), "aidlc-state.md");
+// The DETERMINISTIC per-clone audit shard a spawned utility resolves (the fixture
+// pins the clone-id). seedAuditFile() writes here too, so seed/append/check all
+// agree on one file. Single-shard tests (size growth, one-event count) target it.
+const auditPath = (p: string): string => seededAuditShard(p);
+// Audit is written as per-clone shards under <record>/audit/<host>-<clone>.md.
+// Concatenate every shard for a content read.
+function readAudit(p: string): string {
+  const auditDir = join(recordDirOf(p), "audit");
+  if (existsSync(auditDir)) {
+    return readdirSync(auditDir)
+      .filter((f) => f.endsWith(".md"))
+      .map((f) => readFileSync(join(auditDir, f), "utf-8"))
+      .join("\n");
+  }
+  return "";
+}
+/** Count `**Event**: <ev>` lines in audit CONTENT (shard-concat or flat). */
+function auditEventCountIn(content: string, ev: string): number {
+  const re = new RegExp(`^\\*\\*Event\\*\\*: ${ev}$`);
+  return content.split("\n").filter((l) => re.test(l)).length;
+}
+/** Value of <key> from the FIRST audit block matching <ev> in CONTENT. */
+function auditFieldIn(content: string, ev: string, key: string): string {
+  let matched = false;
+  for (const line of content.split("\n")) {
+    if (line.startsWith("## ") || line === "---") {
+      matched = false;
+      continue;
+    }
+    if (line.startsWith("**Event**: ")) {
+      matched = line === `**Event**: ${ev}`;
+      continue;
+    }
+    if (matched && line.startsWith("**")) {
+      const stripped = line.replace(/^\*\*/, "");
+      const pos = stripped.indexOf("**: ");
+      if (pos > 0) {
+        const label = stripped.slice(0, pos);
+        if (label === key) return stripped.slice(pos + 4);
+      }
+    }
+  }
+  return "";
+}
 
 /** Fresh bare temp project (create_test_project). */
 function bareProj(): string {
@@ -356,9 +437,11 @@ describe("t27 aidlc-utility doctor", () => {
   // HEALTH_CHECKED to it (size grows, exactly one row). This is the
   // audit.md-exists arm of the cold-safe gate (#4) — seeding audit.md FIRST is
   // what makes the emit fire.
-  test("13: doctor appends to audit.md when it exists (size grows, exactly one HEALTH_CHECKED)", () => {
-    const p = bareProj();
-    seedAuditFile(p);
+  test("13: doctor appends to the audit shard when it exists (size grows, exactly one HEALTH_CHECKED)", () => {
+    // Seed state + audit so the intent record RESOLVES (the active-intent cursor
+    // only binds a record that has aidlc-state.md) — an initialized project, the
+    // audit-exists arm of the cold-safe gate.
+    const p = stateAuditProj();
     const before = statSync(auditPath(p)).size;
     util(["doctor"], p);
     const after = statSync(auditPath(p)).size;
@@ -462,27 +545,47 @@ describe("t27 aidlc-utility doctor", () => {
 // ============================================================
 
 describe("t27 aidlc-utility init", () => {
-  test("14: init creates aidlc-state.md, audit.md, and knowledge/ directory", () => {
+  test("14: init creates aidlc-state.md, audit shard dir, and knowledge/ directory", () => {
     const p = emptyDir();
     util(["init", "--scope", "poc"], p);
+    // P4: birth writes a per-intent record (state + audit shards), not the flat
+    // aidlc-docs/ trio. (Domain knowledge is SPACE-level, asserted below.)
     expect(existsSync(statePath(p))).toBe(true);
-    expect(existsSync(auditPath(p))).toBe(true);
-    expect(existsSync(join(p, "aidlc-docs", "knowledge"))).toBe(true);
+    // Audit is now a SHARD DIR (<record>/audit/<host>-<pid>.md), not a single file.
+    const auditDir = join(recordDirOf(p), "audit");
+    expect(existsSync(auditDir)).toBe(true);
+    expect(readdirSync(auditDir).filter((f) => f.endsWith(".md")).length).toBeGreaterThanOrEqual(1);
+    // knowledge/ is SPACE-level (ensureWorkspaceDirs creates
+    // aidlc/spaces/<space>/knowledge/ — a sibling of intents, not per-record).
+    expect(existsSync(spaceKnowledgeOf(p))).toBe(true);
   });
 
-  test("15: init output contains scaffold summary", () => {
+  test("15: init output contains birth + state-init summary", () => {
     const p = emptyDir();
     const r = util(["init", "--scope", "poc"], p);
-    expect(r.stdout).toContain("Workspace scaffolded");
+    // P4: init is a back-compat alias for intent-birth; the stdout now reports the
+    // born intent + state init, not the old "Workspace scaffolded" scaffold line.
+    expect(r.stdout).toContain("Intent born:");
+    expect(r.stdout).toContain("State initialized:");
   });
 
-  test("init rejection: existing state without --force exits 1, mentions 'already exists' and --force", () => {
+  // P4 retires the --init re-init guard: init/intent-birth births a per-intent
+  // record, so a SECOND init is not an error — it simply births a second intent
+  // in the workspace. There is no "already exists" / --force path anymore.
+  test("second init births a second intent (no re-init guard): exit 0, no 'already exists'", () => {
     const p = emptyDir();
-    util(["init", "--scope", "poc"], p);
-    const r = util(["init", "--scope", "poc"], p);
-    expect(r.status).toBe(1);
-    expect(r.out).toContain("already exists");
-    expect(r.out).toContain("--force");
+    const first = util(["init", "--scope", "poc"], p);
+    expect(first.status).toBe(0);
+    const second = util(["init", "--scope", "poc"], p);
+    expect(second.status).toBe(0);
+    expect(second.out).not.toContain("already exists");
+    expect(second.out).not.toContain("--force");
+    // Two intent record dirs now exist under the default space.
+    const intentsDir = join(p, "aidlc", "spaces", "default", "intents");
+    const records = readdirSync(intentsDir).filter((d) =>
+      existsSync(join(intentsDir, d, "aidlc-state.md")),
+    );
+    expect(records.length).toBe(2);
   });
 
   test("33: init bootstrap has workspace-scaffold checkbox", () => {
@@ -506,8 +609,9 @@ describe("t27 aidlc-utility init", () => {
   test("69: init emits WORKFLOW_STARTED as the first audit event", () => {
     const p = bareProj();
     util(["init", "--scope", "bugfix"], p);
+    // P4: audit is sharded under the born record's audit/ dir; read via readAudit.
     // First **Event**: line after the `# AI-DLC Audit Log` header.
-    const firstEvent = readFileSync(auditPath(p), "utf-8")
+    const firstEvent = readAudit(p)
       .split("\n")
       .find((l) => l.startsWith("**Event**: "))
       ?.replace("**Event**: ", "");
@@ -802,10 +906,14 @@ describe("t27 aidlc-utility detect-scope", () => {
       ["detect-scope", "--scope", "feature", "--input", "build a todo app", "--source", "freeform"],
       p,
     );
-    expect(auditEventCount(auditPath(p), "SCOPE_DETECTED")).toBe(1);
+    // P4: after init births the per-intent record, detect-scope's audit lands in
+    // the born record's shard dir — read via readAudit (which also falls back to
+    // flat audit.md for a not-yet-born project).
+    const audit = readAudit(p);
+    expect(auditEventCountIn(audit, "SCOPE_DETECTED")).toBe(1);
     // STRONGER: the .sh only grepped the event; assert the JSON ack + field.
     expect(r.stdout).toContain('"emitted":"SCOPE_DETECTED"');
-    expect(auditField(auditPath(p), "SCOPE_DETECTED", "Detected scope")).toBe("feature");
+    expect(auditFieldIn(audit, "SCOPE_DETECTED", "Detected scope")).toBe("feature");
   }, 30000);
 
   test("66: detect-scope rejects invalid scope (exit 1)", () => {

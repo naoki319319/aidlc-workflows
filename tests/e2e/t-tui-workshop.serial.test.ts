@@ -17,7 +17,7 @@
 //     exact disk assertion):
 //       * aidlc-state.md `Practices Affirmed Timestamp` non-empty,
 //       * audit.md has GATE_APPROVED >= 1,
-//       * aidlc-team.md `## Way of Working` populated (trunk|merge|branch),
+//       * team.md `## Way of Working` populated (trunk|merge|branch),
 //   - RENDER (the tui-only value-add): the captured grid showed the multi-tab
 //     `Submit` strip and the `Enter to select` footer at least once — the thing
 //     the SDK path cannot see.
@@ -32,11 +32,13 @@
 
 import { describe, expect, test } from "bun:test";
 import { spawn, spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import * as os from "node:os";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { readAllAuditShards } from "../../dist/claude/.claude/tools/aidlc-lib.ts";
+import { stateFilePathFor } from "../harness/sdk-drive.ts";
 import { resolveWinNode } from "../harness/tui-drive.ts";
+import { cleanupTuiProject, setupTuiProject } from "../harness/tui-fixtures.ts";
 
 const DRIVER = join(import.meta.dir, "..", "harness", "tui-drive.ts");
 const AIDLC_SRC = join(import.meta.dir, "..", "..", "dist", "claude", ".claude");
@@ -113,15 +115,19 @@ describe("t-tui-workshop (answering AUQ gates advances disk state)", () => {
     `workshop run-through commits affirmation on disk${SKIP_REASON ? ` — SKIP: ${SKIP_REASON}` : ""}`,
     async () => {
       const session = `aidlc_tui_workshop_${process.pid}`;
-      const sandbox = mkdtempSync(join(tmpdir(), "aidlc-tui-workshop-"));
+      // setupTuiProject copies the distributable AND the sibling aidlc/ memory
+      // shell (the rule layers live there post-P5) and seeds the per-intent
+      // workspace shell; noAidlcDocs strips the seeded record so the live
+      // `/aidlc --scope workshop` auto-births its own intent (the `ready`
+      // baseline below holds because no intent resolves until birth).
+      const sandbox = setupTuiProject({ noAidlcDocs: true });
       // The render value-add: we tail the grid during the run to prove the
       // multi-tab strip + footer painted at least once (the SDK path can't see it).
       let sawSubmitStrip = false;
       let sawSelectFooter = false;
       let pollTimer: ReturnType<typeof setInterval> | undefined;
       try {
-        // --- copy the distributable + launch ----------------------------------
-        cpSync(AIDLC_SRC, join(sandbox, ".claude"), { recursive: true });
+        // --- launch (distributable already copied by setupTuiProject) ----------
         expect(drive([
           "start",
           "--session",
@@ -144,7 +150,7 @@ describe("t-tui-workshop (answering AUQ gates advances disk state)", () => {
         if (waitFor(session, "Bypass Permissions mode", 15000, 600)) {
           drive(["send", "--session", session, "--keys", "2"]);
         }
-        expect(waitFor(session, "\\[AIDLC\\] ready", 45000, 800)).toBe(true);
+        expect(waitFor(session, "\\[AIDLC\\].*ready", 45000, 800)).toBe(true);
 
         // --- submit the workshop prompt ---------------------------------------
         // Use EXPLICIT `--scope workshop`, not bare freeform `workshop`, so this
@@ -166,7 +172,7 @@ describe("t-tui-workshop (answering AUQ gates advances disk state)", () => {
         // `ready`). --stable-ms 0: the screen is streaming (live token counter /
         // spinner), so match the instant the phase text appears.
         expect(
-          waitFor(session, "\\[AIDLC\\] (INITIALIZATION|IDEATION|INCEPTION)", 120000, 0),
+          waitFor(session, "\\[AIDLC\\].*(INITIALIZATION|IDEATION|INCEPTION)", 120000, 0),
         ).toBe(true);
 
         // Begin tailing the grid for the render assertion BEFORE answer-gate runs,
@@ -229,17 +235,24 @@ describe("t-tui-workshop (answering AUQ gates advances disk state)", () => {
         expect(gateRc).toBe(0);
 
         // --- assert ON DISK (shared with the SDK path) ------------------------
-        const stateMd = readFileSync(join(sandbox, "aidlc-docs", "aidlc-state.md"), "utf8");
+        const stateMd = readFileSync(stateFilePathFor(sandbox), "utf8");
         // Digit-anchored: a real ISO timestamp, not an empty field (§3).
         expect(stateMd).toMatch(/Affirmed Timestamp\*\*:[ \t]*\d[^\r\n]*/);
 
-        const auditMd = readFileSync(join(sandbox, "aidlc-docs", "audit.md"), "utf8");
+        const auditMd = readAllAuditShards(sandbox);
         const gateApproved = auditMd
           .split("\n")
           .filter((l) => l.startsWith("**Event**: GATE_APPROVED")).length;
         expect(gateApproved).toBeGreaterThanOrEqual(1);
 
-        const teamRules = readFileSync(join(sandbox, ".claude", "rules", "aidlc-team.md"), "utf8");
+        // The method relocated (P5/fe7f470) from .claude/rules/aidlc-team.md to
+        // the harness-neutral workspace-root aidlc/spaces/default/memory/team.md
+        // (neutral basename, no aidlc- prefix). Affirmation writes the section
+        // there via memoryDirFor (aidlc-state.ts:1346-1352).
+        const teamRules = readFileSync(
+          join(sandbox, "aidlc", "spaces", "default", "memory", "team.md"),
+          "utf8",
+        );
         // The shipped template ships `## Way of Working` EMPTY; affirmation
         // promotes org defaults into it (trunk|merge|branch).
         const wowIdx = teamRules.indexOf("## Way of Working");
@@ -255,7 +268,7 @@ describe("t-tui-workshop (answering AUQ gates advances disk state)", () => {
       } finally {
         if (pollTimer) clearInterval(pollTimer);
         drive(["kill", "--session", session]);
-        if (existsSync(sandbox)) rmSync(sandbox, { recursive: true, force: true });
+        cleanupTuiProject(sandbox);
       }
     },
     TEST_TIMEOUT_MS,

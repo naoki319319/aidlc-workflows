@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0] - 2026-06-24
+
+Moves AI-DLC from a single flat `aidlc-docs/` record to a per-intent **workspace** layout: spaces, multiple coexisting intents, multi-repo, space-level knowledge and code-KB, and a method (memory) that follows the active space. A project root now holds `aidlc/spaces/<space>/intents/<slug>-<id8>/`, so many intents (and non-default spaces) live side by side without colliding; read-only/navigation `/aidlc` commands are reliable mid-workflow. **Upgrade:** re-copy your `dist/<harness>/` shell into the project — it ships the workspace pre-scaffolded, so there is no more `/aidlc --init` (the engine auto-births the first intent on your first `/aidlc`). A project still on the old flat `aidlc-docs/` layout is migrated automatically and crash-safely on first run (copy → atomic rename into the per-intent record; the tracked flat tree is git-rm'd post-move; idempotent on a `.migrated` marker). The audit trail is now **committed as per-clone shards** (`intents/<id>/audit/<host>-<clone>.md`) rather than a single `audit.md`, so concurrent clones never merge-conflict the trail; readers glob and merge by timestamp. A confirmed learning now lands as a **practice** in the relocated `aidlc/spaces/<space>/memory/` (the `*-learnings.md` files are gone), and team **domain knowledge** is **space-level** at `aidlc/spaces/<space>/knowledge/` (a free-form, empty-at-bootstrap sibling of memory/codekb/intents, shared across every intent in the space; a migrating project's flat `aidlc-docs/knowledge/` is relocated there automatically — the engine's per-agent methodology knowledge stays shipped under `<harness>/knowledge/`). This release rebases onto and consolidates the v2 line (reviewer mechanism + Kiro IDE harness, 2.0.0–2.0.2), so it ships the 13-agent roster and both Kiro distributions alongside the workspace refactor. A new user-guide chapter, [Spaces and Intents](docs/guide/03-spaces-and-intents.md), documents the model.
+
+**Workspace layout**
+
+* `/aidlc --init` is **retired** — the shipped shell scaffolds the workspace and the first intent auto-births; `--force`/state-wipe is gone. Re-copy `dist/<harness>/`.
+* `--repo`/`--repos` make an intent multi-repo: the repo set is captured at birth and Construction worktrees fork against the right sibling repo.
+* The record tree, audit shards, `intents.json`, memory, codekb, and knowledge are committed; the per-user cursors (`active-space`, `active-intent`) and machine-local runtime are gitignored.
+* **CI/scripts (breaking):** the flat `aidlc-docs/` path no longer resolves for new projects — resolve state/audit/artifacts under `aidlc/spaces/<space>/intents/<slug>-<id8>/` (the migration keys on `aidlc-docs/aidlc-state.md` as its sole detection trigger).
+* Engine-only installs self-heal: if the `aidlc/` workspace shell wasn't copied alongside the engine dir, the first `/aidlc` seeds `aidlc/spaces/default/memory/` from a copy bundled in the engine (idempotent — a normal install that copied `aidlc/` is left untouched).
+
+**Navigation verbs**
+
+* New intent + space verbs: `/aidlc intent` (list/switch), `/aidlc space` (list/switch), `/aidlc space-create <name>`, `/aidlc intent-birth`; a `--json` query layer on the list handlers. They route through the conductor and are recognised only as the LEADING token, so a freeform request that merely contains "space" or "intent" mid-sentence (e.g. `/aidlc add a settings space`) is still treated as new-work input.
+* While an intent is active, describing a genuinely new, unrelated piece of work prompts the orchestrator to **offer a second intent alongside** (you confirm Y/n before anything is born); switch between them any time with `/aidlc intent <name>`.
+
+**Active-space following**
+
+* `/aidlc space <name>` re-points the active harness's rule include (Claude `@`-stub, Kiro `agents/*.json` resources glob, Codex `AIDLC_RULES_DIR`) to the switched space — the next turn loads that space's method into ambient context. The includes stay committed and are re-pointed in place; at `default` the re-point is a byte-identical no-op, so a single-team committed tree never churns.
+* The method resolver and the learnings/practices writers follow the active space: a learning promoted under `active-space=<name>` lands in `aidlc/spaces/<name>/memory/`; a cursorless resolve still yields `default`.
+* `/aidlc space-create <name>` seeds the full space shape — `codekb/` and `knowledge/` siblings (with `.gitkeep` floors) alongside `memory/` and `intents/`, matching `default`.
+* The `required-sections` sensor and the stage-protocol template clause resolve templates as team → framework-default → generic floor (override-before-default). No framework-default templates ship at GA, so resolution is unchanged until one is authored.
+
+**Per-repo code knowledge base**
+
+* New read-only `/aidlc codekb-path [--repo <name>] [--json]` verb prints the deterministic per-repo codekb directory without mutating state.
+* Reverse-engineering's 9 artifacts now land at the space-level per-repo path `aidlc/spaces/<space>/codekb/<repo>/` — a durable store shared across every intent in the space — rather than at the agent's discretion under the per-intent record dir.
+
+**Kiro read-only/navigation determinism**
+
+* On Kiro, `/aidlc --status` / `--doctor` / `--help` / `--version` and `/aidlc space` / `space-create <name>` / `intent <name>` now run reliably while a workflow is active — they print/switch as documented instead of occasionally advancing the active intent. A `userPromptSubmit` hook runs these deterministic commands directly; re-copy your `dist/kiro/` shell to pick up the new hooks (`agents/aidlc.json` → `hooks.userPromptSubmit`, plus a `hooks.preToolUse` backstop).
+* The dispatch is enforced by a turn-scoped guard: the engine emits a terminal stop (and a Kiro `preToolUse` backstop blocks) when a bare `next` would otherwise roll a workflow forward in the same turn a read-only/navigation command was already handled. On every harness the `next --status` / `--doctor` / `--help` / `--version` print directive now names the exact `aidlc-utility.ts` subcommand and instructs the conductor to stop.
+* Mutating commands are unaffected: `--scope` / `--test-strategy` changes and intent birth still run and then resume the workflow.
+
 ## [2.0.2] - 2026-06-18
 
 Validates the stage `reviewer:` / `reviewer_max_iterations` frontmatter fields, which were carried through schema → graph → directive by the 2.0.0 reviewer mechanism but never checked. A malformed cap, a non-positive-integer cap, a cap declared with no reviewer, or a `reviewer:` naming an agent with no `.claude/agents/*.md` file all passed validation before and surfaced only as a runtime failure or a silently-disabled review loop; they now fail validation/compile loudly and deterministically. This is a behaviour change at authoring time only — the reviewer's runtime behaviour is unchanged. Re-copy your `dist/<harness>/` to pick up the regenerated tools. Refs #389.

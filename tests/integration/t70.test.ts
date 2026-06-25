@@ -100,26 +100,31 @@ function countCompletedCheckboxes(stateText: string): number {
   return stateText.split("\n").filter((l) => /^- \[x\]/.test(l)).length;
 }
 
-describe("t70 /aidlc --init --force, greenfield stub (sdk)", () => {
+describe("t70 /aidlc birth on a greenfield stub (sdk)", () => {
   // -------------------------------------------------------------------------
-  // The deterministic init tool re-classifies the greenfield-todo stub and
-  // re-writes aidlc-state.md. Every .sh state-grep is re-expressed against the
-  // on-disk state fields / the typed audit event / the verbatim tool stdout.
+  // P4: the user-facing --init is retired; naming a scope on a fresh workspace
+  // BIRTHS the first intent (the engine NAMES intent-birth, the conductor runs
+  // it). The deterministic birth tool classifies the greenfield-todo stub and
+  // writes aidlc-state.md into the BORN intent's record. Every .sh state-grep is
+  // re-expressed against the on-disk per-intent state fields / the typed audit
+  // event / the verbatim tool stdout. No seeded state (a clean greenfield birth,
+  // not a migration).
   // -------------------------------------------------------------------------
   test(
-    "greenfield classification writes Project Type=Greenfield to state; WORKSPACE_SCANNED fires; no gate",
+    "greenfield classification writes Project Type=Greenfield to the born intent's state; WORKSPACE_SCANNED fires; no gate",
     async () => {
-      // Seed a state pinned at workspace-detection + the greenfield-todo stub +
-      // an audit log. --force makes init run on the seeded state. NO --test-run:
-      // the init path has no gate to auto-approve (it prints state and STOPs),
-      // so the .sh's flag was inert and is dropped (TRAP 2).
+      // A fresh greenfield-todo stub on a CLEAN workspace — noAidlcDocs strips
+      // the default seeded intent record so the engine AUTO-BIRTHS a new intent
+      // over the stub and the scan fires (a pre-seeded record would make the
+      // engine resolve the existing intent and ask to pick one, skipping the
+      // scan — same fix as t71-brownfield). NO --test-run: the birth path has no
+      // gate (it prints state and STOPs).
       const proj = setupIntegrationProject({
-        withState: "state-pre-workspace-detection.md",
         withGreenfieldStub: true,
-        withAudit: true,
+        noAidlcDocs: true,
       });
       try {
-        const r = await driveAidlc("/aidlc --init --force", {
+        const r = await driveAidlc('/aidlc --scope poc "build a todo app"', {
           projectDir: proj,
           timeoutMs: DRIVE_TIMEOUT_MS,
           stopAfterToolResult: STOP_AFTER_INIT,

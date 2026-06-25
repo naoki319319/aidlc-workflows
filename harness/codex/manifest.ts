@@ -40,6 +40,14 @@ const manifest: HarnessManifest = {
   // skill is authored too but is EMITTED into .agents/skills/aidlc/ by emit().
   harnessFiles: [
     { src: "hooks/aidlc-codex-adapter.ts", dst: "hooks/aidlc-codex-adapter.ts" },
+    // Project-root .gitignore (beside .codex/, not inside it) — re-rooted under
+    // aidlc/spaces/* for the workspace layout (SEED): cursors + machine-local
+    // runtime ignored, the shared work (memory/codekb/registry/state/audit
+    // shards/artifacts) committed. Net-new for Codex — it shipped none before.
+    // Authored as dot-gitignore so it does not act as a live ignore inside
+    // harness/codex/. projectRoot routes it to dist/codex/.gitignore + the
+    // --check drift guard.
+    { src: "dot-gitignore", dst: ".gitignore", projectRoot: true },
   ],
 
   rulesRename: "aidlc-rules",

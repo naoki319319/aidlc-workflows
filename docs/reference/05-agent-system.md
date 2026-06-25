@@ -2,7 +2,7 @@
 
 This chapter documents the agent architecture: how agents are structured, configured, loaded by the framework, and how to add or modify them.
 
-For user-facing agent descriptions, see the [User Guide -- Agents](../guide/05-agents.md).
+For user-facing agent descriptions, see the [User Guide -- Agents](../guide/06-agents.md).
 
 ---
 
@@ -49,7 +49,7 @@ Below the frontmatter, the markdown body defines:
 
 ## Shared Configuration
 
-All 11 agents share a common configuration baseline. None declares a `tools:` allowlist, so every agent inherits the **full session toolset** — all of Claude Code's built-in tools plus any MCP tools provisioned to the session. The one shipped restriction is `disallowedTools: Task`.
+All 13 agents share a common configuration baseline. None declares a `tools:` allowlist, so every agent inherits the **full session toolset** — all of Claude Code's built-in tools plus any MCP tools provisioned to the session. The one shipped restriction is `disallowedTools: Task`.
 
 ### The session toolset (inherited by every agent)
 
@@ -154,7 +154,7 @@ Agent display names and example knowledge files are authoritative in each agent'
 2. Add knowledge files to `core/knowledge/{name}-agent/`
 3. Add the agent to the stage files (`core/aidlc-common/stages/`) where it participates — set `lead_agent` / `support_agents` in each stage's frontmatter. The compiled `tools/data/stage-graph.json` is GENERATED from that frontmatter by `bun scripts/package.ts`; never hand-edit it (the `package.ts --check` drift guard fails CI on a hand-edited dist).
 4. Regenerate the distributions: `bun scripts/package.ts` (then `--check` to confirm no drift)
-5. Add a knowledge README template entry for `aidlc-docs/knowledge/{name}-agent/`
+5. Add the agent→examples row to the hand-maintained knowledge tables (the space-level team-knowledge dir is `aidlc/knowledge/{name}-agent/`, created by the team when it has content — the engine does not scaffold it)
 6. Update tests: smoke tests for file existence, feature tests for stage-agent cross-references
 7. Update documentation in this file and [reference/agents/](agents/)
 

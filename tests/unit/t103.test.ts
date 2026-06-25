@@ -43,13 +43,13 @@
 //   - case 5   .headings populated from AIDLC_RULES_DIR fixture  -> test 5
 //       (proves the read seam: doctor/loadRules reads fixture bodies, not
 //        the shipped rules).
-//   - case 6   org+team-learnings ## Testing Posture overlap -> 1 candidate
+//   - case 6   org+team ## Testing Posture overlap -> 1 candidate
 //       -> test 6 (3 grep conditions preserved as 3 expect().toContain;
 //        STRONGER: also asserts the exact "1 team/project rule(s)" count
 //        string, byte-for-byte, not just substrings).
 //   - case 7   empty org headings -> no overlap (N=0)            -> test 7.
 //   - case 8   team heading absent from org -> no overlap        -> test 8.
-//   - case 9   project-learnings.md participates in drift walk   -> test 9.
+//   - case 9   project.md participates in drift walk             -> test 9.
 //   - case 10  aidlc-required-sections resolves -> 1/1 paired    -> test 10.
 //   - case 11  aidlc-ghost unpaired -> 0/1 + unpaired detail     -> test 11
 //       (3 grep conditions preserved).
@@ -172,7 +172,7 @@ const lit = (p: string): string => JSON.stringify(p);
 describe("t103 loader primitives (migrated from t103-doctor-rule-drift-coverage.sh, plan 19)", () => {
   test("case 1: loadRules() surfaces frontmatter.pairing", () => {
     const rd = rulesDir({
-      "aidlc-org.md": "---\npairing: aidlc-foo\n---\n\n# Org rule\n",
+      "org.md": "---\npairing: aidlc-foo\n---\n\n# Org rule\n",
     });
     const r = runBunEval(
       `import { loadRules } from ${lit(GRAPH_TS)};\n` +
@@ -209,7 +209,7 @@ describe("t103 loader primitives (migrated from t103-doctor-rule-drift-coverage.
   //     printed five HAS*/NO* lines; we run it once and assert on each.
   function headingsProbe(): CliResult {
     const rd = rulesDir({
-      "aidlc-org.md":
+      "org.md":
         "# Org\n\n## A\n\nBody of A.\n\n> a blockquote line\n" +
         "<!-- a single-line comment -->\n\n```\nfenced content under A\n```\n\n## B\n\nBody of B.\n",
     });
@@ -248,7 +248,7 @@ describe("t103 loader primitives (migrated from t103-doctor-rule-drift-coverage.
 
   test("case 4: multi-line-comment-only heading reads as empty", () => {
     const rd = rulesDir({
-      "aidlc-org.md":
+      "org.md":
         "# Org\n\n## Corrections\n\n<!-- Self-learning loop appends here. -->\n" +
         "<!-- Use aidlc-team.md to record team-wide overrides; aidlc-project.md\n" +
         "     to record project-specific deviations. The loaders merge org -> team\n" +
@@ -266,7 +266,7 @@ describe("t103 loader primitives (migrated from t103-doctor-rule-drift-coverage.
 
   test("case 5: .headings populated from AIDLC_RULES_DIR fixture (read seam)", () => {
     const rd = rulesDir({
-      "aidlc-org.md":
+      "org.md":
         "# Org\n\n## Testing Posture\n\nA unique fixture sentence that does not appear in shipped rules.\n",
     });
     const r = runBunEval(
@@ -285,28 +285,32 @@ describe("t103 loader primitives (migrated from t103-doctor-rule-drift-coverage.
 // ============================================================
 
 describe("t103 doctor rule-drift (migrated from t103-doctor-rule-drift-coverage.sh, plan 19)", () => {
-  test("case 6: org+team-learnings ## Testing Posture overlap -> 1 candidate", () => {
+  test("case 6: org+team ## Testing Posture overlap -> 1 candidate", () => {
     const rd = rulesDir({
-      "aidlc-org.md":
+      "org.md":
         "# Org\n\n## Testing Posture\n\nWe require 80% line coverage on every Bolt.\n",
-      "aidlc-team-learnings.md":
-        "# Team Learnings\n\n## Testing Posture\n\nThis team skips the coverage floor on spike branches.\n",
+      // P6: a learning IS a practice — it lands in team.md (no `*-learnings.md`
+      // slot). team.md is the team-scoped surface the drift walk compares vs org.
+      "team.md":
+        "# Team\n\n## Testing Posture\n\nThis team skips the coverage floor on spike branches.\n",
     });
     const out = runDoctor(rd).out;
     // .sh grepped three substrings; STRONGER — the exact "1 ... overlap" count
     // string is asserted whole, plus the participating file + heading.
     expect(out).toContain("Rule drift: 1 team/project rule(s) overlap org policy");
-    expect(out).toContain("aidlc-team-learnings.md");
+    // Display path is the harness-neutral aidlc/spaces/default/memory/<file>
+    // (P5 relocation); assert the neutral basename.
+    expect(out).toContain("team.md");
     expect(out).toContain("Testing Posture");
   });
 
   test("case 7: empty org headings produce no overlap (N=0)", () => {
     const rd = rulesDir({
-      "aidlc-org.md":
+      "org.md":
         "# Org\n\n## Forbidden\n\n<!-- Things agents must never do -->\n\n" +
         "## Corrections\n\n<!-- Self-learning loop appends here. -->\n" +
         "<!-- multi-line comment continues\n     across more than one line. -->\n",
-      "aidlc-team.md":
+      "team.md":
         "# Team\n\n## Forbidden\n\nNever push directly to main.\n\n" +
         "## Corrections\n\nAlways squash-merge.\n",
     });
@@ -317,23 +321,26 @@ describe("t103 doctor rule-drift (migrated from t103-doctor-rule-drift-coverage.
 
   test("case 8: team heading absent from org -> no overlap", () => {
     const rd = rulesDir({
-      "aidlc-org.md": "# Org\n\n## Way of Working\n\nWe use trunk-based development.\n",
-      "aidlc-team.md": "# Team\n\n## Code Style\n\nWe prefer tabs over spaces.\n",
+      "org.md": "# Org\n\n## Way of Working\n\nWe use trunk-based development.\n",
+      "team.md": "# Team\n\n## Code Style\n\nWe prefer tabs over spaces.\n",
     });
     expect(runDoctor(rd).out).toContain(
       "Rule drift: no team/project rule overlaps org policy",
     );
   });
 
-  test("case 9: project-learnings.md participates in the drift walk", () => {
+  test("case 9: project.md participates in the drift walk", () => {
     const rd = rulesDir({
-      "aidlc-org.md": "# Org\n\n## Deployment\n\nWe deploy on merge to staging.\n",
-      "aidlc-project-learnings.md":
-        "# Project Learnings\n\n## Deployment\n\nThis project deploys only on a manual tag.\n",
+      "org.md": "# Org\n\n## Deployment\n\nWe deploy on merge to staging.\n",
+      // P6: a learning IS a practice — it lands in project.md (no
+      // `*-learnings.md` slot). project.md participates in the drift walk.
+      "project.md":
+        "# Project\n\n## Deployment\n\nThis project deploys only on a manual tag.\n",
     });
     const out = runDoctor(rd).out;
     expect(out).toContain("Rule drift: 1 team/project rule(s) overlap org policy");
-    expect(out).toContain("aidlc-project-learnings.md");
+    // Display path is aidlc/spaces/default/memory/<file> (P5 relocation).
+    expect(out).toContain("project.md");
   });
 });
 
@@ -344,7 +351,7 @@ describe("t103 doctor rule-drift (migrated from t103-doctor-rule-drift-coverage.
 describe("t103 doctor paired-coverage (migrated from t103-doctor-rule-drift-coverage.sh, plan 19)", () => {
   test("case 10: aidlc-required-sections resolves -> 1/1 paired", () => {
     const rd = rulesDir({
-      "aidlc-org.md":
+      "org.md":
         "---\npairing: aidlc-required-sections\n---\n\n# Org rule with a sensor binding\n",
     });
     expect(runDoctor(rd).out).toContain(
@@ -354,7 +361,7 @@ describe("t103 doctor paired-coverage (migrated from t103-doctor-rule-drift-cove
 
   test("case 11: aidlc-ghost unpaired -> 0/1 + unpaired detail", () => {
     const rd = rulesDir({
-      "aidlc-org.md":
+      "org.md":
         "---\npairing: aidlc-ghost\n---\n\n# Org rule binding a non-existent sensor\n",
     });
     const out = runDoctor(rd).out;
@@ -367,9 +374,9 @@ describe("t103 doctor paired-coverage (migrated from t103-doctor-rule-drift-cove
 
   test("case 12: feedforward-only counts in X, not in the M-X denominator", () => {
     const rd = rulesDir({
-      "aidlc-org.md":
+      "org.md":
         "---\npairing: aidlc-required-sections\n---\n\n# Org rule with a sensor binding\n",
-      "aidlc-team.md":
+      "team.md":
         "---\npairing: feedforward-only\n---\n\n# Team rule that needs no sensor\n",
     });
     expect(runDoctor(rd).out).toContain(
@@ -379,7 +386,7 @@ describe("t103 doctor paired-coverage (migrated from t103-doctor-rule-drift-cove
 
   test("case 13: aidlc-upstream-coverage strips to bare id and resolves", () => {
     const rd = rulesDir({
-      "aidlc-org.md":
+      "org.md":
         "---\npairing: aidlc-upstream-coverage\n---\n\n# Org rule binding the upstream-coverage sensor by aidlc- prefixed name\n",
     });
     expect(runDoctor(rd).out).toContain(
@@ -389,7 +396,7 @@ describe("t103 doctor paired-coverage (migrated from t103-doctor-rule-drift-cove
 
   test("case 14: no pairing rules -> M-X=0 branch label", () => {
     const rd = rulesDir({
-      "aidlc-org.md": "# Org rule, no pairing\n",
+      "org.md": "# Org rule, no pairing\n",
     });
     expect(runDoctor(rd).out).toContain(
       "Paired sensor coverage: no sensor-bound rules (0 feedforward-only)",
@@ -407,10 +414,12 @@ describe("t103 doctor determinism", () => {
   // generous time for two subprocess invocations.
   test("case 15: drift+coverage labels are byte-identical across runs", () => {
     const files = {
-      "aidlc-org.md":
+      "org.md":
         "---\npairing: aidlc-required-sections\n---\n\n# Org\n\n## Testing Posture\n\nWe require 80% line coverage.\n",
-      "aidlc-team-learnings.md":
-        "# Team Learnings\n\n## Testing Posture\n\nThis team waives the floor on spikes.\n",
+      // P6: a learning IS a practice (no `*-learnings.md` slot) — team.md is the
+      // team-scoped surface the drift walk reads.
+      "team.md":
+        "# Team\n\n## Testing Posture\n\nThis team waives the floor on spikes.\n",
     };
     const rdA = rulesDir(files);
     const rdB = rulesDir(files);

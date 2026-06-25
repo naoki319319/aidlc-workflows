@@ -92,7 +92,7 @@ options:
     description: Archive current version and move on
 ```
 
-If "Accept as-is" selected: log the decision in audit.md ("User accepted stage output as-is after [N] revision cycles"), mark stage complete, and proceed. This overrides the NO EMERGENT BEHAVIOR RULE for Construction stages only when the revision threshold is reached.
+If "Accept as-is" selected: log the decision in `<record>/audit/<host>-<clone>.md` ("User accepted stage output as-is after [N] revision cycles"), mark stage complete, and proceed. This overrides the NO EMERGENT BEHAVIOR RULE for Construction stages only when the revision threshold is reached.
 
 After the 2nd revision cycle (before the escape hatch activates), include a note in the approval question: "After one more revision, an 'Accept as-is' option will become available."
 
@@ -194,7 +194,7 @@ Structured bullet-point summary of what was produced:
 
 ### Part 3: Review + Approval (mandatory)
 ```markdown
-**Review:** `aidlc-docs/[path to artifacts]`
+**Review:** `<record>/[path to artifacts]`
 ```
 Then present the structured approval question as defined above.
 
@@ -245,7 +245,7 @@ When TEST_RUN_MODE is active:
 
 **The questions file is always the source of truth.** Regardless of how many questions a stage has, the flow is:
 
-**Step 1: Create the questions file** in the appropriate `aidlc-docs/` directory with full [Answer]: tag format:
+**Step 1: Create the questions file** in the appropriate `<record>/` directory with full [Answer]: tag format:
 - Include options A-E as appropriate for each question
 - EVERY question MUST end with `X. Other (please specify)` as the final option — no exceptions
 - Leave all `[Answer]:` tags blank
@@ -293,14 +293,14 @@ options:
     description: Discuss freely — I'll extract decisions from our conversation
 ```
 
-Log the user's mode choice to `aidlc-docs/audit.md` using the Question interaction log format.
+Log the user's mode choice to `<record>/audit/<host>-<clone>.md` using the Question interaction log format.
 
 **Step 3a: If "Guide me" (interactive mode):**
 - Present questions as structured questions in batches (batching limits are harness-specific — see the question-rendering annex)
 - For questions with 5+ options (single-select or multi-select): present ALL answer options, splitting across multiple structured questions if the harness's per-question option limit requires it (e.g., options A-D first, then options E+ in a follow-up). The user must see every option to make an informed choice. The file retains the full option set as the authoritative record.
 - Every structured question offers an "Other" escape (built into the harness UI or rendered as an explicit option per the annex). In interactive mode, if the user selects "Other" for any question, treat it as a request to discuss that question further — engage in conversation, then ask for their final answer before continuing the batch. Explicitly tell the user this before the first batch: "Select 'Other' on any question to discuss it before answering."
 - After each batch of answers, IMMEDIATELY write the answers back to the questions file (update each `[Answer]:` tag)
-- Log each batch to `aidlc-docs/audit.md` using the Question interaction log format. Generate a fresh ISO timestamp for each batch entry.
+- Log each batch to `<record>/audit/<host>-<clone>.md` using the Question interaction log format. Generate a fresh ISO timestamp for each batch entry.
   CRITICAL: Each batch entry requires its own `date -u` Bash call. Do NOT reuse the timestamp from the mode choice or prior batch.
 - Continue until all questions are answered
 - **Consolidated summary before generation**: After all questions have been answered, present a consolidated summary of all answers in a clear list and ask: "Does this all look correct before I generate the artifact?" Wait for user confirmation. If the user requests changes, update the relevant `[Answer]:` tags in the questions file and re-present the summary. Only proceed to artifact generation after the user confirms.
@@ -376,7 +376,7 @@ When contradictions are detected:
 - When a user defers to AI judgment, reframe: "I want to make sure the design reflects YOUR priorities. Could you tell me [specific aspect]?"
 
 ### Plan and question file location
-Plan files and question files are co-located with their stage artifacts, not in a centralized `plans/` directory. For example, user story plan questions live at `aidlc-docs/inception/user-stories/user-stories-questions.md` alongside the user story artifacts. This co-location improves discoverability — all inputs, questions, and outputs for a stage are found in the same directory.
+Plan files and question files are co-located with their stage artifacts, not in a centralized `plans/` directory. For example, user story plan questions live at `<record>/inception/user-stories/user-stories-questions.md` alongside the user story artifacts. This co-location improves discoverability — all inputs, questions, and outputs for a stage are found in the same directory.
 
 ### Within-Bolt Question Collection (Construction)
 
@@ -591,12 +591,12 @@ Use these templates for non-standard events. Each provides structured fields for
 ```
 
 ### Audit log rules
-- ALWAYS append to `aidlc-docs/audit.md` — NEVER overwrite or truncate existing content.
+- ALWAYS append to this clone's audit shard `<record>/audit/<host>-<clone>.md` — NEVER overwrite or truncate existing content.
 - CRITICAL: The "User Input" field in audit entries MUST contain the user's COMPLETE, UNMODIFIED input. NEVER summarize, paraphrase, or truncate user responses. This is a compliance and traceability requirement — the exact wording may carry nuance that summaries lose.
 - Log all approval prompts BEFORE showing them to the user. This ensures the audit trail captures what was presented, not just what was answered.
 - Log all user responses with ISO timestamps immediately after receiving them.
-- If audit.md does not exist, create it with a header: `# AI-DLC Audit Log`
-- If audit.md appears corrupted (no valid markdown structure), create a backup (`audit.md.bak`) and start a new audit log noting the corruption.
+- If this clone's audit shard does not exist, create it with a header: `# AI-DLC Audit Log`
+- If this clone's audit shard appears corrupted (no valid markdown structure), create a backup (`<record>/audit/<host>-<clone>.md.bak`) and start a new shard noting the corruption.
 - `ERROR_LOGGED` and `RECOVERY_COMPLETED` are declared in the taxonomy but reserved for the recovery workflow (not yet implemented). Do not hand-write them via `aidlc-audit.ts append` — the recovery flow will ship its own emitter. Canonical state transitions go through the state/log/bolt tools (see §4 "Silent bookkeeping writes").
 
 ---
@@ -609,8 +609,8 @@ Each stage specifies its lead and supporting agents. To load a persona:
 1. `.kiro/steering/` — organization and project guardrails (always)
 2. `.kiro/knowledge/aidlc-shared/` — shared methodology principles
 3. `.kiro/knowledge/[agent-name]/` — agent-specific methodology
-4. `aidlc-docs/knowledge/aidlc-shared/` — team shared knowledge (if exists)
-5. `aidlc-docs/knowledge/[agent-name]/` — team agent-specific knowledge (if exists)
+4. `aidlc/knowledge/aidlc-shared/` — team shared knowledge (if exists)
+5. `aidlc/knowledge/[agent-name]/` — team agent-specific knowledge (if exists)
 6. Prior stage artifacts as required by the current stage
 
 ### For inline stages:
@@ -738,7 +738,7 @@ Key terms used throughout AI-DLC documentation:
 | **Planning** | Stages that analyze, question, and design (produce markdown artifacts) |
 | **Generation** | Stages that produce executable code (Code Generation, Build and Test) |
 | **Depth** | Scale of detail: Minimal, Standard, or Comprehensive — determined by scope and user override |
-| **Artifact** | A versioned markdown file in `aidlc-docs/` recording a decision, design, or analysis |
+| **Artifact** | A versioned markdown file under the active intent's record dir `<record>/` recording a decision, design, or analysis |
 | **Guardrail** | A learned behavioral rule (org-level or project-level) stored in `.kiro/steering/` |
 | **AIDLC** | AI-Driven Development Life Cycle — the methodology this system implements |
 
@@ -760,6 +760,14 @@ Before creating any artifact file, validate:
 - All entities referenced in the artifact (components, stories, APIs, data models) exist in prior artifacts
 - No naming conflicts with existing artifacts (e.g., two components with the same name)
 - File path matches the expected convention for the stage
+
+### Template overrides
+Before writing artifact `X` (keyed by the output filename stem — artifact `X` writes to `X.md`), resolve its template in this order, override-before-default, first hit wins:
+1. **team template** — `aidlc/spaces/<space>/memory/templates/X.md` (the active space's hand-authored override);
+2. **framework default** — the engine-shipped default `X.md` *if one ships* (none ship at GA, so this normally misses);
+3. **else** — no template: follow the stage's existing prose.
+
+If a template resolves (tier 1 or 2), follow its structure: use its `##` headings as the skeleton to fill. A resolved template is used whole-doc (verbatim structure, no section merge). The `required-sections` sensor verifies the output against the SAME resolution order and the SAME file, so the produced shape and the checked shape cannot drift.
 
 ### ASCII Diagram Standards
 
@@ -851,7 +859,7 @@ If a Task tool call fails (timeout, error, or returns truncated/incomplete outpu
 2. If the retry also fails, **inform the user** and offer two options via a structured question:
    - "Run inline" — execute the stage work directly in the orchestrator conversation (slower but avoids subagent issues)
    - "Skip and revisit" — mark the stage as incomplete and continue; return to it later
-3. Log the failure and resolution in `aidlc-docs/audit.md` using the Error log format
+3. Log the failure and resolution in `<record>/audit/<host>-<clone>.md` using the Error log format
 
 ---
 
@@ -867,7 +875,7 @@ If the `run-stage` directive includes a `reviewer` field (non-null), the orchest
 
 1. **Invoke reviewer sub-agent.** Delegate to the reviewer agent named in `directive.reviewer`. Pass:
    - The stage definition file path (`directive.stage_file`)
-   - The Q&A file path (e.g., `aidlc-docs/<phase>/<stage>/<stage>-questions.md`)
+   - The Q&A file path (e.g., `<record>/<phase>/<stage>/<stage>-questions.md`)
    - All artifact file paths produced by the stage (the `produces` artifacts)
    - The validation tools list from the stage definition's frontmatter (if any)
 
@@ -912,9 +920,9 @@ The ritual is **tool-as-actor**: a deterministic tool (`aidlc-learnings.ts`) det
 
 **Stage files are immutable framework artefacts.** The ritual NEVER edits a stage file's `## Steps`, `## Sensors`, or `## Learn` content. Stage files ship with framework releases; user-tier customisation lives in the harness. The one carve-out is the frontmatter `sensors:` import list — a sensor-binding addition appends a new id there (the pull-authoring two-write install). That is the import list, not body content; the stage's immutable shape is unchanged. Stage files are framework-and-loop-edited, not framework-only — but only that one frontmatter list grows.
 
-**The harness IS mutable.** Confirmed learnings write to one of two surfaces:
+**The harness IS mutable.** A confirmed learning IS a practice — it writes to one of two surfaces:
 
-- `.kiro/steering/aidlc-project-learnings.md` (default) or `.kiro/steering/aidlc-team-learnings.md` — rolling dated entries, one click to widen a candidate from project to team. There is no org-learnings file and no widen-to-org path. These are a separate surface from the practices files (`aidlc-project.md` / `aidlc-team.md`) and their topical sections — never `## Corrections`, never a practices-discovery heading.
+- `aidlc/spaces/<space>/memory/project.md` (default) or `aidlc/spaces/<space>/memory/team.md` — appended as a practice line under the fitting topical heading (e.g. `## Corrections`, `## Testing Posture`, `## Forbidden`), one click to widen a candidate from project to team. These are the SAME method files the resolver reads; there is no parallel `*-learnings.md` surface, no fractional override tier, and no org tier (no widen-to-org path). History of what was learned lives in the audit shards + the per-stage diary, not a rolling dated file.
 - `.kiro/sensors/aidlc-<id>.md` — for verification checks. A project-tier manifest with a `matches:` capability glob, bound to the originating stage by appending its id to that stage's `sensors:` frontmatter list.
 
 Next time the stage runs, the resolved rules and the bound sensor load automatically at compile — the stage runs better without anyone having edited the stage file's body.
@@ -925,7 +933,7 @@ Trigger after Step N-1 (completion message rendered) and before Step N (approval
 
 ### The ritual
 
-1. **Maintain a per-stage memory file as you work.** Append entries to `aidlc-docs/<phase>/<stage>/memory.md` (created at stage start if absent). Use four standard H2 headings:
+1. **Maintain a per-stage memory file as you work.** Append entries to `<record>/<phase>/<stage>/memory.md` (created at stage start if absent). Use four standard H2 headings:
    - **Interpretations** — choices made where the stage prose was ambiguous
    - **Deviations** — places where you intentionally departed from the stage prose, and why
    - **Tradeoffs** — alternatives considered and why you picked what you did
@@ -944,16 +952,16 @@ Trigger after Step N-1 (completion message rendered) and before Step N (approval
    ```
    The tool parses memory.md and emits structured JSON: one candidate per non-blank entry under **Interpretations / Deviations / Tradeoffs** (surfaced verbatim — no paraphrase, no "interesting" filtering), plus a read-only `parked_open_questions[]` list. Open questions are research items, not learnings to install — they never become candidates. Most runs surface nothing worth keeping; that's the most common outcome.
 
-3. **Render the structured question + free-text channel.** For each candidate, render one option whose `label` is the candidate `summary` (verbatim) and whose `description` is the derived destination (e.g. `→ aidlc-project-learnings.md (Deviation)`) plus a "promote to team?" affordance. After `multiSelect` returns, correlate each kept label back to its candidate `id` + `source_heading`. Then **always** ask "Anything to add for next time?"; for any non-empty response, ask the user to pick one of the four headings (Interpretation / Deviation / Tradeoff / Open question). **The heading pick is the only classification asked of the user** — the destination is derived from it, not picked. There is no "rule or preference?" question and no practice-section menu (the practices sections of `aidlc-project.md` / `aidlc-team.md` are practices-discovery's surface, off-limits to the learning gate).
+3. **Render the structured question + free-text channel.** For each candidate, render one option whose `label` is the candidate `summary` (verbatim) and whose `description` names the routed destination (e.g. `→ project.md ## Corrections`) plus a "promote to team?" affordance. After `multiSelect` returns, correlate each kept label back to its candidate `id` + `source_heading`. Then **always** ask "Anything to add for next time?"; for any non-empty response, ask the user to pick one of the four diary headings (Interpretation / Deviation / Tradeoff / Open question). **The diary-heading pick is the only classification asked of the user.** From it, the orchestrator routes the learning to the fitting practice heading in the method file (KNOWLEDGE): a testing learning → `## Testing Posture`, a prohibition → `## Forbidden`, anything general → `## Corrections` (the default). The user never picks the destination heading directly — the orchestrator routes by fit, and the tool ensure-exists the heading before it writes.
 
-4. **Admission conflict-check (before any write).** For each kept learning candidate, compare the single proposed dated entry against `aidlc-org.md`'s matching `## <section>` (matched by topic — the single-line variant of the §5 admission gate). This comparison is a section-level LLM check (knowledge → orchestrator-LLM). If the entry contradicts an org guardrail, surface the conflicting org sentence inline; the user **revises, skips this candidate, or escalates** (judgement → user; there is no user-override path). Only conflict-clear or user-escalated selections proceed to the write. Sensor manifests have no org-section analogue and skip this check.
+4. **Admission conflict-check (before any write).** For each kept learning candidate, compare the proposed practice line against `org.md`'s matching `## <section>` (matched by the routed heading — the single-line variant of the §5 admission gate). This comparison is a section-level LLM check (knowledge → orchestrator-LLM). If the practice contradicts an org guardrail, surface the conflicting org sentence inline; the user **revises, skips this candidate, or escalates** (judgement → user; there is no user-override path). Only conflict-clear or user-escalated selections proceed to the write. Sensor manifests have no org-section analogue and skip this check.
 
 5. **Persist (the tool writes + emits audit).** Build the selections file and call:
    ```bash
    bun .kiro/tools/aidlc-learnings.ts persist --slug <stage-slug> --selections-json <path>
    ```
    The tool, inside one `withAuditLock` transaction (decide-inside-lock, content-presence idempotency via a `<!-- cid:<slug>:<id> -->` marker so a crashed run recovers without double-appending):
-   - **Learning** → appends a dated entry to `aidlc-<scope>-learnings.md` (scope ∈ {project, team}), tagged by its heading: `- YYYY-MM-DD [<Heading>] <text> <!-- cid:... -->`. Creates the file from a header template on first write so the rolling-list heading always exists. Emits `RULE_LEARNED` (with `Source: orchestrator | user_addition`).
+   - **Learning** → appends a practice line under the orchestrator-routed heading in `<scope>.md` (scope ∈ {project, team}): `- <text> (learned YYYY-MM-DD) <!-- cid:... -->`. Ensure-exists the heading first, so a routed heading the file doesn't yet carry is created rather than throwing. Emits `RULE_LEARNED` (with `Source: orchestrator | user_addition`, `Heading: <routed>`).
    - **Sensor** → scaffolds a project-tier `<project>/.kiro/sensors/aidlc-<id>.md` manifest (with the user-supplied `matches:` glob) AND appends the new id to the originating stage's `sensors:` frontmatter list — both writes inside the same lock. Emits `SENSOR_PROPOSED`. The sensor binds and fires from the next workflow's compile.
 
    The orchestrator never `Edit`s a rule or sensor file directly — every learning write goes through the tool under the lock, so the `RULE_LEARNED` / `SENSOR_PROPOSED` audit row is the replayable source of truth for what was learned. The selections file is the replay artefact: a crashed persist replays the same selections-json without re-prompting the human.
@@ -964,10 +972,12 @@ Trigger after Step N-1 (completion message rendered) and before Step N (approval
 
 ```
 Is the entry an Interpretation / Deviation / Tradeoff?
-└── Learning → aidlc-<scope>-learnings.md (dated entry, tagged by heading)
+└── Learning → a practice line under the routed heading in <scope>.md
+    Heading routed by fit (testing → ## Testing Posture, prohibition →
+      ## Forbidden, general → ## Corrections); ensure-exists before write.
     Scope derived from the user's keep + optional promote:
-    ├── default                       — aidlc-project-learnings.md
-    └── promote scope (project→team)  — aidlc-team-learnings.md   (no org-learnings file)
+    ├── default                       — project.md
+    └── promote scope (project→team)  — team.md   (no org tier)
 
 Is the entry an Open question?
 └── Parked — research item, never installed.
@@ -983,9 +993,9 @@ Is the improvement a verification check?
 
 | Entry shape | Destination |
 |---|---|
-| Interpretation: "Reused the auth module rather than rewriting it" | `rules/aidlc-project-learnings.md` (dated, `[Interpretation]`) |
-| Deviation: "Used Given/When/Then for AC despite freeform prose" | `rules/aidlc-project-learnings.md` (dated, `[Deviation]`); promote to `aidlc-team-learnings.md` if team-wide |
-| Tradeoff: "Picked TDD over BDD for the new generators this run" | `rules/aidlc-project-learnings.md` (dated, `[Tradeoff]`) |
+| Interpretation: "Reused the auth module rather than rewriting it" | `project.md ## Corrections` (practice line, `(learned YYYY-MM-DD)`) |
+| Deviation: "Used Given/When/Then for AC despite freeform prose" | `project.md ## Testing Posture` (practice line); promote to `team.md` if team-wide |
+| Tradeoff: "Picked TDD over BDD for the new generators this run" | `project.md ## Testing Posture` (practice line) |
 | Open question: "Confirm whether story splitting is by persona or journey" | Parked — never installed |
 | Check: "ADRs should carry Security and Compliance headings" | Sensor manifest `aidlc-<id>.md` (`matches:` glob) bound to the stage via its `sensors:` frontmatter |
 

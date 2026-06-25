@@ -75,7 +75,13 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { cleanupTestProject, createTestProject } from "../harness/fixtures.ts";
+import {
+  cleanupTestProject,
+  createTestProject,
+  seededAuditShard,
+  seededStateFile,
+} from "../harness/fixtures.ts";
+import { memoryDirFor } from "../../dist/claude/.claude/tools/aidlc-graph.ts";
 
 const BUN = process.execPath; // the bun running this test
 const REPO_ROOT = join(import.meta.dir, "..", "..");
@@ -178,8 +184,8 @@ const PRACTICES_DISCOVERY_REL = join(
 
 interface Fixture {
   proj: string;
-  teamMd: string; // .claude/rules/aidlc-team.md
-  projectMd: string; // .claude/rules/aidlc-project.md
+  teamMd: string; // aidlc/spaces/default/memory/team.md
+  projectMd: string; // aidlc/spaces/default/memory/project.md
   teamPracticesPath: string;
   discoveredRulesPath: string;
 }
@@ -188,13 +194,16 @@ function makeFixture(): Fixture {
   const proj = createTestProject();
   tempDirs.push(proj);
 
-  const rulesDir = join(proj, ".claude", "rules");
+  // P6: practices-promote writes the relocated method files the resolver reads
+  // (aidlc/spaces/<space>/memory/{team,project}.md, neutral names) — NOT the old
+  // .claude/rules/aidlc-{team,project}.md. memoryDirFor() is the default target.
+  const memDir = memoryDirFor(proj);
   const draftDir = join(proj, PRACTICES_DISCOVERY_REL);
-  mkdirSync(rulesDir, { recursive: true });
+  mkdirSync(memDir, { recursive: true });
   mkdirSync(draftDir, { recursive: true });
 
-  const teamMd = join(rulesDir, "aidlc-team.md");
-  const projectMd = join(rulesDir, "aidlc-project.md");
+  const teamMd = join(memDir, "team.md");
+  const projectMd = join(memDir, "project.md");
   const teamPracticesPath = join(draftDir, "team-practices.md");
   const discoveredRulesPath = join(draftDir, "discovered-rules.md");
 
@@ -202,6 +211,16 @@ function makeFixture(): Fixture {
   writeFileSync(projectMd, PROJECT_MD_LIVE, "utf-8");
   writeFileSync(teamPracticesPath, TEAM_PRACTICES_DRAFT, "utf-8");
   writeFileSync(discoveredRulesPath, DISCOVERED_RULES_DRAFT, "utf-8");
+
+  // P9: practices-promote emits PRACTICES_AFFIRMED/OVERRIDE into the ACTIVE
+  // INTENT's audit shard (appendAuditEvent → resolved record). Seed a state file
+  // into the record so the active-intent cursor resolves it — otherwise the emit
+  // falls back to the bare space root and seededAuditShard reads nothing.
+  writeFileSync(
+    seededStateFile(proj),
+    "# AI-DLC State Tracking\n## Current Status\n- **Scope**: feature\n",
+    "utf-8",
+  );
 
   return { proj, teamMd, projectMd, teamPracticesPath, discoveredRulesPath };
 }
@@ -244,8 +263,9 @@ function runPromote(fx: Fixture, ...extra: string[]): CliResult {
   };
 }
 
-const auditPath = (proj: string): string =>
-  join(proj, "aidlc-docs", "audit.md");
+// P9: the per-intent audit shard the practices-promote tool resolves once the
+// seeded record resolves (state present). seededAuditShard mirrors auditShardName.
+const auditPath = (proj: string): string => seededAuditShard(proj);
 
 /** Count audit blocks with `**Event**: <ev>`. Mirrors the .sh's PRACTICES_* grep, as a count. */
 function auditEventCount(file: string, ev: string): number {
@@ -389,7 +409,7 @@ describe("t75 practices-promote — missing draft fails closed", () => {
 // ============================================================
 
 describe("t75 practices-promote — missing target fails closed (atomicity)", () => {
-  test("C: missing aidlc-project.md -> exit non-zero, aidlc-team.md NOT written", () => {
+  test("C: missing project.md -> exit non-zero, team.md NOT written", () => {
     const fx = makeFixture();
     // rm the project guardrails target (t75:203).
     rmDraft(fx.projectMd);
@@ -399,9 +419,9 @@ describe("t75 practices-promote — missing target fails closed (atomicity)", ()
     // .sh test 20: exit non-zero.
     expect(r.status).not.toBe(0);
     // .sh test 20b: error names the file.
-    expect(r.out).toContain("aidlc-project.md not found");
+    expect(r.out).toContain("project.md not found");
 
-    // .sh test 21: aidlc-team.md must NOT be written when aidlc-project.md was
+    // .sh test 21: team.md must NOT be written when project.md was
     // missing — atomicity rule (read both targets, fail closed before any
     // write, aidlc-state.ts:1163-1165).
     expect(readFileSync(fx.teamMd, "utf-8")).not.toContain(

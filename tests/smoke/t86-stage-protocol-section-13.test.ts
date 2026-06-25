@@ -56,10 +56,9 @@
 
 import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { AIDLC_SRC, REPO_ROOT } from "../harness/fixtures.ts";
+import { AIDLC_SRC, cleanupTestProject, createTestProject, REPO_ROOT, seededAuditDir, seedStateFile } from "../harness/fixtures.ts";
 
 const BUN = process.execPath; // the bun running this test
 const AUDIT_TOOL = join(AIDLC_SRC, "tools", "aidlc-audit.ts");
@@ -120,16 +119,20 @@ describe("t86 stage-protocol §13 + MEMORY_EMPTY + SKILL.md gate wiring (migrate
   });
 
   // --- .sh test 3 ----------------------------------------------------------
-  test("§13 routes via two-surface learnings + sensors: frontmatter bind, applies_to fossil gone [.sh test 3]", () => {
+  test("§13 routes a learning as a practice into project.md/team.md + sensors: frontmatter bind, applies_to fossil gone [.sh test 3]", () => {
     const body = read(STAGE_PROTOCOL);
-    // v0.5.0 milestone 12 replaced the old applies_to routing model with the two
-    // learnings surfaces + the sensors:/matches: pull-authoring bind.
-    expect(body.includes("aidlc-project-learnings.md")).toBe(true);
-    expect(body.includes("aidlc-team-learnings.md")).toBe(true);
+    // P6 collapsed the two parallel `*-learnings.md` surfaces into the method
+    // files (a learning IS a practice, vision §6): a confirmed learning lands as
+    // a practice line under the routed heading in project.md (default) / team.md.
+    expect(body.includes("project.md")).toBe(true);
+    expect(body.includes("team.md")).toBe(true);
     expect(body.includes("sensors: frontmatter")).toBe(true);
     expect(body.includes("matches:")).toBe(true);
     // The applies_to routing fossil must be fully gone from the protocol.
     expect(body.includes("applies_to")).toBe(false);
+    // The parallel dated-log surface is gone — no `*-learnings.md` destination.
+    expect(body.includes("aidlc-project-learnings.md")).toBe(false);
+    expect(body.includes("aidlc-team-learnings.md")).toBe(false);
   });
 
   // --- .sh test 5 (declared before 4's CLI half for prose grouping) --------
@@ -156,8 +159,13 @@ describe("t86 stage-protocol §13 + MEMORY_EMPTY + SKILL.md gate wiring (migrate
     // exercise the real validity gate: an event NOT in the Set causes
     // appendAuditEntry to throw and the CLI to exit non-zero with an error JSON
     // (the t18 contract). MEMORY_EMPTY MUST be accepted — exit 0, appended:true.
-    const proj = mkdtempSync(join(tmpdir(), "aidlc-t86-"));
-    mkdirSync(join(proj, "aidlc-docs"), { recursive: true });
+    // createTestProject seeds the per-intent record + active-intent cursor;
+    // seedStateFile writes the record's aidlc-state.md so the cursor RESOLVES
+    // (the active-intent cursor only binds a record that has state). Then a bare
+    // `aidlc-audit append` lands in <record>/audit/<host>-<clone>.md (P9 — no flat
+    // aidlc-docs/audit.md). Read the appended event back off the shard dir.
+    const proj = createTestProject();
+    seedStateFile(proj, "state-mid-ideation.md");
     try {
       const ok = spawnSync(
         BUN,
@@ -166,7 +174,11 @@ describe("t86 stage-protocol §13 + MEMORY_EMPTY + SKILL.md gate wiring (migrate
       );
       expect(ok.status).toBe(0);
       expect(`${ok.stdout ?? ""}`.includes('"appended":true')).toBe(true);
-      const body = read(join(proj, "aidlc-docs", "audit.md"));
+      const auditDir = seededAuditDir(proj);
+      const body = readdirSync(auditDir)
+        .filter((f) => f.endsWith(".md"))
+        .map((f) => read(join(auditDir, f)))
+        .join("\n");
       expect(body.includes("**Event**: MEMORY_EMPTY")).toBe(true);
 
       // Negative control: an unregistered event is REJECTED, proving the gate
@@ -178,7 +190,7 @@ describe("t86 stage-protocol §13 + MEMORY_EMPTY + SKILL.md gate wiring (migrate
       );
       expect(bad.status).not.toBe(0);
     } finally {
-      rmSync(proj, { recursive: true, force: true });
+      cleanupTestProject(proj);
     }
   });
 

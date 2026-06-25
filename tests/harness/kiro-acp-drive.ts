@@ -39,7 +39,7 @@
 // again with the answer text on the same session (sessionId is returned).
 // This driver supports that via opts.sessionId + opts.keepAlive.
 
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 // --- Debug trace (parity with sdk-drive.ts) ---------------------------------
@@ -309,19 +309,61 @@ export class AcpSession {
   }
 }
 
+// P4: birth writes the workflow record per-intent — state at
+// aidlc/spaces/<space>/intents/<slug>-<id8>/aidlc-state.md, audit as per-clone
+// shards at <record>/audit/<host>-<clone>.md — NOT the flat aidlc-docs/. Resolve
+// the born record from the active-space + active-intent cursors, falling back to
+// the flat layout for a not-yet-born (pre-migration) fixture.
+function recordDirOf(projectDir: string): string {
+  const spaceCursor = join(projectDir, "aidlc", "active-space");
+  const space = existsSync(spaceCursor)
+    ? readFileSync(spaceCursor, "utf-8").trim() || "default"
+    : "default";
+  const intentsDir = join(projectDir, "aidlc", "spaces", space, "intents");
+  const intentCursor = join(intentsDir, "active-intent");
+  if (existsSync(intentCursor)) {
+    const rec = readFileSync(intentCursor, "utf-8").trim();
+    if (rec && existsSync(join(intentsDir, rec, "aidlc-state.md"))) {
+      return join(intentsDir, rec);
+    }
+  }
+  return join(projectDir, "aidlc-docs");
+}
+
+function stateFilePathOf(projectDir: string): string {
+  return join(recordDirOf(projectDir), "aidlc-state.md");
+}
+
 function parseAuditEvents(projectDir: string): string[] | undefined {
-  const p = join(projectDir, "aidlc-docs", "audit.md");
-  if (!existsSync(p)) return undefined;
-  const body = readFileSync(p, "utf-8");
+  // Audit is sharded per clone under <record>/audit/; concat every shard, else
+  // fall back to a flat aidlc-docs/audit.md (pre-migration fixture).
+  const auditDir = join(recordDirOf(projectDir), "audit");
+  let body: string;
+  if (existsSync(auditDir)) {
+    const shards = readdirSync(auditDir).filter((f) => f.endsWith(".md"));
+    if (shards.length === 0) return undefined;
+    body = shards.map((f) => readFileSync(join(auditDir, f), "utf-8")).join("\n");
+  } else {
+    const flat = join(projectDir, "aidlc-docs", "audit.md");
+    if (!existsSync(flat)) return undefined;
+    body = readFileSync(flat, "utf-8");
+  }
   return [...body.matchAll(/^\*\*Event\*\*:\s*([A-Z_]+)\s*$/gm)].map((m) => m[1]);
 }
 
-// NOTE: there is deliberately NO multi-turn gate-loop here. Calibration
-// proved the conductor does not reliably end its ACP turn at gates (it can
-// keep executing the forwarding loop for many minutes inside one turn), so
-// turn-per-gate pacing is NOT a dependable ACP primitive. Gate-paced journeys
-// belong to the TUI driver, where pacing is human-shaped. ACP's lane is
-// single-turn contracts bounded by stopAfterToolTitle.
+// NOTE: there is deliberately NO multi-turn gate-loop here. Calibration proved
+// the conductor does not reliably end its ACP turn by WAITING for it to
+// VOLUNTARILY stop at a gate (it can keep executing the forwarding loop for many
+// minutes inside one turn) — so turn-per-gate pacing that relies on a voluntary
+// turn-end is NOT a dependable ACP primitive. But multi-turn journeys ARE
+// dependable when each turn STOPS at a deterministic tool boundary via
+// stopAfterToolTitle (which fires session/cancel the moment the named tool's
+// output lands) rather than waiting for end_turn: the workspace journey leg
+// (t-acp-kiro-journey-workspace) reuses one keepAlive AcpSession across turns and
+// drives the conductor's offer→confirm flow this way, spike-verified 3/3. Gate
+// loops that need a HUMAN-shaped voluntary stop still belong to the TUI driver;
+// ACP's lane is single-turn contracts (and bounded multi-turn sequences) anchored
+// by stopAfterToolTitle.
 
 /** Run one agentic turn through `kiro-cli acp` and return structure. */
 export async function driveKiroAcp(opts: AcpDriveOptions): Promise<AcpDriveResult> {
@@ -443,7 +485,7 @@ export async function driveKiroAcp(opts: AcpDriveOptions): Promise<AcpDriveResul
     // them a beat before snapshotting.
     if (cancelled) await new Promise((r) => setTimeout(r, 1500));
 
-    const statePath = join(opts.projectDir, "aidlc-docs", "aidlc-state.md");
+    const statePath = stateFilePathOf(opts.projectDir);
     return {
       sessionId: session.sessionId,
       stopReason,

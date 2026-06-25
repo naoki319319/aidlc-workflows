@@ -59,7 +59,7 @@
 //      (The sensor hook SKIPS under --test-run, aidlc-sensor-fire.ts:110-124 —
 //      so this is ONLY provable by a real human-driven run, which is the point.)
 //   3. CUSTOM RULE REACHES THE AGENT — two ways, both data: (a) the compiled
-//      stage-graph node carries .claude/rules/aidlc-project.md in
+//      stage-graph node carries aidlc/spaces/default/memory/project.md in
 //      rules_in_context AND that file carries the unique custom-rule marker (the
 //      compile-baked half, proven here + in the deterministic sibling); (b) the
 //      live artefact the agent writes CITES the marker (runtime evidence the
@@ -124,12 +124,17 @@ import {
   CUSTOM_KNOWLEDGE_MARKER,
   CUSTOM_SCOPE,
   CUSTOM_SENSOR_ID,
+  PLAN_ARTIFACT,
   PLAN_OUTPUT_REL,
+  PLAN_STAGE_PHASE,
   PLAN_STAGE_SLUG,
+  SNAPSHOT_ARTIFACT,
   SNAPSHOT_OUTPUT_REL,
+  SNAPSHOT_STAGE_PHASE,
   SNAPSHOT_STAGE_SLUG,
 } from "../harness/custom-harness.ts";
-import { driveAidlc } from "../harness/sdk-drive.ts";
+import { readAllAuditShards } from "../../dist/claude/.claude/tools/aidlc-lib.ts";
+import { driveAidlc, recordDirFor, stateFilePathFor } from "../harness/sdk-drive.ts";
 import { resolveWinNode } from "../harness/tui-drive.ts";
 import { cleanupTuiProject, setupTuiProject } from "../harness/tui-fixtures.ts";
 
@@ -192,11 +197,10 @@ function skipReason(): string | null {
 }
 const SKIP_REASON = skipReason();
 
-/** Extract every audit event-type string from a project's audit.md, in order. */
+/** Extract every audit event-type string from the active intent's audit shards,
+ *  in order. P9 shards the audit per clone under <record>/audit/. */
 function auditEvents(proj: string): string[] {
-  const p = join(proj, "aidlc-docs", "audit.md");
-  if (!existsSync(p)) return [];
-  return readFileSync(p, "utf8")
+  return readAllAuditShards(proj)
     .split("\n")
     .filter((l) => l.startsWith("**Event**:"))
     .map((l) => l.replace("**Event**:", "").trim());
@@ -234,9 +238,16 @@ describe("t-tui-custom-harness (the {sdk,tui} two-driver journey)", () => {
       // VACUOUS-PASS GUARD: the custom stage must exist in the compiled graph.
       expect(node).toBeDefined();
       const rulePaths = (node?.rules_in_context ?? []).map((r) => r.path);
-      expect(rulePaths).toContain(".claude/rules/aidlc-project.md");
+      // The method relocated (P5/fe7f470) to the harness-neutral workspace-root
+      // aidlc/spaces/default/memory/ tree (neutral basenames). The compile bakes
+      // the neutral display path; verified against the actual emitted array
+      // ["…/org.md","…/team.md","…/project.md","…/phases/inception.md"].
+      expect(rulePaths).toContain("aidlc/spaces/default/memory/project.md");
       // the project rule FILE carries the unique custom-rule marker
-      const rule = readFileSync(join(proj, ".claude", "rules", "aidlc-project.md"), "utf8");
+      const rule = readFileSync(
+        join(proj, "aidlc", "spaces", "default", "memory", "project.md"),
+        "utf8",
+      );
       expect(rule).toContain(CUSTOM_RULE_MARKER);
     } finally {
       cleanupTuiProject(proj);
@@ -264,7 +275,7 @@ describe("t-tui-custom-harness (the {sdk,tui} two-driver journey)", () => {
         );
         expect(init.status).toBe(0);
         // sanity: the seeded state really does point Current Stage at the custom slug
-        const state = readFileSync(join(proj, "aidlc-docs", "aidlc-state.md"), "utf8");
+        const state = readFileSync(stateFilePathFor(proj), "utf8");
         expect(stateField(state, "Current Stage")).toBe(SNAPSHOT_STAGE_SLUG);
         expect(stateField(state, "Active Agent")).toBe(CUSTOM_AGENT_SLUG);
 
@@ -291,7 +302,9 @@ describe("t-tui-custom-harness (the {sdk,tui} two-driver journey)", () => {
           drive(["send", "--session", session, "--keys", "2"]);
         }
         // The custom stage is in INCEPTION — wait for the workflow statusline.
-        const sawMarker = waitFor(session, "\\[AIDLC\\] INCEPTION", 45000, 1000);
+        // P9: the orientation prefix ("<intent-slug> · ") sits between [AIDLC] and
+        // the phase, so match with .* rather than a contiguous gap.
+        const sawMarker = waitFor(session, "\\[AIDLC\\].*INCEPTION", 45000, 1000);
         const pane = drive(["capture", "--session", session]).stdout;
         if (!sawMarker) {
           throw new Error(
@@ -350,7 +363,7 @@ describe("t-tui-custom-harness (the {sdk,tui} two-driver journey)", () => {
         // as the routing target — deterministic tool stdout, emitted pre-gate,
         // INVARIANT regardless of how far the auto-driven run advanced. This is
         // the airtight "the custom scope routed to the custom workflow" proof.
-        const auditMd = readFileSync(join(sdkProj, "aidlc-docs", "audit.md"), "utf8");
+        const auditMd = readAllAuditShards(sdkProj);
         const wiBlock = auditMd.split(/\n---\n/).find((b) => /WORKSPACE_INITIALISED/.test(b)) ?? "";
         expect(wiBlock).toContain(SNAPSHOT_STAGE_SLUG);
         expect(wiBlock).toContain(`routing to ${SNAPSHOT_STAGE_SLUG}`);
@@ -438,7 +451,7 @@ describe("t-tui-custom-harness (the {sdk,tui} two-driver journey)", () => {
           { cwd: tuiProj, encoding: "utf8", env: { ...process.env, CLAUDE_PROJECT_DIR: tuiProj } },
         );
         expect(init.status).toBe(0);
-        const state = readFileSync(join(tuiProj, "aidlc-docs", "aidlc-state.md"), "utf8");
+        const state = readFileSync(stateFilePathFor(tuiProj), "utf8");
         expect(stateField(state, "Current Stage")).toBe(SNAPSHOT_STAGE_SLUG);
 
         expect(
@@ -463,7 +476,7 @@ describe("t-tui-custom-harness (the {sdk,tui} two-driver journey)", () => {
         if (waitFor(session, "Bypass Permissions mode", 15000, 600)) {
           drive(["send", "--session", session, "--keys", "2"]);
         }
-        expect(waitFor(session, "\\[AIDLC\\] (ready|INCEPTION)", 45000, 800)).toBe(true);
+        expect(waitFor(session, "\\[AIDLC\\].*(ready|INCEPTION)", 45000, 800)).toBe(true);
 
         // Resume the pre-initialized custom-scope workflow. The first menu is
         // the resume gate; answer-gate below handles it and the custom-stage
@@ -526,7 +539,7 @@ describe("t-tui-custom-harness (the {sdk,tui} two-driver journey)", () => {
         const events = auditEvents(tuiProj);
         // VACUOUS-PASS GUARD: the audit recorded events at all.
         expect(events.length).toBeGreaterThan(0);
-        const auditMd = readFileSync(join(tuiProj, "aidlc-docs", "audit.md"), "utf8");
+        const auditMd = readAllAuditShards(tuiProj);
         const firedBlocks = auditMd
           .split(/\n---\n/)
           .filter((b) => /\*\*Event\*\*:\s*SENSOR_FIRED/.test(b));
@@ -543,8 +556,11 @@ describe("t-tui-custom-harness (the {sdk,tui} two-driver journey)", () => {
         expect(ourFire).toBeDefined();
 
         // --- THE CHAIN: both artefacts exist; the tail consumes the head ------
-        const headArtifact = join(tuiProj, SNAPSHOT_OUTPUT_REL);
-        const tailArtifact = join(tuiProj, PLAN_OUTPUT_REL);
+        // Resolve the CONCRETE born-intent record (the *_OUTPUT_REL constants
+        // carry a `*` for the runtime-minted intent dir, used by --until-file; the
+        // existence reads need the resolved record).
+        const headArtifact = join(recordDirFor(tuiProj), SNAPSHOT_STAGE_PHASE, SNAPSHOT_STAGE_SLUG, `${SNAPSHOT_ARTIFACT}.md`);
+        const tailArtifact = join(recordDirFor(tuiProj), PLAN_STAGE_PHASE, PLAN_STAGE_SLUG, `${PLAN_ARTIFACT}.md`);
         expect(existsSync(headArtifact)).toBe(true);
         expect(existsSync(tailArtifact)).toBe(true);
 

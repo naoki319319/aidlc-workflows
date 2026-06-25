@@ -4,6 +4,10 @@
 
 Contributions to this implementation are welcome. This guide covers prerequisites, development workflow, testing, and how to submit changes.
 
+> **Path convention.** `<record>/` below = a born intent's record dir,
+> `aidlc/spaces/<space>/intents/<YYMMDD>-<label>/` — where per-intent state, audit
+> shards, knowledge, and artifacts live.
+
 ## Prerequisites
 
 - **Claude Code** -- native install (recommended, auto-updates): macOS/Linux/WSL `curl -fsSL https://claude.ai/install.sh | bash`; Windows PowerShell `irm https://claude.ai/install.ps1 | iex`. Or `brew install --cask claude-code`. (see [Claude Code docs](https://code.claude.com/docs/en/quickstart))
@@ -80,13 +84,15 @@ For handlers that require no LLM reasoning (print text, read/format files, check
 
 The `--help`, `--version`, `--status`, and `--doctor` handlers are reference implementations.
 
+The `codekb-path` handler is a read-only **query verb** (like `intent <name>` and `space`): it is dispatched from stage prose, emits NO audit event, drives NO SKILL.md task tracking, and creates NO directory (`mkdir`). It simply prints the canonical per-repo codekb directory the reverse-engineering stage writes its artifacts into, so prose never hand-derives that path.
+
 ### LLM-driven handlers
 For handlers that benefit from agent reasoning (filesystem scanning, decision-making):
 1. **Task tracking** -- Create tasks via `TaskCreate` for each logical step, transition them with `TaskUpdate` (`in_progress` -> `completed`) as work progresses. This drives the task sidebar in Claude Code.
-2. **Statusline update** -- If `aidlc-docs/aidlc-state.md` exists, temporarily set `Current Stage` to describe the running utility (e.g., `running health check`), then restore the original value when done. The `aidlc-statusline.ts` hook reads this field for the terminal status bar.
+2. **Statusline update** -- If the active intent's `aidlc-state.md` exists, temporarily set `Current Stage` to describe the running utility (e.g., `running health check`), then restore the original value when done. The `aidlc-statusline.ts` hook reads this field for the terminal status bar.
 3. **Audit logging** -- Invoke the appropriate tool subcommand (e.g., `bun .claude/tools/aidlc-utility.ts <handler>` that calls `appendAuditEntry` internally). Never hand-write `**Event**:` markdown blocks from LLM prose — see [State Machine: Forbidden patterns](12-state-machine.md).
 
-The `--init` handler is fully deterministic: all three init stages (workspace-scaffold, workspace-detection, state-init) run inside a single `aidlc-utility init` call. The welcome message is rendered at session start via `companyAnnouncements` in `settings.json` and is not a stage.
+The `intent-birth` handler is fully deterministic: all three init stages (workspace-scaffold, workspace-detection, state-init) run inside a single `aidlc-utility intent-birth` call. The welcome message is rendered at session start via `companyAnnouncements` in `settings.json` and is not a stage.
 
 ## Adding a Scope
 
@@ -130,7 +136,7 @@ A scope is authored as a file (its identity) plus a per-stage membership tag. Th
 
 7. **Verify plan parity (optional but recommended)** — `AIDLC_GRAPH_RESOLVE=1 bun .claude/tools/aidlc-graph.ts resolve hotfix --stdout` emits the scope's plan; eyeball that the EXECUTE set matches what you tagged.
 
-8. **Update scope-aware documentation** — `docs/guide/04-scopes-and-depth.md` (full scope reference), `docs/guide/12-customization.md` (valid values list and scope table), and `docs/reference/03-orchestrator.md` (scope-to-stage mapping) all enumerate scopes explicitly. Per the documentation policy at the end of this chapter, update them in the same PR.
+8. **Update scope-aware documentation** — `docs/guide/05-scopes-and-depth.md` (full scope reference), `docs/guide/13-customization.md` (valid values list and scope table), and `docs/reference/03-orchestrator.md` (scope-to-stage mapping) all enumerate scopes explicitly. Per the documentation policy at the end of this chapter, update them in the same PR.
 
 9. **Add a scope-routing workflow test** — if the scope has behavior that differs from existing scopes (new phase skipping pattern, new depth combination), add a routed journey test modeled after `tests/e2e/t53.test.ts` (sdk scope routing) or `tests/e2e/t-tui-t50-bugfix-scope.serial.test.ts` (tui scope run-through).
 
@@ -179,7 +185,7 @@ A stage is authored as a Markdown file with YAML frontmatter under `core/aidlc-c
 
 ## Adding an Agent
 
-Agent metadata (display name, example knowledge files) is read from each agent's `.md` frontmatter under `core/agents/`. The `loadAgents()` helper in `core/tools/aidlc-lib.ts` discovers every `.md` file in that directory and derives the metadata map consumed by `--init` (to scaffold `aidlc-docs/knowledge/<agent>/README.md`) and by the statusline hook (to render the display name). Adding an agent requires no TypeScript edits.
+Agent metadata (display name, example knowledge files) is read from each agent's `.md` frontmatter under `core/agents/`. The `loadAgents()` helper in `core/tools/aidlc-lib.ts` discovers every `.md` file in that directory and derives the metadata map consumed by the statusline hook (to render the display name). Adding an agent requires no TypeScript edits.
 
 ### Steps
 
@@ -199,11 +205,11 @@ Agent metadata (display name, example knowledge files) is read from each agent's
    ---
    ```
 
-   The `name` field must match the filename stem exactly. `display_name` is the human-facing label used by `--init` and the statusline. `examples` lists filenames that appear as bullets in the scaffolded knowledge README — they're suggestions for the user, not loaded at runtime.
+   The `name` field must match the filename stem exactly. `display_name` is the human-facing label used by the statusline. `examples` lists suggested knowledge filenames documented in the agent→examples table — they're suggestions for the user, not loaded at runtime and not written to disk.
 
 2. **Verify the agent is discovered** — `bun -e "import { loadAgents } from 'core/tools/aidlc-lib.ts'; console.log(loadAgents().find(a => a.slug === '<slug>-agent'));"` should print the new agent's metadata.
 
-3. **Verify `--init` scaffolds the knowledge README** — `bun core/tools/aidlc-utility.ts init --scope poc --project-dir /tmp/agent-smoke` should create `aidlc-docs/knowledge/<slug>-agent/README.md` with the display name as H1 and the examples as bullets.
+3. **Verify intent birth creates the space knowledge dir** — `bun core/tools/aidlc-utility.ts intent-birth --scope poc --project-dir /tmp/agent-smoke` should create the empty space-level `aidlc/knowledge/` directory (a sibling of the space's `intents/`). Birth does not seed per-agent subdirectories or READMEs — the team creates `aidlc/knowledge/<slug>-agent/` itself when it has content.
 
 4. **Verify the statusline renders** — seed a state file with `Active Agent: <slug>-agent` and invoke the statusline hook; the output should include the display name after the `--` separator.
 
@@ -214,14 +220,14 @@ Agent metadata (display name, example knowledge files) is read from each agent's
 - `loadAgents()` discovers any new `.md` file in `.claude/agents/` on next invocation — no code edit.
 - The parser throws if `name` or `display_name` is missing, naming the file and the missing field.
 - Agents are returned alphabetically sorted by slug, so `readdirSync` order on any platform produces the same output.
-- `/aidlc --init` scaffolds per-agent knowledge directories using derived metadata.
-- Statusline rendering derives display name from the same source — no risk of drift with `--init` output.
+- Intent birth creates the empty space-level `aidlc/knowledge/` directory (it does not seed per-agent subdirectories or READMEs).
+- Statusline rendering derives the display name from the same metadata source.
 - `tests/unit/t61.test.ts` asserts all five properties end-to-end against a fixture agent.
 
 ### What does NOT validate automatically
 
 - **Stage-graph participation**. Stage frontmatter references agents by slug in its `lead_agent` / `support_agents` fields, and `aidlc-graph.ts compile` carries those into `stage-graph.json`. Adding a new agent without naming it in any stage's frontmatter means the agent exists but never runs. Stage-graph schema validation (`core/tools/aidlc-stage-schema.ts`) is wired in: `aidlc-graph.ts compile` validates every stage's frontmatter (and `compile --check` is the CI drift guard), and `/aidlc --doctor` re-runs the same `validateStageFrontmatter` plus a "Graph references" check that every `lead_agent` / `support_agents` slug resolves.
-- **Knowledge file existence**. `examples` is a list of filenames surfaced as suggestions in the scaffolded README — they're not created or validated. Users place the actual content in `aidlc-docs/knowledge/<agent>/`.
+- **Knowledge file existence**. `examples` is a list of suggested filenames documented in the agent→examples table — they're not created or validated. Users place the actual content in `aidlc/knowledge/<agent>/` (the space-level knowledge dir).
 - **Doc tables listing agents**. The Phase Participation matrix at `docs/reference/05-agent-system.md:119-131` and the agent→examples table at `core/knowledge/aidlc-shared/knowledge-readme-template.md:16-29` are maintained by hand. Update them in the same PR that adds the agent (see Documentation Policy below).
 - **`.claude/agents/<new-agent>.md` body content**. Only the frontmatter is parsed. The body prose (Core Responsibilities, Knowledge Loading sequence, etc.) is read by the agent itself when activated — write it to match the other 11 agent files' structure.
 

@@ -27,11 +27,16 @@ in `aidlc-shared/`. **Leave it alone.** These files are overwritten on every
 framework upgrade. Anything you add there disappears the next time the team
 pulls a new version.
 
-**Tier 2 — team knowledge** is yours. It lives under `aidlc-docs/knowledge/` in
-your project, alongside the artifacts a workflow produces. It holds your
-company-specific standards, policies, and conventions. The framework never
-overwrites it, and it persists across every workflow. This is the directory you
-populate.
+**Tier 2 — team knowledge** is yours. It lives at the space level under
+`aidlc/knowledge/` (shorthand for `aidlc/spaces/<space>/knowledge/`), a sibling
+of the space's `memory/`, `codekb/`, and `intents/` — so it accumulates across
+every intent in the space rather than being trapped in one intent's record. It
+holds your company-specific standards, policies, and conventions. The framework
+never overwrites it; the engine just creates the empty `aidlc/knowledge/`
+directory on the first `/aidlc` and leaves the contents to you. This is the
+directory you populate. (Standing practices the framework should *enforce* —
+rather than reference material an agent weighs — live in the space's memory
+layer at `aidlc/spaces/<space>/memory/` instead.)
 
 The two-tier split is the same data-versus-code line the rest of this guide
 rests on, applied to knowledge: the framework owns its methodology, you own
@@ -43,28 +48,29 @@ full directory shapes for both tiers are in
 
 ## Team-wide versus agent-specific placement
 
-Tier 2 mirrors the agent layout: a `aidlc-shared/` directory plus one directory
-per agent. Where you drop a file decides which agents load it.
+Tier 2 follows the agent layout by convention: a `aidlc-shared/` directory plus
+one directory per agent, all under the space-level `aidlc/knowledge/`. Where you
+drop a file decides which agents load it.
 
 | Placement | Loaded by | Use it for |
 |-----------|-----------|------------|
-| `aidlc-docs/knowledge/aidlc-shared/` | **every** agent, on every stage | cross-cutting standards — naming conventions, commit format, the project's domain glossary |
-| `aidlc-docs/knowledge/<agent>-agent/` | **only** that agent, only when it's the active lead | domain context for one role — architecture patterns for the architect, security policy for devsecops |
+| `aidlc/knowledge/aidlc-shared/` | **every** agent, on every stage | cross-cutting standards — naming conventions, commit format, the project's domain glossary |
+| `aidlc/knowledge/<agent>-agent/` | **only** that agent, only when it's the active lead | domain context for one role — architecture patterns for the architect, security policy for devsecops |
 
 The directory name must match the agent slug exactly — `aidlc-architect-agent/`,
 not `architect/`. A typo in the directory name is the most common reason a
 file is silently ignored: the framework walks the agent's own directory by
-name, finds nothing, and moves on without an error. (This is why scaffolding
-with `--init`, below, is worth the one command — it creates every directory with
-the right name.)
+name, finds nothing, and moves on without an error. The engine does not create
+these subdirectories for you — `aidlc/knowledge/` is empty at bootstrap (see
+below), so you create each directory yourself with the exact slug.
 
 Reach for `aidlc-shared/` only when a standard genuinely applies across all 11
 agents. A pattern that matters to the architect and no one else belongs in
 `aidlc-architect-agent/`, where it adds context to architecture stages without
 diluting every other agent's window. The
-[Adding Company Standards worked example](../guide/07-knowledge.md) in the User
-Guide carries a full end-to-end walk-through — scaffold, write, verify — that's
-worth reading once before you author your first file.
+[Adding Company Standards worked example](../guide/08-knowledge.md) in the User
+Guide carries a full end-to-end walk-through — create the directory, write,
+verify — that's worth reading once before you author your first file.
 
 For the per-agent table of what each directory is for, see
 [Knowledge System → Adding Team Knowledge](../reference/10-knowledge-system.md#adding-team-knowledge).
@@ -78,11 +84,11 @@ right directory is the registration. When a stage begins, the conductor
 loads context in a fixed six-step order, and your Tier 2 files come in at steps
 4 and 5:
 
-1. Rules — the resolved `.claude/rules/` chain (loaded first)
+1. Rules — the resolved `aidlc/spaces/<space>/memory/` chain (loaded first)
 2. Tier 1 shared methodology — `.claude/knowledge/aidlc-shared/`
 3. Tier 1 agent methodology — `.claude/knowledge/<agent>-agent/`
-4. **Tier 2 team shared** — `aidlc-docs/knowledge/aidlc-shared/`
-5. **Tier 2 team agent-specific** — `aidlc-docs/knowledge/<agent>-agent/`
+4. **Tier 2 team shared** — `aidlc/knowledge/aidlc-shared/`
+5. **Tier 2 team agent-specific** — `aidlc/knowledge/<agent>-agent/`
 6. Prior stage artifacts — outputs the current stage declares it consumes
 
 Steps 4 and 5 only fire if the directories exist and contain files, which is
@@ -124,47 +130,78 @@ when reviewing, it's knowledge.
 | Example: API Gateway standards, a domain glossary | Example: "Never log PII", "All data access goes through the repository layer" |
 
 So a document describing how your team designs APIs is knowledge: drop it in
-`aidlc-docs/knowledge/aidlc-architect-agent/`. A non-negotiable like "every
+`aidlc/knowledge/aidlc-architect-agent/`. A non-negotiable like "every
 architecture decision must record at least two alternatives" is a rule: it
-belongs in `.claude/rules/`, where the framework will hold the agent to it. For
+belongs in the space memory layer (`aidlc/spaces/<space>/memory/`), where the framework will hold the agent to it. For
 authoring rules across the layer chain and letting the learning loop promote
 corrections into them, see
 [Rules and the Learning Loop](05-rules-and-the-loop.md). The User Guide's
-[Knowledge vs Rules table](../guide/07-knowledge.md) covers the same call with
+[Knowledge vs Rules table](../guide/08-knowledge.md) covers the same call with
 more examples.
 
 ---
 
-## Scaffolding with `/aidlc --init`
+## Where the Tier 2 tree comes from
 
-Before hand-creating any `aidlc-docs/knowledge/` directories, run:
+The team builds it. On the first `/aidlc` the engine creates a single empty
+directory — `aidlc/knowledge/` — and stops there. It does not scaffold a tree,
+create per-agent subdirectories, or seed any READMEs. The Tier 2 layout
+(`aidlc-shared/` plus one directory per agent) is the convention the personas
+look for, not a structure the engine writes; you create the directories you have
+content for. Because the loader walks each agent's own directory by name, create
+them with the exact slug the loader expects (`aidlc-architect-agent/`, not
+`architect/`) — a typo'd name is silently skipped with no error.
 
-```
-/aidlc --init
-```
-
-This builds the full Tier 2 tree — `aidlc-shared/` plus one directory per agent —
-and seeds each with a README that explains what to add and gives
-agent-specific examples. The READMEs are generated from a template that ships in
-Tier 1; you never write them by hand. Scaffolding first prevents the typo'd
-directory name that causes files to be silently skipped, because every
-directory is created with the slug the loader expects.
-
-The READMEs also restate the no-naming-convention rule: any `.md` file in a
-directory is loaded. Descriptive, one-topic-per-file names
-(`api-gateway-standards.md`, not `architecture.md`) aren't required by the
-loader, but they make the quarterly prune far easier. The template system that
-generates these READMEs is documented in
+There's no naming convention inside a directory: any `.md` file is loaded.
+Descriptive, one-topic-per-file names (`api-gateway-standards.md`, not
+`architecture.md`) aren't required by the loader, but they make the quarterly
+prune far easier. If you want a starting README for a directory, Tier 1 ships an
+optional template you can copy in by hand —
 [Knowledge System → Template System](../reference/10-knowledge-system.md#template-system).
 
 A note on the boundary with the rest of this guide: the agent directories you
 populate here are the same ones an agent declares in its persona file. When you
 [add an agent](03-adding-an-agent.md), its Tier 2 knowledge directory is
-`aidlc-docs/knowledge/<new-agent-slug>/` — scaffolded the same way, loaded at
+`aidlc/knowledge/<new-agent-slug>/` — a directory the team creates, loaded at
 the same steps 4 and 5. The mental model from the
 [overview](00-overview.md) holds: the stage names the agent and the agent
 reads the knowledge, and you shape all of it by editing data rather than
 writing code.
+
+---
+
+## Spaces: knowledge for more than one team
+
+Everything above assumes one team. When **more than one team shares a project**,
+AI-DLC keeps each team's method, knowledge, and record in its own **space** — a
+`aidlc/spaces/<name>/` of identical shape (`memory/`, `knowledge/`, `codekb/`,
+`intents/`). The `aidlc/knowledge/` shorthand you've been using throughout this
+chapter is really `aidlc/spaces/<active-space>/knowledge/`; with a single team
+that active space is always `default` and the distinction never surfaces. (The
+[User Guide's Spaces and Intents chapter](../guide/03-spaces-and-intents.md) is
+the end-user orientation; this section is the harness-engineering angle.)
+
+What this means for the knowledge and rules you author:
+
+- **Team knowledge is per-space.** The `aidlc/knowledge/aidlc-<agent>-agent/`
+  files you populate live inside one space. A second team gets its own empty
+  `knowledge/` tree to fill — your files do not leak across the boundary, and
+  theirs do not dilute your agents' context.
+- **The method layer is per-space too.** The rules in `aidlc/spaces/<space>/memory/`
+  (`org.md` → `team.md` → `project.md`) resolve within the active space. A new
+  space is seeded from the framework baseline — `org.md` copied in, fresh empty
+  `team.md` / `project.md` — so a new team starts from the framework's defaults
+  and earns its own practices rather than inheriting another team's.
+- **You don't author spaces in `core/`.** A space is runtime team data, created
+  with `/aidlc space-create <name>` in an installed project — the same
+  data-not-code line that separates team knowledge from framework source. There
+  is nothing to add to `core/` or regenerate to support multiple teams; the
+  capability ships in the engine.
+
+The mental model from this chapter holds inside each space unchanged: the stage
+names the agent, the agent reads the knowledge, and you shape it all by editing
+data. A space simply scopes *whose* data — so two teams can run AI-DLC in one
+project without their context, practices, or records colliding.
 
 ## Next
 

@@ -211,6 +211,23 @@ means dropping its `.md` file in `.claude/agents/` with the required
 frontmatter. See
 [Contributing: Adding an Agent](11-contributing.md#adding-an-agent).
 
+### `reviewer` and `reviewer_max_iterations`
+
+Optional. `reviewer` names a quality-gate agent invoked after the stage body
+produces its artifacts and before the approval gate (see [Stage
+Protocol](04-stage-protocol.md)). Two reviewers ship today —
+`aidlc-product-lead-agent` and `aidlc-architecture-reviewer-agent` — and the
+compile validates the value against the discovered agent roster the same way
+`lead_agent` is validated.
+
+`reviewer_max_iterations` caps the review/revise loop before the workflow proceeds
+to the gate with unresolved findings. It **defaults to 2** when `reviewer` is
+declared but no cap is given; the compiler coerces a missing or non-positive value
+to 2. Omit the field on a stage that declares no `reviewer`: the compiler rejects
+a `reviewer_max_iterations` declared without a `reviewer` (the schema error
+`reviewer_max_iterations requires a reviewer` fails the graph compile), so it is
+never silently ignored.
+
 ---
 
 ## Relationship to agent frontmatter
@@ -242,7 +259,7 @@ there rather than duplicating here.
 The example encodes, in structured form, what today's prose describes:
 
 - `requires_stage: [intent-capture]` encodes the prose instruction "Read
-  intent statement from `aidlc-docs/ideation/intent-capture/`". The parser
+  intent statement from the intent's `ideation/intent-capture/` (under its record dir)". The parser
   does not care about the prose — it just sees the graph edge — but human
   readers should keep them in sync.
 - `consumes: [{artifact: intent-statement, required: true}]` says this

@@ -23,7 +23,7 @@ while keeping you in control at every decision point.
 
 - **You decide, AI executes.** Every material decision goes through an approval gate.
 - **Adaptive scope.** Choose a scope or let AI auto-detect from your intent.
-- **Traceable artifacts.** Every stage produces versioned documents in aidlc-docs/.
+- **Traceable artifacts.** Every stage produces versioned documents in the intent's record dir.
 - **11 domain experts.** Specialized agent personas guide each stage.
 ```
 
@@ -31,18 +31,19 @@ while keeping you in control at every decision point.
 
 ## Initialization Phase (Automatic)
 
-The three initialization stages run deterministically inside `aidlc-utility init` — a single tool call that completes in well under a second. You do not interact with initialization; it bootstraps the workspace for the workflow.
+The three initialization stages run deterministically inside `aidlc-utility init` — a single tool call that completes in well under a second. You do not interact with initialization; it auto-births the first intent into the active space and bootstraps its record dir for the workflow.
 
 ### Stage 0.1: Workspace Scaffold
 
-The framework creates the `aidlc-docs/` directory tree:
+The framework births the first intent and creates its record dir at `aidlc/spaces/<space>/intents/<YYMMDD>-<label>/` (the `<space>` is `default` unless you use a named space):
 
 ```
-Workspace scaffolded:
-  aidlc-docs/knowledge/           (team knowledge — 11 agent dirs + shared)
-  aidlc-docs/initialization/      (3 stage artifact dirs)
-  aidlc-docs/ideation/            (7 stage artifact dirs)
+Intent born — record dir scaffolded:
+  aidlc/spaces/default/intents/<YYMMDD>-<label>/initialization/   (3 stage artifact dirs)
+  aidlc/spaces/default/intents/<YYMMDD>-<label>/ideation/         (7 stage artifact dirs)
   ...
+Space-level dirs ensured:
+  aidlc/spaces/default/knowledge/                             (team knowledge — empty; you add files)
 ```
 
 ### Stage 0.2: Workspace Detection
@@ -51,7 +52,7 @@ A deterministic rule-based scanner walks one level deep into the project plus kn
 
 ### Stage 0.3: State Initialization
 
-The orchestrator writes `aidlc-docs/aidlc-state.md` with the full stage plan based on your scope, depth, test strategy, and the scanner's classification. It also analyzes your input and confirms a scope:
+The orchestrator writes the intent's `aidlc-state.md` (under its record dir) with the full stage plan based on your scope, depth, test strategy, and the scanner's classification. It also analyzes your input and confirms a scope:
 
 ```
 ─── Scope Detection ───────────────────────────────────────────────────────────
@@ -60,7 +61,7 @@ Detected scope: feature (Standard depth, Standard test strategy, all 32 stages)
 > Yes
 ```
 
-You can accept the detected scope, change to a different scope (e.g., `mvp`), or adjust the depth level or test strategy. See [Scopes, Depth, and Test Strategy](04-scopes-and-depth.md) for guidance.
+You can accept the detected scope, change to a different scope (e.g., `mvp`), or adjust the depth level or test strategy. See [Scopes, Depth, and Test Strategy](05-scopes-and-depth.md) for guidance.
 
 ---
 
@@ -91,7 +92,7 @@ The aidlc-product-agent asks you to choose an interaction mode:
 - **Edit File** opens the artifact for direct editing
 - **Chat** lets you discuss freely; the agent extracts decisions
 
-See [Interaction Modes](06-interaction-modes.md) for details on each mode. You can switch modes mid-stage.
+See [Interaction Modes](07-interaction-modes.md) for details on each mode. You can switch modes mid-stage.
 
 ### Approval Gate
 
@@ -105,14 +106,14 @@ After the agent completes its work, you see a completion summary and an approval
 | intent-capture.md | Problem statement, target users, success criteria |
 | intent-capture-questions.md | 5 questions, all answered |
 
-**Review:** `aidlc-docs/ideation/intent-capture/`
+**Review:** `<record>/ideation/intent-capture/` (the intent's record dir)
 
 ▸ How would you like to proceed?
   (1) Approve — Continue to Market Research
   (2) Request Changes — Provide revision feedback
 ```
 
-Choose **Approve** to continue, or **Request Changes** to provide feedback. See [Interaction Modes](06-interaction-modes.md) for details on the revision process.
+Choose **Approve** to continue, or **Request Changes** to provide feedback. See [Interaction Modes](07-interaction-modes.md) for details on the revision process.
 
 After approval, a progress line appears:
 
@@ -233,19 +234,20 @@ sequenceDiagram
 
 ## Artifacts Produced
 
-By the end of a `feature`-scoped workflow, your `aidlc-docs/` directory contains:
+By the end of a `feature`-scoped workflow, the intent's record dir (`aidlc/spaces/<space>/intents/<YYMMDD>-<label>/`) contains:
 
 ```
-aidlc-docs/
+aidlc/spaces/<space>/intents/<YYMMDD>-<label>/
 ├── aidlc-state.md          # Workflow state (all stages marked [x])
-├── audit.md                # Full decision audit trail
+├── audit/                  # Full decision audit trail (per-clone shards, merged by timestamp)
 ├── ideation/               # Intent, market research, scope, mockups
 ├── inception/              # Requirements, stories, design, units
 ├── construction/           # Per-unit code + test artifacts
 ├── operation/              # Deployment, observability, incident plans
-├── verification/           # Phase boundary verification reports
-└── knowledge/              # Team knowledge (persists across workflows)
+└── verification/           # Phase boundary verification reports
 ```
+
+(Team knowledge lives one level up, at the space level in `aidlc/spaces/<space>/knowledge/` — a sibling of `intents/` — so it accumulates across every intent. Team-affirmed practices and learnings live alongside it in the space's memory layer at `aidlc/spaces/<space>/memory/`, where they likewise persist across intents.)
 
 ---
 
@@ -270,7 +272,8 @@ Throughout the workflow, the terminal status line shows your current position:
 
 ## Next Steps
 
-- [Phases and Stages](03-phases-and-stages.md) — detailed breakdown of all 5 phases and 32 stages
-- [Interaction Modes](06-interaction-modes.md) — Guide Me, Edit File, and Chat explained
-- [Session Management](10-session-management.md) — resuming, redoing, and jumping between stages
+- [Spaces and Intents](03-spaces-and-intents.md) — how the workspace holds many runs, and how to start and switch between them
+- [Phases and Stages](04-phases-and-stages.md) — detailed breakdown of all 5 phases and 32 stages
+- [Interaction Modes](07-interaction-modes.md) — Guide Me, Edit File, and Chat explained
+- [Session Management](11-session-management.md) — resuming, redoing, and jumping between stages
 - [Glossary](glossary.md) — terminology reference

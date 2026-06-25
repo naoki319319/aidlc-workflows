@@ -30,7 +30,6 @@ const manifest: HarnessManifest = {
     { src: "tools", dst: "tools" },
     { src: "aidlc-common", dst: "aidlc-common" },
     { src: "knowledge", dst: "knowledge" },
-    { src: "rules", dst: "steering" },
     { src: "sensors", dst: "sensors" },
     { src: "scopes", dst: "scopes" },
     { src: "agents", dst: "agents" },
@@ -53,6 +52,14 @@ const manifest: HarnessManifest = {
     { src: "agents/aidlc-architecture-reviewer-agent.json", dst: "agents/aidlc-architecture-reviewer-agent.json" },
     { src: "hooks/aidlc-kiro-adapter.ts", dst: "hooks/aidlc-kiro-adapter.ts" },
     { src: "settings/cli.json", dst: "settings/cli.json" },
+    // Project-root .gitignore (beside .kiro/, not inside it) — re-rooted under
+    // aidlc/spaces/* for the workspace layout (SEED): cursors + machine-local
+    // runtime ignored, the shared work (memory/codekb/registry/state/audit
+    // shards/artifacts) committed. Net-new for Kiro — it shipped none before.
+    // Authored as dot-gitignore so it does not act as a live ignore inside
+    // harness/kiro/. projectRoot routes it to dist/kiro/.gitignore + the --check
+    // drift guard.
+    { src: "dot-gitignore", dst: ".gitignore", projectRoot: true },
   ],
 
   // AGENTS.md renders from the shared skeleton with Kiro's fills, at the project

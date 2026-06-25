@@ -78,7 +78,9 @@ import { join } from "node:path";
 import {
   cleanupTestProject,
   createTestProject,
+  removeWorkspaceRecord,
   resetAidlcEnv,
+  seededStateFile,
   seedStateFile,
 } from "../harness/fixtures.ts";
 
@@ -104,6 +106,20 @@ function proj(stateFixture?: string): string {
   const p = createTestProject();
   tempDirs.push(p);
   if (stateFixture) seedStateFile(p, join(FIXTURES_DIR, stateFixture));
+  return p;
+}
+
+/**
+ * Fresh temp project with the seeded record REMOVED — a genuinely empty
+ * workspace (zero intents). P9: createTestProject seeds one default record, so a
+ * "clean workspace → birth" / "no workflow → confirm scope" case must strip it
+ * (otherwise the engine asks the user to SELECT the existing intent instead of
+ * birthing / confirming). Mirrors t160's beforeEach removeWorkspaceRecord.
+ */
+function cleanProj(): string {
+  const p = createTestProject();
+  tempDirs.push(p);
+  removeWorkspaceRecord(p);
   return p;
 }
 
@@ -266,28 +282,33 @@ describe("t117 resume branch", () => {
 // (.sh Tests 7-8)
 // ============================================================
 
-describe("t117 init branch", () => {
-  // --- Test 7: init guard — state exists, no --force → error (verbatim) ---
-  test("7: init guard (state exists, no --force) → error carrying verbatim guard message", () => {
-    const p = proj("state-mid-ideation.md");
-    const r = next(["--init"], p);
-    expect(r.out).toContain('"kind":"error"');
-    expect(r.out).toContain("Use --force to reinitialize");
-    const d = directive(r.stdout);
-    expect(d.kind).toBe("error");
-    expect(d.message).toContain("Use --force to reinitialize");
+describe("t117 birth branch (P4: --init retired, engine names intent-birth)", () => {
+  // --- Test 7: a named scope over EXISTING state is NOT a birth ---
+  // P4 removed the `--init` flag. A scope named over an existing workflow is a
+  // resume/happy-path or a scope-change, never a birth — the engine must NOT
+  // emit a birth print (the old "Use --force" re-init guard no longer exists
+  // because there is no re-init move).
+  test("7: named scope over existing state → not a birth (no intent-birth print)", () => {
+    const p = proj("state-mid-ideation.md"); // feature scope state
+    // Same scope as state → happy path (run the current stage), no birth.
+    const r = next(["--scope", "feature"], p);
+    expect(r.out).not.toContain("intent-birth");
+    expect(r.out).not.toContain("Use --force to reinitialize");
   });
 
-  // --- Test 8: init on a clean workspace → print (names the move, no mutation) ---
-  test("8: init on a clean workspace → print directive AND no state file created", () => {
-    const p = proj(); // no state seeded
-    const r = next(["--init", "--scope", "poc"], p);
+  // --- Test 8: a named scope on a clean workspace → birth print (no mutation) ---
+  // The engine NAMES the `intent-birth` move (read-only) and the conductor runs
+  // it; `next` itself must create NO state (mutation stays conductor-side).
+  test("8: named scope on a clean workspace → print naming intent-birth AND no state created", () => {
+    const p = cleanProj(); // genuinely empty workspace (seeded record stripped)
+    const r = next(["--scope", "poc"], p);
     expect(r.out).toContain('"kind":"print"');
-    // S3: the directive is a well-formed print directive.
-    expect(directive(r.stdout).kind).toBe("print");
-    // File effect: `next --init` must NOT create state (mutation stays
-    // conductor-side). Mirrors the .sh's `[ ! -f .../aidlc-state.md ]` check.
-    expect(existsSync(join(p, "aidlc-docs", "aidlc-state.md"))).toBe(false);
+    const d = directive(r.stdout);
+    expect(d.kind).toBe("print");
+    // The named move is the deterministic intent-birth handler.
+    expect(d.message).toContain("intent-birth");
+    // File effect: `next` must NOT create state (mutation stays conductor-side).
+    expect(existsSync(seededStateFile(p))).toBe(false);
   });
 });
 
@@ -353,7 +374,7 @@ describe("t117 flag-validation, env-scope, scope/config change, phase jump, free
 
   // --- Test 14: freeform intent with no workflow → ask (scope confirmation) ---
   test("14: freeform intent with no workflow → ask directive (scope confirmation)", () => {
-    const p = proj(); // no state seeded
+    const p = cleanProj(); // genuinely no workflow (seeded record stripped)
     const r = next(["add a login form to the app"], p);
     expect(r.out).toContain('"kind":"ask"');
     expect(directive(r.stdout).kind).toBe("ask");

@@ -4,11 +4,11 @@ Technical reference for the 11 AI-DLC agents: configuration, stage ownership,
 collaboration patterns, and comparison data.
 
 For design philosophy and rationale, see the
-[Agents chapter in the User Guide](../../guide/05-agents.md).
+[Agents chapter in the User Guide](../../guide/06-agents.md).
 
 ---
 
-## The 11 Agents
+## The 13 Agents (11 domain experts + 2 reviewers)
 
 | # | Agent | Domain |
 |---|-------|--------|
@@ -23,12 +23,14 @@ For design philosophy and rationale, see the
 | 9 | [aidlc-quality-agent](quality-agent.md) | Test strategy, test generation, performance validation |
 | 10 | [aidlc-pipeline-deploy-agent](pipeline-deploy-agent.md) | CI/CD pipelines, deployment strategy, release execution |
 | 11 | [aidlc-operations-agent](operations-agent.md) | Observability, incident response, feedback loops |
+| 12 | aidlc-product-lead-agent | Review-only: requirements / user-story / UX quality gate (sonnet) |
+| 13 | aidlc-architecture-reviewer-agent | Review-only: technical-design soundness / implementability gate (sonnet) |
 
 ---
 
 ## Shared Configuration
 
-All 11 agents share a common configuration baseline defined in their frontmatter. None declares a `tools:` allowlist, so every agent inherits the **full session toolset** — all of Claude Code's built-in tools plus any MCP tools provisioned to the session. The one shipped restriction is `disallowedTools: Task`.
+All 13 agents share a common configuration baseline defined in their frontmatter. None declares a `tools:` allowlist, so every agent inherits the **full session toolset** — all of Claude Code's built-in tools plus any MCP tools provisioned to the session. The one shipped restriction is `disallowedTools: Task`.
 
 ### The session toolset (inherited by every agent)
 
@@ -253,5 +255,5 @@ aidlc-operations-agent
 - [Orchestrator](../03-orchestrator.md)
 - [Agent System](../05-agent-system.md)
 - [Stage Documentation](../04-stages/)
-- [Agents chapter in the User Guide (philosophy and rationale)](../../guide/05-agents.md)
+- [Agents chapter in the User Guide (philosophy and rationale)](../../guide/06-agents.md)
 - [SKILL.md (Conductor)](../../../dist/claude/.claude/skills/aidlc/SKILL.md) -- the forwarding loop that acts on engine directives; carries a human-readable stage-graph mirror

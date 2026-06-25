@@ -64,9 +64,9 @@ Path: `.claude/knowledge/aidlc-devsecops-agent/`
 
 ### Team (Tier 2)
 
-Path: `aidlc-docs/knowledge/aidlc-devsecops-agent/` (user-managed)
+Path: `aidlc/knowledge/aidlc-devsecops-agent/` (the space-level knowledge dir; user-managed)
 
-Scaffolded by the `--init` command. Populated by the team with project-specific
+A space-level directory the team creates when it has content (the engine ships `aidlc/knowledge/` empty). Populated by the team with project-specific
 security context such as existing threat models, security policies, approved
 encryption standards, or penetration test findings.
 

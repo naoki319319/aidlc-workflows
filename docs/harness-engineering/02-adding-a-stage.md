@@ -59,7 +59,7 @@ core/aidlc-common/stages/
 ```
 
 The phase a stage sits in is not cosmetic. It determines which
-`aidlc-phase-<phase>.md` rule layer attaches to the stage at compile time — a
+`phases/<phase>.md` rule layer attaches to the stage at compile time — a
 construction-phase stage inherits the construction phase rule, an inception
 stage inherits the inception rule. (Initialization has no phase rule file.) Put
 the stage where its work actually happens in the lifecycle, not where it's
@@ -204,7 +204,7 @@ so it is typeable as `/aidlc-<slug>` (e.g. `/aidlc-application-design`). These a
 per runnable compiled stage slug, so the set of runners can never drift from the
 set of stages by hand. (The three bootstrap initialization stages get no per-stage
 runner — they have no standalone `--single` meaning; the whole init phase is the
-`/aidlc-init` command instead, wrapping `/aidlc --init`.) After adding (or removing)
+`/aidlc-init` command instead, packaging the engine's intent-birth move.) After adding (or removing)
 a stage, regenerate the runners:
 
 ```bash
@@ -255,7 +255,7 @@ the Developer Reference.
   recompiling the JSON. CI runs this, so a forgotten `compile` blocks the merge
   with a clear message rather than shipping a stale graph.
 - **Phase rule attachment.** Because the stage declares its phase by directory,
-  the matching `aidlc-phase-<phase>.md` rule layer attaches at compile time —
+  the matching `phases/<phase>.md` rule layer attaches at compile time —
   you don't wire that edge yourself.
 
 ### What you must check yourself

@@ -123,7 +123,7 @@ Put `CONTEXT7_API_KEY` (and any other secret env) in `.claude/settings.local.jso
 
 The four AWS servers authenticate with the same default AWS SDK credential chain Claude Code already uses for Bedrock (see [AWS Bedrock Setup](#aws-bedrock-setup)). Once `uvx` is installed and AWS credentials resolve, those servers come up automatically; `context7` comes up once `CONTEXT7_API_KEY` is set. Because the servers are inherited at the session level, every agent reaches every declared server — there is no per-agent grant to perform.
 
-> **Restricting an agent (advanced):** inheritance is additive — declaring a server makes it available to all agents, and you cannot grant servers per-agent. To *prevent* a specific agent from using a server, narrow that agent's `tools:` allowlist to the fully-qualified `mcp__<server>__<tool>` ids it may call (a bare `mcp__<server>` token is not honoured). See [Agents](05-agents.md) for how agent tool access works.
+> **Restricting an agent (advanced):** inheritance is additive — declaring a server makes it available to all agents, and you cannot grant servers per-agent. To *prevent* a specific agent from using a server, narrow that agent's `tools:` allowlist to the fully-qualified `mcp__<server>__<tool>` ids it may call (a bare `mcp__<server>` token is not honoured). See [Agents](06-agents.md) for how agent tool access works.
 
 ### Not using these?
 
@@ -139,9 +139,10 @@ AI-DLC installs by copying its distribution for your harness into your project. 
 
 ```bash
 cp -r dist/claude/.claude/ your-project/.claude/
+cp -r dist/claude/aidlc/   your-project/aidlc/     # the workspace shell — a sibling of .claude/, not inside it
 ```
 
-This copies the orchestrator, stage files, agent personas, hooks, knowledge files, and default settings into your project.
+The first line copies the engine — the orchestrator, stage files, agent personas, hooks, knowledge files, and default settings. The second copies the **workspace shell**: the pre-built `aidlc/spaces/default/memory/` method tree the engine reads. It ships as a **sibling** of `.claude/` (not inside it), so it must be copied separately — or copy the whole `dist/claude/` tree at once. `/aidlc --doctor` fails its "workspace shell ready" check if `aidlc/spaces/default/memory/` is missing.
 
 ### Step 2: Navigate to your project
 
@@ -153,23 +154,33 @@ All `/aidlc` commands run relative to the project root.
 
 ---
 
-## Scaffold the Docs Directory
+## The Workspace Shell
 
-Before the health check can pass, scaffold the `aidlc-docs/` directory tree. This creates all knowledge directories (with guidance READMEs) and stage artifact directories so you can add [team knowledge](07-knowledge.md) before your first run.
+There is no scaffold step. The distribution you copied in already ships the
+workspace shell — the `.claude/` engine plus a pre-built `aidlc/spaces/default/`
+holding the memory layer (`aidlc/spaces/default/memory/`, where team-affirmed
+practices and learnings live). You do not run any init command.
 
-```
-/aidlc --init
-```
+The first time you run `/aidlc` (or describe what to build), the engine
+**auto-births** the first intent into the active space. Each intent gets its own
+record dir at `aidlc/spaces/<space>/intents/<YYMMDD>-<label>/`, which holds:
 
-This creates:
+- `aidlc-state.md` — the per-intent workflow state
+- `audit/` — the audit trail, written as per-clone shards (`<host>-<clone>.md`)
+- `<phase>/<stage>/...` — the stage artifacts (e.g. `inception/requirements-analysis/requirements.md`)
 
-- `aidlc-docs/knowledge/aidlc-shared/` — team-wide standards loaded by all agents
-- `aidlc-docs/knowledge/<agent-name>/` — agent-specific standards (one per agent)
-- `aidlc-docs/ideation/`, `inception/`, `construction/`, `operation/` — stage artifact directories
-- `aidlc-docs/verification/` — phase boundary verification output
-- A minimal `aidlc-docs/aidlc-state.md` showing the status line is active
+Team knowledge lives one level up, at the space level —
+`aidlc/spaces/<space>/knowledge/` (a sibling of `intents/`) — so it accumulates
+across every intent in the space. The engine creates it empty; you add free-form
+files under an optional `aidlc-shared/` and per-agent subdirectories.
 
-`--init` does **not** start a workflow. It exits after scaffolding.
+To add [team knowledge](08-knowledge.md) or team practices before your first run,
+edit the shipped `aidlc/spaces/default/memory/` files; the space-level
+`aidlc/knowledge/` directory is created (empty) once your first `/aidlc` runs.
+
+For the full picture of the workspace layout — how it holds many intents at once,
+what spaces are for, and the commands to move between them — see
+[Spaces and Intents](03-spaces-and-intents.md).
 
 ---
 
@@ -190,8 +201,8 @@ Run the health check to confirm everything is in place:
 | Prerequisites | `bun` is installed and on `$PATH` |
 | Hook presence | Every hook `settings.json` wires (its `hooks` blocks + the `statusLine` command — all 10 framework hooks) exists in `.claude/hooks/`; a wired-but-missing hook fails loudly. Sourcing the expected roster from `settings.json` means adding a hook there auto-checks it |
 | Project structure | `.claude/settings.json` exists with expected configuration |
-| Docs directory | `aidlc-docs/` scaffold from `--init` is present |
-| State file | `aidlc-docs/aidlc-state.md` matches the audit trail (no drift) |
+| Workspace shell | `.claude/` + `aidlc/spaces/default/memory/` are present (the shipped shell) |
+| State file | the active intent's `aidlc-state.md` matches its audit trail (no drift) |
 | Hook heartbeats | `.aidlc-hooks-health/` contains recent timestamps from hook executions |
 | Graph integrity | No cycles in `stage-graph.json`; every slug has a matching stage file |
 | Scope validation | All 9 scopes walk cleanly against the graph (advisories for scope-truncation gaps are expected) |
@@ -211,7 +222,7 @@ Run the health check to confirm everything is in place:
 ✓ aidlc-statusline.ts present
 ✓ settings.json present
 ✓ AWS_AIDLC_DEFAULT_SCOPE (unset — no project default)
-✓ aidlc-docs/ directory exists
+✓ workspace shell ready (.claude/ + aidlc/spaces/default/memory/)
 ✓ Hook heartbeats: not yet fired (first workflow stage will populate)
 ✓ State matches last audit event (no drift)
 ✓ Cycle detection: 0 cycles
@@ -229,8 +240,8 @@ Run the health check to confirm everything is in place:
 | `bun` not installed | Install via `curl -fsSL https://bun.sh/install \| bash`. On Windows: `npm install -g bun` or `powershell -c "irm bun.sh/install.ps1 \| iex"`. Ensure it is on PATH for non-interactive shells. |
 | Hook not present | Re-copy the `.claude/` directory from the distribution |
 | `settings.json` missing | Re-copy from the distribution: `cp dist/claude/.claude/settings.json .claude/settings.json` |
-| `aidlc-docs/` missing | Run `/aidlc --init` to scaffold it |
-| State file issues | Delete `aidlc-docs/aidlc-state.md` and run `/aidlc` to start fresh |
+| Workspace shell missing | Re-copy the workspace shell from `dist/claude/` into your project root |
+| State file issues | Archive the active intent's record dir under `aidlc/spaces/<space>/intents/` and run `/aidlc` to start fresh |
 | Graph/scope/schema/keyword failures | The diagnostic reports the specific artifact, slug, or scope name at fault. These indicate authoring drift in `.claude/aidlc-common/stages/` or `.claude/scopes/`; regenerate the compiled graph + scope grid with `bun .claude/tools/aidlc-graph.ts compile` or inspect the named stage/scope directly. |
 
 ---
@@ -263,8 +274,9 @@ In your shell:
 command -v claude >/dev/null && echo "✓ Claude Code" || echo "✗ Claude Code"
 command -v bun    >/dev/null && echo "✓ bun"          || echo "✗ bun"
 
-# Install
+# Install (engine + the workspace shell sibling)
 cp -r dist/claude/.claude/ your-project/.claude/
+cp -r dist/claude/aidlc/   your-project/aidlc/
 
 # Launch Claude Code in your project
 cd your-project && claude
@@ -273,9 +285,6 @@ cd your-project && claude
 Inside the Claude Code session:
 
 ```
-# Scaffold docs directory
-/aidlc --init
-
 # Verify (exits 1 on any check failure; read stdout for the full report)
 /aidlc --doctor
 
@@ -289,13 +298,13 @@ Inside the Claude Code session:
 
 The included `.claude/settings.json` pre-approves Claude Code tools (Read, Edit, Write, Bash, Glob, Grep, Task, WebSearch) so workflows run without per-call permission prompts. Review this file before use and adjust to your security requirements.
 
-See [Customization](12-customization.md) for details on modifying tool permissions.
+See [Customization](13-customization.md) for details on modifying tool permissions.
 
 ---
 
 ## Next Steps
 
 - [Your First Workflow](02-your-first-workflow.md) — annotated walkthrough of a complete run
-- [Scopes, Depth, and Test Strategy](04-scopes-and-depth.md) — choosing the right scope for your task
+- [Scopes, Depth, and Test Strategy](05-scopes-and-depth.md) — choosing the right scope for your task
 - [Troubleshooting](15-troubleshooting.md) — common issues and fixes
 - [Glossary](glossary.md) — terminology reference

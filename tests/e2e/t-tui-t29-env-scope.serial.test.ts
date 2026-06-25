@@ -24,7 +24,7 @@
 //     resolve-env-scope (SKILL.md:100-108) prints the canonical
 //     `Invalid AWS_AIDLC_DEFAULT_SCOPE` error and STOPS without creating state.
 //     .sh assertions ported: rendered output contains "Invalid
-//     AWS_AIDLC_DEFAULT_SCOPE"; aidlc-docs/aidlc-state.md is NOT written.
+//     AWS_AIDLC_DEFAULT_SCOPE"; no intent is born and no per-intent state is written.
 //
 // The render value-add the headless .sh (and the SDK path) cannot see: the
 // captured pane shows the workflow statusline left `[AIDLC] ready` and painted a
@@ -84,6 +84,8 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import * as os from "node:os";
 import { join } from "node:path";
+import { readAllAuditShards } from "../../dist/claude/.claude/tools/aidlc-lib.ts";
+import { stateFilePathFor } from "../harness/sdk-drive.ts";
 import { resolveWinNode } from "../harness/tui-drive.ts";
 import { cleanupTuiProject, setupTuiProject } from "../harness/tui-fixtures.ts";
 
@@ -179,7 +181,7 @@ async function waitForScopeLanding(
 // Has aidlc-state.md landed with a `- **Scope**: <scope>` line for the expected
 // scope? (state-init writes it — aidlc-utility.ts:2049.)
 function scopeLanded(projectDir: string, scope: string): boolean {
-  const statePath = join(projectDir, "aidlc-docs", "aidlc-state.md");
+  const statePath = stateFilePathFor(projectDir);
   if (!existsSync(statePath)) return false;
   try {
     return new RegExp(`^- \\*\\*Scope\\*\\*: ${scope}$`, "m").test(
@@ -258,7 +260,7 @@ function launchReady(session: string, projectDir: string): void {
   if (waitFor(session, "Bypass Permissions mode", 15000, 600)) {
     drive(["send", "--session", session, "--keys", "2"]);
   }
-  expect(waitFor(session, "\\[AIDLC\\] ready", 45000, 800)).toBe(true);
+  expect(waitFor(session, "\\[AIDLC\\].*ready", 45000, 800)).toBe(true);
 }
 
 describe("t-tui-t29 env-scope (AWS_AIDLC_DEFAULT_SCOPE seeds new-workflow scope on disk)", () => {
@@ -286,10 +288,14 @@ describe("t-tui-t29 env-scope (AWS_AIDLC_DEFAULT_SCOPE seeds new-workflow scope 
         // The guidance sentence can line-wrap at any word, and Claude may
         // collapse the tail of a tool result behind "+N lines" in the rendered
         // pane. Pin the visible recovery lead plus the no-state disk invariant;
-        // the exact full tool string is covered at the engine layer.
+        // the exact full tool string is covered at the engine layer. The engine
+        // emits "…or by naming a scope (/aidlc --scope <scope>)."
+        // (aidlc-orchestrate.ts:1245-1247) — assert a stable substring of that.
         const flat = pane.replace(/[▎\s]+/g, " ");
-        expect(flat).toContain("Name a scope to start a workflow");
-        expect(existsSync(join(proj, "aidlc-docs", "aidlc-state.md"))).toBe(false);
+        expect(flat).toContain("naming a scope");
+        // No-scope run births no intent, so no per-intent state file resolves
+        // (stateFilePathFor falls to the never-created flat fallback path).
+        expect(existsSync(stateFilePathFor(proj))).toBe(false);
       } finally {
         drive(["kill", "--session", session]);
         cleanupTuiProject(proj);
@@ -340,12 +346,12 @@ describe("t-tui-t29 env-scope (AWS_AIDLC_DEFAULT_SCOPE seeds new-workflow scope 
 
         // Deterministic landed emission ON DISK: the flag-resolved scope, NOT the
         // env default — this is the override assertion.
-        const stateMd = readFileSync(join(proj, "aidlc-docs", "aidlc-state.md"), "utf8");
+        const stateMd = readFileSync(stateFilePathFor(proj), "utf8");
         expect(stateMd).toMatch(/^- \*\*Scope\*\*: feature$/m);
         // Stronger than the .sh: prove the env default did NOT win.
         expect(stateMd).not.toMatch(/^- \*\*Scope\*\*: workshop$/m);
 
-        const auditMd = readFileSync(join(proj, "aidlc-docs", "audit.md"), "utf8");
+        const auditMd = readAllAuditShards(proj);
         expect(auditMd).toContain("WORKSPACE_INITIALISED");
         const wiIdx = auditMd.indexOf("WORKSPACE_INITIALISED");
         expect(auditMd.slice(wiIdx, wiIdx + 500)).toMatch(/Scope.*:\s*feature/);
@@ -383,7 +389,7 @@ describe("t-tui-t29 env-scope (AWS_AIDLC_DEFAULT_SCOPE seeds new-workflow scope 
           );
         }
 
-        const stateMd = readFileSync(join(proj, "aidlc-docs", "aidlc-state.md"), "utf8");
+        const stateMd = readFileSync(stateFilePathFor(proj), "utf8");
         expect(stateMd).toMatch(/^- \*\*Scope\*\*: feature$/m);
         expect(stateMd).not.toMatch(/^- \*\*Scope\*\*: workshop$/m);
       } finally {
@@ -423,8 +429,9 @@ describe("t-tui-t29 env-scope (AWS_AIDLC_DEFAULT_SCOPE seeds new-workflow scope 
 
         // Deterministic NO-WRITE ON DISK (the .sh's Case C state-absence check,
         // line 59-63): the invalid env scope must not create the state file. The
-        // workflow never reached state-init.
-        expect(existsSync(join(proj, "aidlc-docs", "aidlc-state.md"))).toBe(false);
+        // workflow never reached state-init (no intent born → no per-intent
+        // state file; stateFilePathFor falls to the never-created flat fallback).
+        expect(existsSync(stateFilePathFor(proj))).toBe(false);
       } finally {
         drive(["kill", "--session", session]);
         cleanupTuiProject(proj);

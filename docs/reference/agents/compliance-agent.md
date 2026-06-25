@@ -66,9 +66,9 @@ Path: `.claude/knowledge/aidlc-compliance-agent/`
 
 ### Team (Tier 2)
 
-Path: `aidlc-docs/knowledge/aidlc-compliance-agent/` (user-managed)
+Path: `aidlc/knowledge/aidlc-compliance-agent/` (the space-level knowledge dir; user-managed)
 
-Scaffolded by the `--init` command. Populated by the team with project-specific
+A space-level directory the team creates when it has content (the engine ships `aidlc/knowledge/` empty). Populated by the team with project-specific
 compliance context such as existing compliance matrices, audit findings, data
 classification schemes, or regulatory interpretations.
 

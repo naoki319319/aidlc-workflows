@@ -38,11 +38,12 @@
 //   SP3 jump redo   (2): --stage == current; run-stage(code-generation) +
 //       resolve `.direction` === "redo".
 //   SP4 resume (2): kind==="ask"; out contains "existing workflow was found".
-//   SP5 init (4):
-//     - (a) clean -> kind==="print" + NO aidlc-state.md created by next
-//       (read-only — mutation stays conductor-side).
-//     - (b) state exists, no --force -> kind==="error" + out contains the
-//       verbatim guard "Use --force to reinitialize".
+//   SP5 birth (P4: --init retired, engine names intent-birth):
+//     - (a) named scope on a clean workspace -> kind==="print" naming
+//       intent-birth + NO aidlc-state.md created by next (read-only — mutation
+//       stays conductor-side).
+//     - (b) named scope over existing state -> NOT a birth (no intent-birth
+//       print; the old --force re-init guard is gone).
 //   SP6 scope-change (2): kind==="print" + out contains "scope-change --scope mvp".
 //   SP7 test-run round-trip (4):
 //     - report --result approved --test-run -> kind==="done".
@@ -83,14 +84,17 @@
 
 import { afterAll, describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   cleanupTestProject,
   createTestProject,
   FIXTURES_DIR,
-  resetAidlcEnv,
+  removeWorkspaceRecord,
+  seededAuditDir,
+  seededStateFile,
   seedStateFile,
+  resetAidlcEnv,
 } from "../harness/fixtures.ts";
 
 const BUN = process.execPath; // the bun running this test
@@ -133,16 +137,29 @@ function projWithState(fixtureName: string): string {
   return p;
 }
 
-/** Fresh CLEAN temp project — aidlc-docs/ exists, no state file (SP5a). */
+/** Fresh CLEAN temp project — an empty workspace, NO intent record (SP5a). P9:
+ *  createTestProject seeds a default record + cursor, so strip it; otherwise the
+ *  engine resolves the seeded intent instead of naming intent-birth. */
 function cleanProj(): string {
   const p = createTestProject();
   tempDirs.push(p);
+  removeWorkspaceRecord(p);
   return p;
 }
 
-const statePath = (p: string): string =>
-  join(p, "aidlc-docs", "aidlc-state.md");
-const auditPath = (p: string): string => join(p, "aidlc-docs", "audit.md");
+// P9 per-intent layout. seedStateFile writes the record's aidlc-state.md; the
+// audit lands in the record's per-clone shard dir (deterministic — the fixture
+// pins the clone-id). statePath is the record's state file; readAudit globs the
+// shard dir.
+const statePath = (p: string): string => seededStateFile(p);
+function readAudit(p: string): string {
+  const dir = seededAuditDir(p);
+  if (!existsSync(dir)) return "";
+  return readdirSync(dir)
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => readFileSync(join(dir, f), "utf-8"))
+    .join("\n");
+}
 
 // Parse the single directive JSON the engine emits on stdout (mirrors the .sh's
 // json_field python helper, but as a real JSON.parse of the whole object).
@@ -156,9 +173,7 @@ function directive(r: CliResult): any {
  * .sh count_event helper `grep -c "\*\*Event\*\*: $2$"` (end-anchored).
  */
 function eventCount(p: string, ev: string): number {
-  const f = auditPath(p);
-  if (!existsSync(f)) return 0;
-  return readFileSync(f, "utf-8")
+  return readAudit(p)
     .split("\n")
     .filter((l) => l === `**Event**: ${ev}`).length;
 }
@@ -170,10 +185,8 @@ function eventCount(p: string, ev: string): number {
  * block specifically. Resets at `## ` headings and `---` separators.
  */
 function blockHasField(p: string, ev: string, key: string, value: string): boolean {
-  const f = auditPath(p);
-  if (!existsSync(f)) return false;
   let matched = false;
-  for (const line of readFileSync(f, "utf-8").replace(/\r\n/g, "\n").split("\n")) {
+  for (const line of readAudit(p).replace(/\r\n/g, "\n").split("\n")) {
     if (line.startsWith("## ") || line === "---") {
       matched = false;
       continue;
@@ -187,11 +200,9 @@ function blockHasField(p: string, ev: string, key: string, value: string): boole
   return false;
 }
 
-/** Whole-file presence of a literal needle (mirrors a bare unanchored grep). */
+/** Whole-trail presence of a literal needle (mirrors a bare unanchored grep). */
 function fileContains(p: string, needle: string): boolean {
-  const f = auditPath(p);
-  if (!existsSync(f)) return false;
-  return readFileSync(f, "utf-8").includes(needle);
+  return readAudit(p).includes(needle);
 }
 
 // ============================================================
@@ -285,28 +296,30 @@ describe("t118 differential corpus — engine vs aidlc-jump resolve (migrated fr
   });
 
   // ============================================================
-  // Special path 5: INIT — (a) clean print + no state created; (b) guard error.
+  // Special path 5: BIRTH (P4: --init retired) — (a) named scope on a clean
+  // workspace prints the intent-birth move + creates NO state; (b) a named scope
+  // over existing state is a resume/scope-change, NOT a birth.
   // ============================================================
-  test("SP5a: init (clean) -> print directive, next creates NO state (read-only)", () => {
+  test("SP5a: named scope (clean) -> print naming intent-birth, next creates NO state (read-only)", () => {
     const p = cleanProj();
     const r = run(ORCHESTRATE, [
       "next",
-      "--init",
       "--scope",
       "poc",
       "--project-dir",
       p,
     ]);
     expect(directive(r).kind).toBe("print");
-    // Mutation stays conductor-side: next must not have scaffolded state.
+    expect(directive(r).message).toContain("intent-birth");
+    // Mutation stays conductor-side: next must not have birthed/scaffolded state.
     expect(existsSync(statePath(p))).toBe(false);
   });
 
-  test("SP5b: init (state exists, no --force) -> error carrying the verbatim guard", () => {
-    const p = projWithState("state-mid-ideation.md");
-    const r = run(ORCHESTRATE, ["next", "--init", "--project-dir", p]);
-    expect(directive(r).kind).toBe("error");
-    expect(r.out).toContain("Use --force to reinitialize");
+  test("SP5b: named scope over existing state -> not a birth (no intent-birth print)", () => {
+    const p = projWithState("state-mid-ideation.md"); // feature scope state
+    const r = run(ORCHESTRATE, ["next", "--scope", "feature", "--project-dir", p]);
+    expect(r.out).not.toContain("intent-birth");
+    expect(r.out).not.toContain("Use --force to reinitialize");
   });
 
   // ============================================================

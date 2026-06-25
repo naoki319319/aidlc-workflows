@@ -32,8 +32,8 @@ scopes:
   - refactor
   - security-patch
   - workshop
-inputs: aidlc-docs/aidlc-state.md
-outputs: "aidlc-docs/inception/reverse-engineering/ (9 artifacts: business-overview.md, architecture.md, code-structure.md, api-documentation.md, component-inventory.md, technology-stack.md, dependencies.md, code-quality-assessment.md, reverse-engineering-timestamp.md)"
+inputs: <record>/aidlc-state.md
+outputs: "aidlc/spaces/<active-space>/codekb/<repo>/ (9 artifacts: business-overview.md, architecture.md, code-structure.md, api-documentation.md, component-inventory.md, technology-stack.md, dependencies.md, code-quality-assessment.md, reverse-engineering-timestamp.md)"
 ---
 
 # Reverse Engineering
@@ -44,10 +44,32 @@ MANDATORY: Follow stage-protocol.md for approval gates, question format, and com
 
 ### Step 1: Check Conditions
 
-Read `aidlc-docs/aidlc-state.md` to confirm:
+Read `<record>/aidlc-state.md` to confirm:
 - Project type is brownfield
 
 If project is not brownfield, skip this stage and update aidlc-state.md with skip reason.
+
+#### Resolve the intent's repo set (multi-repo)
+
+This stage runs **per repo** the intent touches. Resolve the repo set from the
+intent's registry row before scanning:
+
+1. Read the active intent's `repos` array from
+   `aidlc/spaces/<active-space>/intents/intents.json` (the row whose `uuid`/`slug`
+   matches the active intent). This is the set captured at intent birth (an explicit
+   `--repos a,b` or sibling auto-discovery).
+2. **Single-repo / unrecorded:** if `repos` is absent, empty, or has exactly one
+   entry, RE runs once against the lone repo — the same flow as before. (An
+   unrecorded set means the workspace root is itself the single repo.)
+3. **Multi-repo:** if `repos` has more than one entry, run Steps 2–3 **once per
+   repo**, scanning that repo's sibling directory (`<workspace>/<repo>/`) and writing
+   its 9 artifacts to the directory `codekb-path --repo <repo>` prints (the
+   space-level `aidlc/spaces/<active-space>/codekb/<repo>/`; see Step 3). Each repo's codekb is independent;
+   nothing in one repo's scan blocks another's, so the per-repo scans may run as
+   parallel subagents.
+
+In the steps below, `<repo>` is the repo currently being scanned; repeat for each
+repo in the set.
 
 ### Step 2: Developer Code Scan
 
@@ -56,7 +78,8 @@ Delegate to Task tool with aidlc-developer-agent:
 - The agent persona and knowledge are loaded automatically. Do NOT manually inject the persona.
 - Include workspace state from aidlc-state.md as context
 
-Developer scans the entire codebase for:
+Developer scans `<repo>`'s codebase (the sibling dir `<workspace>/<repo>/`; for a
+single-repo intent this is the whole codebase) for:
 - All packages, modules, and their purposes
 - Build systems, configuration, and dependency relationships
 - External and internal APIs (endpoints, contracts, methods)
@@ -84,13 +107,25 @@ Architect synthesizes scan results into 9 artifacts:
 6. **technology-stack.md** — Languages, frameworks, libraries with versions
 7. **dependencies.md** — External dependencies, internal cross-package dependencies
 8. **code-quality-assessment.md** — Test coverage, linting, CI/CD, documentation quality, tech debt
-9. **reverse-engineering-timestamp.md** — Records when reverse engineering was performed (date, commit hash if available, scope of analysis)
+9. **reverse-engineering-timestamp.md** — Records when reverse engineering was performed (date, commit hash if available, scope of analysis). This is the freshness/staleness marker for the per-repo codekb store — a stale timestamp triggers a rerun (see the `condition` frontmatter: "Always rerun for freshness").
 
-All artifacts written to `aidlc-docs/inception/reverse-engineering/`.
+**Resolve the write directory with the engine, do NOT compose the path yourself.**
+Run the read-only tool
+
+```
+bun {{HARNESS_DIR}}/tools/aidlc-utility.ts codekb-path --repo <repo>
+```
+
+(omit `--repo` for a single/unrecorded repo — the engine resolves the repo name).
+It prints ONE line: the exact directory, e.g. `aidlc/spaces/<active-space>/codekb/<repo>/`.
+Write all 9 artifacts into the directory the tool printed — verbatim, creating it if
+absent. This is the durable per-repo code knowledge base, a space-level store shared
+across every intent in the space. Never substitute the intent slug, the record dir, or
+a hand-composed path for what the tool prints.
 
 ### Step 4: Update State
 
-Update `aidlc-docs/aidlc-state.md`:
+Update `<record>/aidlc-state.md`:
 - Mark Reverse Engineering as `[x]` completed
 - Update current stage and next stage
 
@@ -98,23 +133,25 @@ Update `aidlc-docs/aidlc-state.md`:
 
 Use stage-protocol.md completion template:
 - Announcement with completion summary
-- Summary of all 9 artifacts produced
-- Review path: `aidlc-docs/inception/reverse-engineering/`
+- Summary of all 9 artifacts produced **per repo** (for a multi-repo intent, list
+  each repo's `aidlc/spaces/<active-space>/codekb/<repo>/` set — the directory
+  `codekb-path --repo <repo>` printed in Step 3)
+- Review path: `aidlc/spaces/<active-space>/codekb/<repo>/` for each repo in the set
 - Structured approval question with options: Approve (continue to Requirements Analysis) / Request Changes
 
 ## Sensors
 
-This stage's outputs are markdown artefacts under `aidlc-docs/inception/reverse-engineering/`.
+This stage's outputs are markdown artefacts under `aidlc/spaces/<active-space>/codekb/<repo>/` (the directory `codekb-path --repo <repo>` resolves).
 
 The imported sensors check those outputs:
 
-- **`required-sections`** verifies the output contains the registry default (≥2 H2 headings). Failure mode: missing headings emit `SENSOR_FAILED` with detail at `aidlc-docs/.aidlc-sensors/<stage-slug>/required-sections-<iso>.md`.
+- **`required-sections`** verifies the output contains the registry default (≥2 H2 headings). Failure mode: missing headings emit `SENSOR_FAILED` with detail at `<record>/.aidlc-sensors/<stage-slug>/required-sections-<iso>.md`.
 - **`upstream-coverage`** verifies the output prose references each artefact declared in this stage's `consumes:` frontmatter. This stage declares no upstream artefacts; the sensor still runs but reports zero unreferenced inputs by default.
 
 ## Learn
 
 While running this stage, maintain a running log in
-`aidlc-docs/<phase>/<stage>/memory.md` (create on stage start if absent).
+`<record>/<phase>/<stage>/memory.md` (create on stage start if absent).
 Append entries under four standard headings:
 
 - **Interpretations** — choices made where the stage prose was ambiguous

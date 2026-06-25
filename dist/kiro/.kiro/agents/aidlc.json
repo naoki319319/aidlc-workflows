@@ -30,8 +30,7 @@
     },
     "fs_write": {
       "allowedPaths": [
-        "aidlc-docs/**",
-        ".kiro/steering/**",
+        "aidlc/spaces/**",
         ".kiro/sensors/**"
       ]
     },
@@ -44,13 +43,26 @@
   },
   "resources": [
     "skill://.kiro/skills/*/SKILL.md",
-    "file://.kiro/steering/*.md",
+    "file://aidlc/spaces/default/memory/**/*.md",
     "file://AGENTS.md"
   ],
   "hooks": {
     "agentSpawn": [
       {
         "command": "bun .kiro/hooks/aidlc-kiro-adapter.ts session-start"
+      }
+    ],
+    "userPromptSubmit": [
+      {
+        "command": "bun .kiro/hooks/aidlc-kiro-adapter.ts verb-intercept",
+        "timeout_ms": 30000
+      }
+    ],
+    "preToolUse": [
+      {
+        "matcher": "execute_bash",
+        "command": "bun .kiro/hooks/aidlc-kiro-adapter.ts pretool-block",
+        "timeout_ms": 15000
       }
     ],
     "postToolUse": [

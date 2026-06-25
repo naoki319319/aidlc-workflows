@@ -8,7 +8,7 @@ A native implementation of the **AI-DLC methodology** (AI-Driven Development Lif
 
 The methodology lives once, in a harness-neutral `core/`; each harness adds a thin surface that decides how it shows up on that harness. So you edit the methodology in one place, and every harness distribution is generated from it — no harness gets special treatment. (See [Repository layout](#repository-layout) for how the pieces fit together.)
 
-![version](https://img.shields.io/badge/version-2.0.2-blue)
+![version](https://img.shields.io/badge/version-2.1.0-blue)
 ![license](https://img.shields.io/badge/license-MIT--0-green)
 ![Kiro IDE](https://img.shields.io/badge/harness-Kiro%20IDE-orange)
 ![Kiro CLI](https://img.shields.io/badge/harness-Kiro%20CLI-orange)
@@ -29,17 +29,17 @@ Ad-hoc AI coding works until the project gets real. Then context drifts between 
 
 ## Key Features
 
-- **[5 phases, 32 stages](docs/guide/03-phases-and-stages.md)** — Initialization, Ideation, Inception, Construction, Operation
-- **[11 domain-expert agents](docs/guide/05-agents.md)** — product, design, delivery, architect, aws-platform, compliance, devsecops, developer, quality, pipeline-deploy, operations
-- **[9 adaptive scopes](docs/guide/04-scopes-and-depth.md)** (enterprise through workshop) with auto-detection from freeform intent
-- **[3 depth levels](docs/guide/04-scopes-and-depth.md#the-3-depth-levels)** (Minimal/Standard/Comprehensive) — control artifact detail per stage
-- **[3 test strategy levels](docs/guide/04-scopes-and-depth.md#the-3-test-strategy-levels)** (Minimal/Standard/Comprehensive) — independent of depth for flexible test coverage
-- **[CLI utilities](docs/guide/11-cli-commands.md)** — jump to any stage or phase, check status, change scope/depth/test strategy mid-workflow
-- **[Approval gates at every stage](docs/guide/06-interaction-modes.md)** — you stay in control of all decisions
-- **[Two-tier knowledge system](docs/guide/07-knowledge.md)** — methodology knowledge ships with the framework; team knowledge is user-managed
-- **[Rules and a learning loop](docs/guide/08-rules-and-the-learning-loop.md)** — human corrections become persistent behavioral rules
-- **[67-event audit trail](docs/guide/09-state-and-audit.md)** — structured logging for enterprise traceability
-- **[Session resume](docs/guide/10-session-management.md)** — continue from checkpoint, redo, jump to stage, or start fresh
+- **[5 phases, 32 stages](docs/guide/04-phases-and-stages.md)** — Initialization, Ideation, Inception, Construction, Operation
+- **[11 domain-expert agents](docs/guide/06-agents.md)** — product, design, delivery, architect, aws-platform, compliance, devsecops, developer, quality, pipeline-deploy, operations
+- **[9 adaptive scopes](docs/guide/05-scopes-and-depth.md)** (enterprise through workshop) with auto-detection from freeform intent
+- **[3 depth levels](docs/guide/05-scopes-and-depth.md#the-3-depth-levels)** (Minimal/Standard/Comprehensive) — control artifact detail per stage
+- **[3 test strategy levels](docs/guide/05-scopes-and-depth.md#the-3-test-strategy-levels)** (Minimal/Standard/Comprehensive) — independent of depth for flexible test coverage
+- **[CLI utilities](docs/guide/12-cli-commands.md)** — jump to any stage or phase, check status, change scope/depth/test strategy mid-workflow
+- **[Approval gates at every stage](docs/guide/07-interaction-modes.md)** — you stay in control of all decisions
+- **[Two-tier knowledge system](docs/guide/08-knowledge.md)** — methodology knowledge ships with the framework; team knowledge is user-managed
+- **[Rules and a learning loop](docs/guide/09-rules-and-the-learning-loop.md)** — human corrections become persistent behavioral rules
+- **[67-event audit trail](docs/guide/10-state-and-audit.md)** — structured logging for enterprise traceability
+- **[Session resume](docs/guide/11-session-management.md)** — continue from checkpoint, redo, jump to stage, or start fresh
 
 ## Methodology and implementation
 
@@ -49,10 +49,10 @@ Ad-hoc AI coding works until the project gets real. Then context drifts between 
 
 | Harness | Install (copy into your project) | Invoke | Install & usage guide |
 | --- | --- | --- | --- |
-| **Kiro IDE** | `dist/kiro-ide/.kiro/` → `<project>/.kiro/` (+ `dist/kiro-ide/AGENTS.md`) | `/aidlc` | [Quick Start](#quick-start) below + [Running AI-DLC on Kiro IDE](docs/guide/harnesses/kiro-ide.md). |
-| **Kiro CLI** (≥ 2.6) | `dist/kiro/.kiro/` → `<project>/.kiro/` (+ `dist/kiro/AGENTS.md`) | `/aidlc` | [Quick Start](#quick-start) below + [Running AI-DLC on Kiro CLI](docs/guide/harnesses/kiro-cli.md). |
-| **Claude Code** | `dist/claude/.claude/` → `<project>/.claude/` | `/aidlc` | [Quick Start](#quick-start) below + [Getting Started](docs/guide/01-getting-started.md). |
-| **Codex CLI** (≥ 0.139.0) | `dist/codex/` → `<project>/` (`.codex/` + `.agents/` + `AGENTS.md`) | `$aidlc` (or `/skills` → aidlc) | [Quick Start](#quick-start) below + [AI-DLC on Codex CLI](docs/guide/harnesses/codex-cli.md). |
+| **Kiro IDE** | `dist/kiro-ide/.kiro/` + `dist/kiro-ide/aidlc/` → `<project>/` (+ `dist/kiro-ide/AGENTS.md`) | `/aidlc` | [Quick Start](#quick-start) below + [Running AI-DLC on Kiro IDE](docs/guide/harnesses/kiro-ide.md). |
+| **Kiro CLI** (≥ 2.6) | `dist/kiro/.kiro/` + `dist/kiro/aidlc/` → `<project>/` (+ `dist/kiro/AGENTS.md`) | `/aidlc` | [Quick Start](#quick-start) below + [Running AI-DLC on Kiro CLI](docs/guide/harnesses/kiro-cli.md). |
+| **Claude Code** | `dist/claude/.claude/` + `dist/claude/aidlc/` → `<project>/` | `/aidlc` | [Quick Start](#quick-start) below + [Getting Started](docs/guide/01-getting-started.md). |
+| **Codex CLI** (≥ 0.139.0) | `dist/codex/` → `<project>/` (`.codex/` + `.agents/` + `aidlc/` + `AGENTS.md`) | `$aidlc` (or `/skills` → aidlc) | [Quick Start](#quick-start) below + [AI-DLC on Codex CLI](docs/guide/harnesses/codex-cli.md). |
 
 The deterministic engine — state machine, audit log, and the referee that coordinates parallel agents — is byte-identical across every harness; only the shell differs. Each section in the [Quick Start](#quick-start) installs one harness end to end, and its guide above goes deeper on prerequisites and differences.
 
@@ -67,7 +67,7 @@ This release works better with `Claude Opus 4.8`. We are sharpening it for previ
 
 ### Prerequisites (every harness)
 
-Every harness runs the same TypeScript hooks and CLI tools through **bun**, so install bun first — it's the one requirement shared by all three.
+Every harness runs the same TypeScript hooks and CLI tools through **bun**, so install bun first — it's the one requirement they all share.
 
 ```bash
 # macOS / Linux
@@ -104,8 +104,11 @@ With bun in place, pick your harness below and expand it — each section instal
 
 ```bash
 cp -r dist/kiro-ide/.kiro your-project/.kiro
+cp -r dist/kiro-ide/aidlc your-project/aidlc        # the workspace shell — a sibling of .kiro/, not inside it
 cp dist/kiro-ide/AGENTS.md your-project/AGENTS.md   # merge if you already have one
 ```
+
+The `aidlc/` shell ships the pre-built `aidlc/spaces/default/memory/` method tree the engine reads; `/aidlc --doctor` fails its "workspace shell ready" check without it.
 
 Open `your-project/` in Kiro IDE. The install ships `.kiro/settings/cli.json` with `chat.defaultAgent` set to `aidlc` and registers the framework hooks as `.kiro/hooks/*.kiro.hook` files (the IDE's hook mechanism). In the chat panel, run `/aidlc --doctor` to verify, then `/aidlc <description>` to start.
 
@@ -128,9 +131,12 @@ kiro-cli login
 
 ```bash
 cp -r dist/kiro/.kiro your-project/.kiro
+cp -r dist/kiro/aidlc your-project/aidlc       # the workspace shell — a sibling of .kiro/, not inside it
 cp dist/kiro/AGENTS.md your-project/AGENTS.md   # merge if you already have one
 cd your-project && kiro-cli chat
 ```
+
+The `aidlc/` shell ships the pre-built `aidlc/spaces/default/memory/` method tree the engine reads; `/aidlc --doctor` fails its "workspace shell ready" check without it.
 
 The install ships `.kiro/settings/cli.json` with `chat.defaultAgent` set to `aidlc`, so `/aidlc` is active by default. Inside the session, run `/aidlc --doctor` to verify, then `/aidlc <description>` to start. The [Kiro CLI guide](docs/guide/harnesses/kiro-cli.md) has the full prerequisites and harness differences.
 
@@ -164,10 +170,13 @@ curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del in
 **2. Set up your project**
 
 ```bash
-# Copy the implementation into your project, then launch
+# Copy the implementation (engine + the workspace shell sibling), then launch
 cp -r dist/claude/.claude/ your-project/.claude/
+cp -r dist/claude/aidlc/   your-project/aidlc/     # the workspace shell — a sibling of .claude/, not inside it
 cd your-project && claude
 ```
+
+The `aidlc/` shell ships the pre-built `aidlc/spaces/default/memory/` method tree the engine reads; `/aidlc --doctor` fails its "workspace shell ready" check without it.
 
 Then, inside the Claude Code session:
 
@@ -196,8 +205,11 @@ The shipped `config.toml` runs on **Amazon Bedrock**; set your AWS profile and r
 ```bash
 cp -r dist/codex/.codex/  your-project/.codex/
 cp -r dist/codex/.agents/ your-project/.agents/
+cp -r dist/codex/aidlc/   your-project/aidlc/      # the workspace shell — a sibling of .codex/, not inside it
 cp dist/codex/AGENTS.md   your-project/AGENTS.md   # or merge into yours
 ```
+
+The `aidlc/` shell ships the pre-built `aidlc/spaces/default/memory/` method tree the engine reads; `$aidlc --doctor` fails its "workspace shell ready" check without it.
 
 After copying, apply the `.gitignore` entries from the shipped `AGENTS.md` before your first workflow, pre-seed hook trust, then verify:
 
@@ -230,7 +242,7 @@ aidlc-claude/
 │   ├── tools/                  #   25 aidlc-*.ts engine tools (+ data/scaffold/ templates)
 │   ├── aidlc-common/           #   stage protocol + 32 stage files + conductor
 │   ├── agents/                 #   11 domain-expert personas
-│   ├── knowledge/ rules/ scopes/ sensors/ hooks/
+│   ├── knowledge/ memory/ scopes/ sensors/ hooks/
 │   ├── skills/                 #   3 session skills (session-cost, replay, outcomes-pack)
 │   └── templates/              #   onboarding skeleton → each harness's CLAUDE.md / AGENTS.md
 │       # prose names the harness dir with the {{HARNESS_DIR}} token — substituted at packaging

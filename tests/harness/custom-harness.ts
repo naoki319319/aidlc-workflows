@@ -163,11 +163,17 @@ export const CUSTOM_SENSOR_ID = "schema-validator";
 export const CUSTOM_RULE_MARKER = "PHASE5-DATA-MIGRATION-RULE-XYZZY";
 
 /** Where the schema-snapshot stage writes its source-schema artefact — a
- *  markdown file under aidlc-docs/ whose write triggers the custom sensor's
- *  aidlc-docs glob match. Relative to the project root. Path layout follows the
- *  shipped convention: aidlc-docs/<phase>/<stage-slug>/<artefact>.md. */
+ *  markdown file under the active intent's record whose write triggers the
+ *  custom sensor's glob match. Relative to the project root, with a `*` for the
+ *  born intent dir (the id is minted at runtime). Path layout follows the shipped
+ *  per-intent convention: aidlc/spaces/<space>/intents/<slug-id8>/<phase>/<stage>/<artefact>.md.
+ *  The `*` glob is honoured by tui-drive's --until-file (globs one segment). */
 export const SNAPSHOT_OUTPUT_REL = join(
-  "aidlc-docs",
+  "aidlc",
+  "spaces",
+  "default",
+  "intents",
+  "*",
   SNAPSHOT_STAGE_PHASE,
   SNAPSHOT_STAGE_SLUG,
   `${SNAPSHOT_ARTIFACT}.md`,
@@ -175,9 +181,13 @@ export const SNAPSHOT_OUTPUT_REL = join(
 
 /** Where the migration-plan stage writes its migration-strategy artefact — the
  *  terminal artefact of the chain; the live tui journey terminates on this file
- *  appearing (both gates answered). */
+ *  appearing (both gates answered). `*` globs the born intent dir. */
 export const PLAN_OUTPUT_REL = join(
-  "aidlc-docs",
+  "aidlc",
+  "spaces",
+  "default",
+  "intents",
+  "*",
   PLAN_STAGE_PHASE,
   PLAN_STAGE_SLUG,
   `${PLAN_ARTIFACT}.md`,
@@ -255,7 +265,7 @@ On activation, load knowledge in this order:
 1. \`.claude/rules/\` -- standing guardrails and project rules
 2. \`.claude/knowledge/aidlc-shared/\` -- shared methodology
 3. \`${CUSTOM_KNOWLEDGE_REF}\` -- custom migration playbook for this fixture
-4. \`aidlc-docs/knowledge/${CUSTOM_AGENT_SLUG}/\` -- team-owned custom knowledge, if present
+4. \`aidlc/knowledge/${CUSTOM_AGENT_SLUG}/\` -- team-owned custom knowledge, if present
 
 ## Key Principle
 
@@ -545,8 +555,8 @@ id: ${CUSTOM_SENSOR_ID}
 kind: deterministic
 command: bun .claude/tools/aidlc-sensor-required-sections.ts
 default_severity: advisory
-description: Phase-5 custom sensor — validates the data-migration artefact's section shape on every write under aidlc-docs/ while a custom stage is active
-matches: "**/aidlc-docs/**"
+description: Phase-5 custom sensor — validates the data-migration artefact's section shape on every write under the intent record while a custom stage is active
+matches: "**/{aidlc-docs,intents}/**"
 input_schema:
   output_path: string
   stage_slug: string
@@ -568,11 +578,14 @@ sensors_applicable).
   writeFileSync(p, body);
 }
 
-/** Add the custom rule bullet to aidlc-project.md under ## Mandated. The rule
- *  FILE path is already in every stage's rules_in_context (project rules attach
- *  universally); this seeds the unique-marker CONTENT the agent reads. */
+/** Add the custom rule bullet to the project method layer under ## Mandated. The
+ *  rule FILE path is already in every stage's rules_in_context (project rules
+ *  attach universally); this seeds the unique-marker CONTENT the agent reads.
+ *  The method relocated (P5) from <harness>/rules/aidlc-project.md to the
+ *  workspace-root aidlc/spaces/default/memory/project.md (neutral name), so seed
+ *  it there — `claude` is <proj>/.claude, the method sits beside it. */
 function seedProjectRule(claude: string): void {
-  const p = join(claude, "rules", "aidlc-project.md");
+  const p = join(claude, "..", "aidlc", "spaces", "default", "memory", "project.md");
   let text = readFileSync(p, "utf8");
   const bullet = `\n- ${CUSTOM_RULE_MARKER}: every data-migration artefact must cite its origin stage.\n`;
   if (text.includes(CUSTOM_RULE_MARKER)) return; // idempotent

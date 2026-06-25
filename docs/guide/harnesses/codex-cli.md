@@ -29,12 +29,21 @@ never hand-edit it (the drift guard fails CI).
    ```bash
    cp -r dist/codex/.codex/  your-project/.codex/
    cp -r dist/codex/.agents/ your-project/.agents/
+   cp -r dist/codex/aidlc/   your-project/aidlc/      # the workspace shell (spaces/default/memory) — a sibling of .codex/, not inside it
    cp dist/codex/AGENTS.md   your-project/AGENTS.md   # or merge into yours
    ```
 
+   The `aidlc/` directory is the workspace shell — it ships the pre-built
+   `aidlc/spaces/default/memory/` method tree the engine reads. It is a
+   **sibling** of `.codex/`, so copy it separately (or copy the whole
+   `dist/codex/` tree at once). `$aidlc --doctor` fails its "workspace shell
+   ready" check if it is missing.
+
 2. Apply the `.gitignore` entries from the shipped `AGENTS.md` § "Git
-   Integration" **before** starting a workflow — committing
-   `aidlc-docs/audit.md` breaks Construction's audit-fork (it is one-shot).
+   Integration" **before** starting a workflow — the per-clone audit shards
+   under each intent's `audit/` are committed deliberately (each clone writes
+   its own `<host>-<clone>.md`, so concurrent appends never git-conflict), while
+   per-user cursors and machine-local runtime state stay ignored.
 
 3. Trust the project and pre-seed hook trust. Codex never runs untrusted
    hooks (the `--dangerously-bypass-hook-trust` flag does not run them
@@ -60,7 +69,7 @@ never hand-edit it (the drift guard fails CI).
 
 Invoke the orchestrator with `$aidlc` (or `/skills` → aidlc) followed by a
 scope or description — same commands as the Claude harness (`$aidlc --status`,
-`$aidlc --init`, `$aidlc --help`, …). Stage runners are explicit-only:
+`$aidlc --help`, …). Stage runners are explicit-only:
 `$aidlc-application-design`, `$aidlc-bugfix`, etc. (they are excluded from
 implicit skill matching so 37 runner descriptions don't pollute the index).
 
@@ -90,9 +99,7 @@ implicit skill matching so 37 runner descriptions don't pollute the index).
   writes files via shell heredocs, which bypass the `apply_patch` hook
   matcher — `ARTIFACT_*` rows can be sparse. Interactive TUI sessions (where
   the system prompt mandates `apply_patch`) are the high-fidelity audit mode.
-- **AIDLC rule layers** live at `.codex/aidlc-rules/` (Codex's native
-  `.codex/rules/` directory holds Starlark permission rules — the two must
-  not collide).
+- **AIDLC rule layers** live at the workspace root under `aidlc/spaces/<space>/memory/` (one hand-editable source, identical on every harness); the `AIDLC_RULES_DIR` env seam in `config.toml` points the resolver there and the orchestrator injects an `@aidlc/spaces/<space>/memory/...` prompt mention. Codex's native `.codex/rules/` directory holds Starlark permission rules — distinct from the AIDLC method.
 - **No welcome message**: the Claude harness renders the Phases/Stages/Scopes
   onboarding banner from `settings.json` `companyAnnouncements` at session start;
   Codex has no equivalent. The session-start path injects resume context only.
@@ -121,8 +128,8 @@ Installed and trusted? The methodology is the same on every harness — keep goi
 with the neutral chapters:
 
 - [Your First Workflow](../02-your-first-workflow.md) — an annotated end-to-end run.
-- [Phases and Stages](../03-phases-and-stages.md) — the 5 phases and 32 stages.
-- [Scopes, Depth, and Test Strategy](../04-scopes-and-depth.md) — right-sizing a run.
+- [Phases and Stages](../04-phases-and-stages.md) — the 5 phases and 32 stages.
+- [Scopes, Depth, and Test Strategy](../05-scopes-and-depth.md) — right-sizing a run.
 - [Glossary](../glossary.md) — every term defined.
 
 Other harnesses: [Running AI-DLC on Kiro IDE](kiro-ide.md) · [the harness family index](README.md).

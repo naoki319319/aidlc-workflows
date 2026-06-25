@@ -48,7 +48,8 @@ stages — `intent-capture` and `feasibility` respectively).
 
 Things that are **not** artifacts in this registry:
 
-- **File paths.** `aidlc-docs/ideation/scope-definition/scope-document.md`
+- **File paths.** `<record>/ideation/scope-definition/scope-document.md`
+  (where `<record>/` is the intent's record dir, `aidlc/spaces/<space>/intents/<YYMMDD>-<label>/`)
   is a filesystem location; the canonical name is `scope-document`. See
   "Filesystem mapping" below.
 - **Filenames.** The on-disk `.md` file and the canonical name don't have
@@ -147,24 +148,35 @@ Artifacts live on disk at paths that are derivable from `(canonical
 name) + (producing stage) + (per-unit flag)`. Two shapes today:
 
 - **Non-per-unit stages (24 of 29):**
-  `aidlc-docs/<phase>/<stage>/<canonical-name>.md`
+  `<record>/<phase>/<stage>/<canonical-name>.md`
   Example: `feasibility-assessment` (produced by the Ideation
   `feasibility` stage) lives at
-  `aidlc-docs/ideation/feasibility/feasibility-assessment.md`.
+  `<record>/ideation/feasibility/feasibility-assessment.md`.
 
 - **Per-unit Construction stages (5 of 29):** `nfr-requirements`,
   `nfr-design`, `functional-design`, `infrastructure-design`, and
   `code-generation`. These emit one copy of each artifact per Unit of
   Work during Construction:
-  `aidlc-docs/construction/{unit-name}/<stage>/<canonical-name>.md`
+  `<record>/construction/{unit-name}/<stage>/<canonical-name>.md`
   Example: `business-logic-model` (produced by `functional-design`) lives
   at
-  `aidlc-docs/construction/{unit-name}/functional-design/business-logic-model.md`.
+  `<record>/construction/{unit-name}/functional-design/business-logic-model.md`.
 
 Per-unit status is declared by the stage's `for_each: unit-of-work`
 frontmatter field — the five Construction stages that run once per Unit carry
 it; the rest omit it. A future helper could compute the path mechanically from
 stage graph + canonical name.
+
+**Codekb is the space-level exception.** Reverse-engineering's 9 artifacts
+(`business-overview`, `architecture`, `code-structure`, `api-documentation`,
+`component-inventory`, `technology-stack`, `dependencies`,
+`code-quality-assessment`, `reverse-engineering-timestamp`) do **not** resolve
+under the per-intent record dir. They land in the durable, per-repo code
+knowledge base at `aidlc/spaces/<space>/codekb/<repo>/` — a store shared across
+every intent in the space, keyed by repo rather than by intent. The path is
+resolved outside the record-relative rule via the `isCodekb` branch in
+`resolveArtifactPath` (`dist/claude/.claude/tools/aidlc-orchestrate.ts`), and
+the same directory is printed by the read-only `/aidlc codekb-path` command.
 
 **Canonical name ≠ filename for collisions.** Where a collision is split
 (see above), the on-disk filename may keep the pre-split form
@@ -243,7 +255,7 @@ at tag time and the registry at HEAD is a one-line `diff`.
 - [State Machine](12-state-machine.md) — parallel derivation pattern
   for audit events: the canonical enum lives in `aidlc-audit.ts`, not in
   the doc.
-- [User Guide — Artifacts Reference](../guide/13-artifacts-reference.md)
+- [User Guide — Artifacts Reference](../guide/14-artifacts-reference.md)
   — user-facing artifact lifecycle and directory layout.
 - `dist/claude/.claude/tools/aidlc-graph.ts` — the derivation tool
   (`artifactsRegistry()` + `artifacts` CLI subcommand).

@@ -14,16 +14,17 @@
 //
 // What each case proves on the SHIPPED tree:
 //   with state    — the conductor surfaces the seeded mid-ideation fields
-//                   (scope/stage strings render in the pane) and the state
-//                   file + aidlc-docs are byte-untouched afterwards.
+//                   (scope/stage strings render in the pane) and the per-intent
+//                   record's state file is byte-untouched afterwards.
 //   without state — the run reports no active workflow (and does NOT
-//                   scaffold aidlc-docs or invent state).
+//                   birth an intent or invent state).
 
 import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import * as os from "node:os";
 import { join } from "node:path";
+import { seededStateFile } from "../harness/fixtures.ts";
 import { cleanupTuiProject, KIRO_SRC, setupTuiProject } from "../harness/tui-fixtures.ts";
 
 const DRIVER = join(import.meta.dir, "..", "harness", "tui-drive.ts");
@@ -108,15 +109,19 @@ describe("t-tui-kiro-status (read-only status through the Kiro print-directive a
         withState: "state-brownfield-feature.md",
         withAudit: true,
       });
-      const statePath = join(sandbox, "aidlc-docs", "aidlc-state.md");
+      const statePath = seededStateFile(sandbox);
       const stateBefore = readFileSync(statePath, "utf8");
       try {
         launch(session, sandbox);
         submitStatus(session);
         // The seeded fixture is mid-inception, scope=feature, current stage
         // requirements-analysis. The status output the conductor prints must
-        // surface those strings in the pane.
-        expect(waitFor(session, "requirements-analysis", 240000, 0)).toBe(true);
+        // surface those strings in the pane. NOTE: the status tool renders the
+        // stage DISPLAY name ("Requirements Analysis"), not the slug — it prints
+        // `Current Stage:  ${stageDisplay}` from the graph entry's `name`
+        // (aidlc-utility.ts:347 / :267-282), so we wait on the display name, the
+        // same calibration lesson the ACP twin (t-acp-kiro-utilities) encodes.
+        expect(waitFor(session, "Requirements Analysis", 240000, 0)).toBe(true);
         expect(waitFor(session, "feature", 30000, 0)).toBe(true);
         // Read-only contract: the state file is byte-identical afterwards.
         expect(readFileSync(statePath, "utf8")).toBe(stateBefore);
@@ -139,8 +144,10 @@ describe("t-tui-kiro-status (read-only status through the Kiro print-directive a
         // The engine's no-state status path prints the utility's exact wording
         // (aidlc-utility.ts:186, verified live): "No active AI-DLC workflow".
         expect(waitFor(session, "No active AI-DLC workflow", 240000, 0)).toBe(true);
-        // And it must NOT scaffold: status is read-only even with no state.
-        expect(existsSync(join(sandbox, "aidlc-docs", "aidlc-state.md"))).toBe(false);
+        // And it must NOT scaffold: status is read-only even with no state. The
+        // seeded record was stripped (noAidlcDocs); status births nothing, so the
+        // per-intent state file the seeded record would hold never appears.
+        expect(existsSync(seededStateFile(sandbox))).toBe(false);
       } finally {
         drive(["kill", "--session", session]);
         cleanupTuiProject(sandbox);

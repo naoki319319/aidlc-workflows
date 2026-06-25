@@ -65,9 +65,9 @@ Path: `.claude/knowledge/aidlc-developer-agent/`
 
 ### Team (Tier 2)
 
-Path: `aidlc-docs/knowledge/aidlc-developer-agent/` (user-managed)
+Path: `aidlc/knowledge/aidlc-developer-agent/` (the space-level knowledge dir; user-managed)
 
-Scaffolded by the `--init` command. Populated by the team with project-specific
+A space-level directory the team creates when it has content (the engine ships `aidlc/knowledge/` empty). Populated by the team with project-specific
 development context such as coding standards, framework conventions, existing
 API patterns, or migration strategies.
 

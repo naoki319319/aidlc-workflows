@@ -13,8 +13,15 @@ stage node.
 This chapter covers the manifest *file format* — what a sensor manifest
 contains, how stages import sensors, and how the four shipped manifests
 are configured. For the user-facing view of how sensors fire during a
-workflow, see [Rules and the Learning Loop](../guide/08-rules-and-the-learning-loop.md)
+workflow, see [Rules and the Learning Loop](../guide/09-rules-and-the-learning-loop.md)
 in the User Guide.
+
+> **Path convention.** `<record>/` below = the active intent's record dir,
+> `aidlc/spaces/<space>/intents/<YYMMDD>-<label>/` (a compact UTC date prefix
+> plus a short kebab-case label, so record dirs sort chronologically; the
+> canonical id is the UUIDv7 stored in the `intents.json` registry row). Note the two document-shape
+> sensors' `matches` glob in the shipped manifests still carries the legacy
+> artifact-tree path (quoted verbatim below where the schema is documented).
 
 For runtime behaviour see [Stage Protocol](04-stage-protocol.md). The
 file-format parallel for stage definitions lives at
@@ -66,7 +73,7 @@ command: bun .claude/tools/aidlc-sensor-required-sections.ts   # required
 default_severity: advisory                   # required
 description: Checks that stage output ...    # required
 category: document-shape                     # optional
-matches: "**/aidlc-docs/**"                  # optional capability filter
+matches: "**/{aidlc-docs,intents}/**"                  # optional capability filter
 input_schema:                                # optional
   output_path: string
   stage_slug: string
@@ -188,8 +195,8 @@ the PostToolUse hook at fire time, not by the resolver at compile time.
 
 | Manifest | `matches` |
 |---|---|
-| `aidlc-required-sections.md` | `**/aidlc-docs/**` |
-| `aidlc-upstream-coverage.md` | `**/aidlc-docs/**` |
+| `aidlc-required-sections.md` | `**/{aidlc-docs,intents}/**` |
+| `aidlc-upstream-coverage.md` | `**/{aidlc-docs,intents}/**` |
 | `aidlc-linter.md` | `**/*.{ts,js}` |
 | `aidlc-type-check.md` | `**/*.{ts,tsx}` |
 
@@ -197,7 +204,8 @@ the PostToolUse hook at fire time, not by the resolver at compile time.
 compares the path being written against the glob and fires only on a match;
 an entry **without** a `matches` glob never fires at all (`aidlc-sensor-fire.ts`:
 `if (!entry.matches) continue`). All four shipped manifests therefore declare
-one — the two document-shape sensors scope to `**/aidlc-docs/**`, the two
+one — the two document-shape sensors scope to the artifact tree (the shipped
+manifests carry the `matches` value shown above), the two
 code-quality sensors to their language globs. The compile resolver copies
 `matches` verbatim into the per-stage `sensors_applicable[]` entry; the hook
 reads the snapshotted value off the graph node.
@@ -248,13 +256,13 @@ So a manifest with:
 command: bun .claude/tools/aidlc-sensor-required-sections.ts
 ```
 
-invoked against `requirements-analysis` writing
-`aidlc-docs/inception/requirements-analysis/requirements.md` is dispatched as:
+invoked against `requirements-analysis` writing the requirements artifact in the
+intent's record dir is dispatched as:
 
 ```
 bun .claude/tools/aidlc-sensor-required-sections.ts \
   --stage requirements-analysis \
-  --output-path aidlc-docs/inception/requirements-analysis/requirements.md
+  --output-path aidlc/spaces/default/intents/260624-inventory-api/inception/requirements-analysis/requirements.md
 ```
 
 The manifest does not encode the per-fire flags. The dispatcher
@@ -278,7 +286,7 @@ step between them:
    data. Open questions never become candidates (they are research items).
 2. **Conductor renders the AskUserQuestion (knowledge).** One option per
    candidate (label = the candidate `summary`, verbatim; description = the
-   derived destination, e.g. `→ aidlc-project-learnings.md (Deviation)` plus
+   derived destination, e.g. `→ memory/project.md (Deviation)` plus
    a promote-to-team affordance). After `multiSelect`, the conductor
    correlates each kept label back to its candidate `id` + `source_heading`.
    It then always asks "Anything to add for next time?"; any free-text gets
@@ -287,18 +295,18 @@ step between them:
    destination is derived from it.
 3. **Admission conflict-check (knowledge → orchestrator-LLM; gates which
    selections reach persist).** For each kept learning, the conductor
-   compares the single proposed dated entry against `aidlc-org.md`'s
+   compares the single proposed dated entry against `org.md`'s
    matching `## <section>` (the single-line variant of the §5 admission
    gate). On a contradiction the conductor surfaces the conflicting org sentence inline
    and the user revises / skips / escalates (judgement → user; no
    user-override path). Only conflict-clear or user-escalated selections
    proceed. Sensor manifests have no org-section analogue and skip the check.
 4. **`persist` (selections-file in).** The conductor writes the kept
-   selections to `aidlc-docs/.aidlc-learnings/<slug>-selections.json`
+   selections to `<record>/.aidlc-learnings/<slug>-selections.json` (in the intent's record dir)
    (gitignored) and calls `bun .claude/tools/aidlc-learnings.ts persist
    --slug <slug> --selections-json <path>`. The tool is the deterministic
-   writer — it never judges conflicts; it routes learnings to
-   `aidlc-{project,team}-learnings.md` and, for a sensor selection, does the
+   writer — it never judges conflicts; it routes each learning as a practice to
+   `aidlc/spaces/<space>/memory/{project,team}.md` and, for a sensor selection, does the
    two-write install (manifest + originating stage `sensors:` frontmatter)
    inside one `withAuditLock`, then emits `RULE_LEARNED` / `SENSOR_PROPOSED`.
 
@@ -324,7 +332,7 @@ framework-distribution paths are rejected). Fields default to:
 | `default_severity` | `advisory` | sole accepted value today |
 | `description` | from user free-text | |
 | `category` | `""` | user fills if desired |
-| `matches` | a glob is required to fire | scaffold prompts for the glob shape the sensor applies to (e.g. `**/aidlc-docs/**` or `**/*.ts`); an entry with no `matches` never fires |
+| `matches` | a glob is required to fire | scaffold prompts for the glob shape the sensor applies to (an artifact-tree glob or a code glob like `**/*.ts`); an entry with no `matches` never fires |
 | `input_schema` | `{ output_path: string, stage_slug: string }` | matches the dispatcher-appended flags |
 | `output_schema` | `{ pass: boolean }` | minimum structure dispatcher relies on |
 | `timeout_seconds` | `30` | conservative default; tune for slower dispatchers |
@@ -339,8 +347,8 @@ is the one sanctioned stage-frontmatter edit: it grows the import list
 
 The four shipped manifests illustrate the variation these defaults
 later evolve into: `aidlc-required-sections.md` and
-`aidlc-upstream-coverage.md` use `timeout_seconds: 5` with
-`matches: "**/aidlc-docs/**"` (they fire on the artifact tree);
+`aidlc-upstream-coverage.md` use `timeout_seconds: 5` with their
+artifact-tree `matches` glob (the value shown in the `matches` table above);
 `aidlc-linter.md` uses `30` with `matches: "**/*.{ts,js}"`;
 `aidlc-type-check.md` uses `60` with `matches: "**/*.{ts,tsx}"`.
 
@@ -384,7 +392,7 @@ is an author error that the parser rejects.
 - **The user-facing learning loop** — how sensor proposals are surfaced
   and confirmed at the gate, and how a confirmed proposal scaffolds a
   new manifest. See [Rules and the Learning
-  Loop](../guide/08-rules-and-the-learning-loop.md) in the User Guide.
+  Loop](../guide/09-rules-and-the-learning-loop.md) in the User Guide.
 - **The compile boundary** — how `sensors_applicable` is resolved once
   at workflow start and read off the graph node at fire time. See
   [Plane Architecture](02-plane-architecture.md).

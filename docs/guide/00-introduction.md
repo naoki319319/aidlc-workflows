@@ -4,7 +4,7 @@
 
 ## What is AI-DLC?
 
-AI-DLC (AI-Driven Development Life Cycle) is a methodology for structuring AI-assisted software development into repeatable, traceable phases. It originated from the [AWS AI-DLC methodology](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/). This repository implements it natively from one harness-neutral core, so it runs inside the CLI harness you already use — today Claude Code, Kiro CLI, or Codex CLI. This guide is harness-neutral; where a detail differs by harness, it says so and points you to your harness's chapter (see [Running on other harnesses](harnesses/README.md)). Examples are shown in Claude Code unless noted.
+AI-DLC (AI-Driven Development Life Cycle) is a methodology for structuring AI-assisted software development into repeatable, traceable phases. It originated from the [AWS AI-DLC methodology](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/). This repository implements it natively from one harness-neutral core, so it runs inside the CLI harness you already use — today Claude Code, Kiro CLI, Kiro IDE, or Codex CLI. This guide is harness-neutral; where a detail differs by harness, it says so and points you to your harness's chapter (see [Running on other harnesses](harnesses/README.md)). Examples are shown in Claude Code unless noted.
 
 You invoke it with a single command:
 
@@ -26,7 +26,7 @@ At its core, AI-DLC runs a simple loop. A deterministic **engine** decides what 
 
 1. **Reads stage files** — 32 stage definitions across 5 phases, each specifying inputs, steps, outputs, and the lead agent
 2. **Loads agent personas** — Activates domain-expert perspectives (architect, developer, product manager, etc.) with specialized knowledge
-3. **Manages state and audit** — Tracks progress in `aidlc-state.md` and logs every decision to `audit.md` for traceability
+3. **Manages state and audit** — Tracks progress in `aidlc-state.md` and logs every decision to the intent's `audit/` shards for traceability
 4. **Delegates to subagents** — For stages requiring focused, autonomous work (reverse engineering, code generation), spawns a subprocess
 5. **Presents approval gates** — After each stage, you review and approve before the workflow advances
 
@@ -36,9 +36,9 @@ The engine owns the routing (which stage is next, which scope, when to stop); th
 
 This guide is for anyone **using** AI-DLC to build software:
 
-- **New users** — Start with [Getting Started](01-getting-started.md) and [Your First Workflow](02-your-first-workflow.md)
-- **Regular users** — Reference [CLI Commands](11-cli-commands.md), [Scopes, Depth, and Test Strategy](04-scopes-and-depth.md), and [Troubleshooting](15-troubleshooting.md)
-- **Team leads** — See [Knowledge](07-knowledge.md) and [Rules and the Learning Loop](08-rules-and-the-learning-loop.md) for customizing AI-DLC to your team's standards
+- **New users** — Start with [Getting Started](01-getting-started.md), [Your First Workflow](02-your-first-workflow.md), and [Spaces and Intents](03-spaces-and-intents.md)
+- **Regular users** — Reference [CLI Commands](12-cli-commands.md), [Scopes, Depth, and Test Strategy](05-scopes-and-depth.md), and [Troubleshooting](15-troubleshooting.md)
+- **Team leads** — See [Knowledge](08-knowledge.md) and [Rules and the Learning Loop](09-rules-and-the-learning-loop.md) for customizing AI-DLC to your team's standards
 
 To reshape *how* AI-DLC behaves — add a stage or an agent, define a scope, author rules and sensors, or add team knowledge (all configuration, no code) — see the [Harness Engineer Guide](../harness-engineering/00-overview.md). For changing the AI-DLC codebase itself, see the [Developer Reference](../reference/00-overview.md).
 
@@ -60,18 +60,19 @@ To reshape *how* AI-DLC behaves — add a stage or an agent, define a scope, aut
 |---------|------------------|
 | [Getting Started](01-getting-started.md) | Prerequisites, installation, first health check |
 | [Your First Workflow](02-your-first-workflow.md) | Annotated walkthrough of a complete run |
-| [Phases and Stages](03-phases-and-stages.md) | The 5 phases and 32 stages explained |
-| [Scopes, Depth, and Test Strategy](04-scopes-and-depth.md) | How to choose and override scope/depth/test strategy |
-| [Agents](05-agents.md) | The 11 agents: who does what and when |
+| [Spaces and Intents](03-spaces-and-intents.md) | The workspace layout: running many pieces of work across spaces and intents |
+| [Phases and Stages](04-phases-and-stages.md) | The 5 phases and 32 stages explained |
+| [Scopes, Depth, and Test Strategy](05-scopes-and-depth.md) | How to choose and override scope/depth/test strategy |
+| [Agents](06-agents.md) | The 11 agents: who does what and when |
 | [Agent deep dives](agents/README.md) | Per-agent reference pages: responsibilities, stages, knowledge |
-| [Interaction Modes](06-interaction-modes.md) | Guide Me / Edit File / Chat and approval gates |
-| [Knowledge](07-knowledge.md) | Adding company standards and conventions |
-| [Rules and the Learning Loop](08-rules-and-the-learning-loop.md) | Self-learning behavioral rules |
-| [State and Audit](09-state-and-audit.md) | How progress and decisions are tracked |
-| [Session Management](10-session-management.md) | Resume, redo, jump, recovery, and session reporting skills |
-| [CLI Commands](11-cli-commands.md) | Complete flag reference with examples |
-| [Customization](12-customization.md) | Settings, scope config, agent tuning |
-| [Artifacts Reference](13-artifacts-reference.md) | The `aidlc-docs/` directory explained |
+| [Interaction Modes](07-interaction-modes.md) | Guide Me / Edit File / Chat and approval gates |
+| [Knowledge](08-knowledge.md) | Adding company standards and conventions |
+| [Rules and the Learning Loop](09-rules-and-the-learning-loop.md) | Self-learning behavioral rules |
+| [State and Audit](10-state-and-audit.md) | How progress and decisions are tracked |
+| [Session Management](11-session-management.md) | Resume, redo, jump, recovery, and session reporting skills |
+| [CLI Commands](12-cli-commands.md) | Complete flag reference with examples |
+| [Customization](13-customization.md) | Settings, scope config, agent tuning |
+| [Artifacts Reference](14-artifacts-reference.md) | The per-intent record dir (`aidlc/spaces/<space>/intents/<YYMMDD>-<label>/`) explained |
 | [Troubleshooting](15-troubleshooting.md) | Symptom-based problem solving |
 | [Worked Examples](16-worked-examples.md) | Full bugfix and feature walkthroughs |
 | [Skills and Runner Commands](17-skills.md) | The `/aidlc-*` stage- and scope-runner commands and the author-your-own-runner path |

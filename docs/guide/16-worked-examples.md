@@ -44,7 +44,7 @@ You respond:
 
 The 3 Initialization stages run as a single deterministic tool call (`aidlc-utility init`) in well under a second, without user interaction:
 
-- **0.1 Workspace Scaffold** — Creates the `aidlc-docs/` directory tree
+- **0.1 Workspace Scaffold** — Auto-births the first intent and creates its record dir at `aidlc/spaces/<space>/intents/<YYMMDD>-<label>/` (written `<record>/` below) — `<YYMMDD>` is a compact UTC date prefix so records sort chronologically, and `<label>` is the conductor's short kebab-case essence of the request; the canonical id is a UUIDv7 carried in the `intents.json` registry row
 - **0.2 Workspace Detection** — Rule-based scan identifies Java 17, Spring Boot 3.2, Maven, brownfield project
 - **0.3 State Init** — Initializes `aidlc-state.md` with scope `bugfix`, depth `Minimal`, and the domain stages marked for execution
 
@@ -52,7 +52,7 @@ The 3 Initialization stages run as a single deterministic tool call (`aidlc-util
 
 ### Stage 2.1 — Reverse Engineering
 
-A two-step subagent scans the codebase: first a aidlc-developer-agent code scan, then an aidlc-architect-agent synthesis. Produces 9 artifacts in `aidlc-docs/inception/reverse-engineering/`:
+A two-step subagent scans the codebase: first a aidlc-developer-agent code scan, then an aidlc-architect-agent synthesis. Produces 9 artifacts in `<record>/inception/reverse-engineering/`:
 
 | Artifact | Contents |
 |----------|----------|
@@ -78,7 +78,7 @@ You select **Approve**.
 
 ### Stage 2.3 — Requirements Analysis
 
-The aidlc-product-agent persona loads and creates clarifying questions at `aidlc-docs/inception/requirements-analysis/requirements-analysis-questions.md`:
+The aidlc-product-agent persona loads and creates clarifying questions at `<record>/inception/requirements-analysis/requirements-analysis-questions.md`:
 
 ```markdown
 ## Q1: Bug Severity Classification
@@ -136,16 +136,16 @@ mvn test                 # 89 tests, 0 failures
 mvn verify               # Integration tests pass
 ```
 
-Results captured in `aidlc-docs/construction/build-and-test/test-results.md`: 89 tests passed, 0 failures, coverage increased from 62% to 64%.
+Results captured in `<record>/construction/build-and-test/test-results.md`: 89 tests passed, 0 failures, coverage increased from 62% to 64%.
 
 **Approval gate:** You select **Approve**. Workflow complete.
 
 ### End state
 
 ```
-aidlc-docs/
+aidlc/spaces/default/intents/260624-null-display-fix/
   aidlc-state.md              # All 7 stages marked [x]
-  audit.md                    # Full decision trail
+  audit/                      # Full decision trail (per-clone shards)
   inception/
     reverse-engineering/       # 9 RE artifacts
     requirements-analysis/     # requirements.md + questions
@@ -226,7 +226,7 @@ Two-step scan of the existing codebase. Identifies the existing service structur
 
 **Stage 2.2 — Practices Discovery** (aidlc-pipeline-deploy-agent)
 
-The aidlc-pipeline-deploy-agent leads this stage, with aidlc-quality-agent, aidlc-developer-agent, and aidlc-devsecops-agent supporting. Because this is a brownfield project, it consumes the Reverse Engineering artifacts to infer the team's existing practices — test framework and coverage conventions, CI/lint setup, branching and review norms. Produces `team-practices.md`, `discovered-rules.md`, and `evidence.md`. On affirmation, the discovered practices are promoted into `.claude/rules/aidlc-team.md` and `.claude/rules/aidlc-project.md` so downstream stages honour them.
+The aidlc-pipeline-deploy-agent leads this stage, with aidlc-quality-agent, aidlc-developer-agent, and aidlc-devsecops-agent supporting. Because this is a brownfield project, it consumes the Reverse Engineering artifacts to infer the team's existing practices — test framework and coverage conventions, CI/lint setup, branching and review norms. Produces `team-practices.md`, `discovered-rules.md`, and `evidence.md`. On affirmation, the discovered practices are promoted into `aidlc/spaces/<space>/memory/team.md` and `aidlc/spaces/<space>/memory/project.md` so downstream stages honour them.
 
 **Stage 2.3 — Requirements Analysis** (aidlc-product-agent)
 
@@ -347,7 +347,7 @@ Configures CI pipeline with lint, build, test, and security scan stages. Quality
 
 ## Next Steps
 
-- [Scopes, Depth, and Test Strategy](04-scopes-and-depth.md) — How scopes determine which stages run
-- [How a Stage Runs](03-phases-and-stages.md) — Stage protocol details
-- [Agents](05-agents.md) — Agent personas and responsibilities
-- [Artifacts Reference](13-artifacts-reference.md) — Complete artifact directory tree
+- [Scopes, Depth, and Test Strategy](05-scopes-and-depth.md) — How scopes determine which stages run
+- [How a Stage Runs](04-phases-and-stages.md) — Stage protocol details
+- [Agents](06-agents.md) — Agent personas and responsibilities
+- [Artifacts Reference](14-artifacts-reference.md) — Complete artifact directory tree

@@ -29,8 +29,7 @@
     },
     "fs_write": {
       "allowedPaths": [
-        "aidlc-docs/**",
-        ".kiro/steering/**",
+        "aidlc/spaces/**",
         ".kiro/sensors/**"
       ]
     },
@@ -43,7 +42,7 @@
   },
   "resources": [
     "skill://.kiro/skills/*/SKILL.md",
-    "file://.kiro/steering/*.md",
+    "file://aidlc/spaces/default/memory/**/*.md",
     "file://AGENTS.md"
   ],
   "model": "claude-opus-4.8"
