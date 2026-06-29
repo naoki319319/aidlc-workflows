@@ -107,7 +107,7 @@ The conductor delegates to a separate Claude instance via the Claude Code Task t
 | Stage | Claude Code Subagent Type | Agent | Reason |
 |-------|---------------------------|-------|--------|
 | 2.1 Reverse Engineering | `aidlc-developer-agent` then `aidlc-architect-agent` (two-step) | aidlc-developer-agent + aidlc-architect-agent | Deep code analysis produces large intermediate output |
-| 3.5 Code Generation | `aidlc-developer-agent` | aidlc-developer-agent | Code writing benefits from clean context focused on the unit specification |
+| 3.4 Code Generation | `aidlc-developer-agent` | aidlc-developer-agent | Code writing benefits from clean context focused on the unit specification |
 
 Workspace detection (0.2) used to be a subagent; it now runs deterministically inside `aidlc-utility init`.
 

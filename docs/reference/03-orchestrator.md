@@ -238,7 +238,7 @@ When a state file is detected, the orchestrator presents four options:
 | IDEATION (1.1-1.7) | `aidlc-docs/ideation/` artifacts completed so far + guardrails |
 | INCEPTION -- RE stages | `aidlc-docs/inception/reverse-engineering/` + ideation artifacts |
 | INCEPTION -- Requirements stages | RE artifacts (if performed) + requirements artifacts |
-| INCEPTION -- Design stages | Requirements + user stories + application design artifacts |
+| INCEPTION -- Design stages | Requirements + user stories + domain design artifacts |
 | INCEPTION -- Delivery Planning | All inception artifacts |
 | CONSTRUCTION -- Code Generation | Design artifacts for the current unit + story design + acceptance criteria + prior code |
 | CONSTRUCTION -- Build/Test | Code outputs for the current unit + test plans + build configuration |
@@ -257,15 +257,15 @@ Authoritative data lives in the `.claude/scopes/aidlc-<name>.md` files plus each
 
 | Scope | Stages Included | EXECUTE / Total | Depth | Test Strategy |
 |---|---|---|---|---|
-| `enterprise` | All: 0.1-0.3, 1.1-1.7, 2.1-2.8, 3.1-3.7, 4.1-4.7 | 32 / 32 | Comprehensive | Comprehensive |
-| `feature` | All: 0.1-0.3, 1.1-1.7, 2.1-2.8, 3.1-3.7, 4.1-4.7 | 32 / 32 | Standard | Standard |
-| `mvp` | 0.1-0.3, 1.1, 1.3 (light), 1.4, 2.1 (if brownfield), 2.2, 2.3, 2.4, 2.5 (if UI), 2.6, 2.7, 2.8, 3.1-3.7 | 22 / 32 | Standard | Standard |
-| `poc` | 0.1-0.3, 1.1 (minimal), 2.1 (if brownfield), 2.3 (minimal), 3.5, 3.6 | 8 / 32 | Minimal | Minimal |
-| `bugfix` | 0.1-0.3, 2.1 (always), 2.3 (minimal), 3.5, 3.6 | 7 / 32 | Minimal | Minimal |
-| `refactor` | 0.1-0.3, 2.1 (always), 2.3 (minimal), 3.1 (refactoring plan), 3.5, 3.6 | 8 / 32 | Minimal | Minimal |
-| `infra` | 0.1-0.3, 2.2, 2.3 (infra requirements), 3.2, 3.3, 3.4, 3.7, 4.1, 4.2, 4.3, 4.4 | 13 / 32 | Standard | Standard |
-| `security-patch` | 0.1-0.3, 2.1 (find vulnerability context), 3.2, 3.5, 3.6, 4.1, 4.3 | 9 / 32 | Minimal | Minimal |
-| `workshop` | 0.1-0.3, 2.1-2.8, 3.1-3.7, 4.1-4.7 (skips all ideation 1.1-1.7) | 25 / 32 | Standard | **Minimal** |
+| `enterprise` | All: 0.1-0.3, 1.1-1.7, 2.1-2.9, 3.1-3.6, 4.1-4.7 | 32 / 32 | Comprehensive | Comprehensive |
+| `feature` | All: 0.1-0.3, 1.1-1.7, 2.1-2.9, 3.1-3.6, 4.1-4.7 | 32 / 32 | Standard | Standard |
+| `mvp` | 0.1-0.3, 1.1, 1.3 (light), 1.4, 2.1 (if brownfield), 2.2, 2.3, 2.4, 2.5 (if UI), 2.6, 2.7, 2.8 (if multi-unit), 2.9, 3.1-3.6 | 22 / 32 | Standard | Standard |
+| `poc` | 0.1-0.3, 1.1 (minimal), 2.1 (if brownfield), 2.3 (minimal), 3.4, 3.5 | 8 / 32 | Minimal | Minimal |
+| `bugfix` | 0.1-0.3, 2.1 (always), 2.3 (minimal), 3.4, 3.5 | 7 / 32 | Minimal | Minimal |
+| `refactor` | 0.1-0.3, 2.1 (always), 2.3 (minimal), 3.1 (refactoring plan), 3.4, 3.5 | 8 / 32 | Minimal | Minimal |
+| `infra` | 0.1-0.3, 2.2, 2.3 (infra requirements), 3.2, 3.3, 3.6, 4.1, 4.2, 4.3, 4.4 | 12 / 32 | Standard | Standard |
+| `security-patch` | 0.1-0.3, 2.1 (find vulnerability context), 3.2, 3.4, 3.5, 4.1, 4.3 | 9 / 32 | Minimal | Minimal |
+| `workshop` | 0.1-0.3, 2.1-2.9, 3.1-3.6, 4.1-4.7 (skips all ideation 1.1-1.7) | 25 / 32 | Standard | **Minimal** |
 
 ### Detailed Scope Breakdown
 
@@ -275,8 +275,8 @@ Authoritative data lives in the `.claude/scopes/aidlc-<name>.md` files plus each
 - **poc** -- Minimal Ideation (only Intent Capture). Core Inception. Only Code Generation and Build and Test from Construction. No Operation.
 - **bugfix** -- No Ideation. Reverse Engineering always included (to find the bug) plus minimal Requirements Analysis. Code Generation and Build and Test only.
 - **refactor** -- No Ideation. Same Inception start as bugfix. Adds Functional Design (as refactoring plan).
-- **infra** -- No Ideation. Infra-focused Requirements Analysis. NFR stages + Infrastructure Design + CI Pipeline from Construction. Deployment and Observability from Operation.
-- **security-patch** -- No Ideation. Reverse Engineering to find vulnerability context. NFR Requirements, Code Generation, Build and Test. Deployment Pipeline and Deployment Execution from Operation.
+- **infra** -- No Ideation. Infra-focused Requirements Analysis. NFR Design + Infrastructure Design + CI Pipeline from Construction. Deployment and Observability from Operation.
+- **security-patch** -- No Ideation. Reverse Engineering to find vulnerability context. NFR Design, Code Generation, Build and Test. Deployment Pipeline and Deployment Execution from Operation.
 - **workshop** -- No Ideation (project is pre-decided by the facilitator). All Inception, Construction, and Operation stages execute. Default depth: Standard (full artifact detail for learning). Default test strategy: Minimal (Nyquist testing to keep workshop pace fast). Designed for multi-day AI-DLC workshops where participants work through the full lifecycle as a mob.
 
 ### Depth Levels
@@ -359,7 +359,7 @@ Subagent stages delegate work to a separate Claude Code task via the Claude Code
 | Stage | Claude Code Subagent Type | Agent | Reason |
 |-------|---------------------------|-------|--------|
 | 2.1 Reverse Engineering | `aidlc-developer-agent` then `aidlc-architect-agent` (two-step) | aidlc-developer-agent + aidlc-architect-agent | Deep code analysis produces large intermediate output |
-| 3.5 Code Generation | `aidlc-developer-agent` | aidlc-developer-agent | Code writing benefits from clean context focused on unit specification |
+| 3.4 Code Generation | `aidlc-developer-agent` | aidlc-developer-agent | Code writing benefits from clean context focused on unit specification |
 
 Workspace detection (0.2) used to be a subagent. It is now a deterministic rule-based scanner inside `aidlc-utility init` — rules are documented in `aidlc-common/stages/initialization/workspace-detection.md`.
 
@@ -392,18 +392,18 @@ Reverse Engineering has an **always-rerun policy**: it is always re-executed for
 
 ### Construction Execution <a id="construction-execution"></a>
 
-Construction (stages 3.1–3.7) deviates from the standard stage-by-stage inline execution model. Instead, the orchestrator runs it **Bolt by Bolt**, driven by `aidlc-docs/inception/delivery-planning/bolt-plan.md` (Bolt sequence + walking-skeleton marker) and `aidlc-docs/inception/units-generation/unit-of-work-dependency.md` (DAG).
+Construction (stages 3.1–3.6) deviates from the standard stage-by-stage inline execution model. Instead, the orchestrator runs it **Bolt by Bolt**, driven by `aidlc-docs/inception/delivery-planning/bolt-plan.md` (Bolt sequence + walking-skeleton marker) and `aidlc-docs/inception/units-generation/unit-of-work-dependency.md` (DAG).
 
 Per-Bolt structure:
 
-1. Collect questions for stages 3.1–3.4 across the Bolt's Units in QUESTION-ONLY mode. Single answers gate.
-2. Generate design artifacts for stages 3.1–3.4 in ARTIFACT-ONLY mode.
-3. Dispatch stage 3.5 Code Generation per Unit via the Task tool (`subagent_type="aidlc-developer-agent"`). The per-Unit approval gate inside `code-generation.md` is **suppressed** by the orchestrator.
+1. Collect questions for stages 3.1–3.3 across the Bolt's Units in QUESTION-ONLY mode. Single answers gate.
+2. Generate design artifacts for stages 3.1–3.3 in ARTIFACT-ONLY mode.
+3. Dispatch stage 3.4 Code Generation per Unit via the Task tool (`subagent_type="aidlc-developer-agent"`). The per-Unit approval gate inside `code-generation.md` is **suppressed** by the orchestrator.
 4. Present a single Bolt-level (or batch-level) approval gate.
 
 The first Bolt in `bolt-plan.md` is the **walking skeleton** — its gate is always presented regardless of autonomy mode. Immediately after the walking-skeleton gate approves, the orchestrator fires the **ladder prompt** exactly once per workflow, records `Construction Autonomy Mode: autonomous|gated` in `aidlc-state.md`, and emits `AUTONOMY_MODE_SET`. Remaining Bolts honour that mode.
 
-Bolts eligible to run in parallel (dependency prerequisites satisfied, no mutual dependency) form a **batch**. The orchestrator executes questions/design per-Bolt sequentially within the batch, then dispatches stage 3.5 Code Generation in parallel by issuing **N `Task` calls in a single assistant message**. The framework spawns N subagent sessions concurrently; results arrive in the orchestrator's next turn. A single batch-level gate covers all Bolts in the batch. Audit log ties parallel Bolts together via the `Batch` field on `BOLT_STARTED`/`BOLT_COMPLETED`.
+Bolts eligible to run in parallel (dependency prerequisites satisfied, no mutual dependency) form a **batch**. The orchestrator executes questions/design per-Bolt sequentially within the batch, then dispatches stage 3.4 Code Generation in parallel by issuing **N `Task` calls in a single assistant message**. The framework spawns N subagent sessions concurrently; results arrive in the orchestrator's next turn. A single batch-level gate covers all Bolts in the batch. Audit log ties parallel Bolts together via the `Batch` field on `BOLT_STARTED`/`BOLT_COMPLETED`.
 
 Failure handling is **halt-and-ask** and runs regardless of autonomy mode:
 
@@ -437,10 +437,10 @@ sequenceDiagram
     O->>O: Emit BOLT_COMPLETED for B and C (shared Batch=N)
     Note over O,U: No gate — autonomous mode. A failure would force halt-and-ask regardless.
 
-    O->>O: All Bolts done → run 3.6 Build and Test, then 3.7 CI Pipeline
+    O->>O: All Bolts done → run 3.5 Build and Test, then 3.6 CI Pipeline
 ```
 
-<!-- Text fallback: The orchestrator reads bolt-plan.md and the dependency DAG. It runs Bolt A as the walking skeleton, the user approves the gate, and the ladder prompt fires once. User picks "Continue autonomously", orchestrator writes Construction Autonomy Mode and emits AUTONOMY_MODE_SET. For Bolts B and C (eligible in parallel), the orchestrator issues both Task calls in a single message; the framework runs them concurrently; the orchestrator receives both results in the next turn and emits BOLT_COMPLETED for each with a shared Batch field. No gate because autonomy mode is autonomous — a failure would still halt. Once all Bolts are done, 3.6 and 3.7 run once at the end. -->
+<!-- Text fallback: The orchestrator reads bolt-plan.md and the dependency DAG. It runs Bolt A as the walking skeleton, the user approves the gate, and the ladder prompt fires once. User picks "Continue autonomously", orchestrator writes Construction Autonomy Mode and emits AUTONOMY_MODE_SET. For Bolts B and C (eligible in parallel), the orchestrator issues both Task calls in a single message; the framework runs them concurrently; the orchestrator receives both results in the next turn and emits BOLT_COMPLETED for each with a shared Batch field. No gate because autonomy mode is autonomous — a failure would still halt. Once all Bolts are done, 3.5 and 3.6 run once at the end. -->
 
 State and audit safety under parallel dispatch: `aidlc-audit.ts` uses mkdir-based locking so concurrent appends are safe. `aidlc-state.ts advance` is not locked, but the orchestrator serialises state writes naturally — it only writes after Task results return, not during. No state-race risk.
 
@@ -554,11 +554,11 @@ The following intentional differences from the upstream `aidlc-workflows/` refer
 
 | # | Deviation | Reference | Implementation | Rationale |
 |---|-----------|-----------|----------------|-----------|
-| 1 | NFR artifact granularity | 2 files each | 5 NFR Requirements + 5 NFR Design files | Finer granularity improves traceability |
+| 1 | NFR stage shape | 2 files each across separate requirements + design stages | Single merged `nfr-design` stage producing one `nfr-specification.md` | Self-sufficient NFR pass, no stale requirements/design split |
 | 2 | Plan/question file co-location | Flat centralized pattern | Co-located with stage artifacts | Improves discoverability |
-| 3 | Infrastructure Design expansion | 2-3 files | 5 files (+monitoring-design.md, +cicd-pipeline.md) | Operational visibility |
+| 3 | Infrastructure Design consolidation | 2-3 files | Single `infrastructure-specification.md` (deployment, services, monitoring, CI/CD, shared infra as sections) | Coherent infrastructure view, `cmp-NNN`-traceable |
 | 4 | Inline questions | All questions in files | `AskUserQuestion` for 1-3 simple options | Claude Code's structured UI |
-| 5 | Architecture Decision Records | Not present | `decisions.md` in Application Design | Architectural traceability |
+| 5 | Architecture Decision Records | Not present | ADRs recorded inline in Domain Design's `components.md` | Architectural traceability |
 | 6 | Welcome message | Longer Unicode-based | Shorter, ASCII-safe; rendered via `companyAnnouncements` in `settings.json` (not a stage) | Fixes reference's own ascii-diagram-standards violation |
 | 7 | RE always-rerun policy | Uses cached artifacts | Always re-executes for brownfield | Ensures current codebase analysis |
 | 8 | Session resume | File-based `[Answer]:` tag | Uses `AskUserQuestion` | More natural in Claude Code |
@@ -648,16 +648,16 @@ Complete reference of all 32 stages with execution metadata. The welcome message
 | 2.3 | Requirements Analysis | Inception | ALWAYS | aidlc-product-agent | -- | inline |
 | 2.4 | User Stories | Inception | CONDITIONAL | aidlc-product-agent | aidlc-design-agent | inline |
 | 2.5 | Refined Mockups | Inception | CONDITIONAL | aidlc-design-agent | aidlc-product-agent | inline |
-| 2.6 | Application Design | Inception | CONDITIONAL | aidlc-architect-agent | aidlc-aws-platform-agent, aidlc-design-agent | inline |
+| 2.6 | Domain Design | Inception | CONDITIONAL | aidlc-architect-agent | aidlc-aws-platform-agent, aidlc-design-agent | inline |
 | 2.7 | Units Generation | Inception | ALWAYS | aidlc-architect-agent | aidlc-delivery-agent | inline |
-| 2.8 | Delivery Planning | Inception | ALWAYS | aidlc-delivery-agent | aidlc-architect-agent | inline |
+| 2.8 | Contract Design | Inception | CONDITIONAL | aidlc-architect-agent | aidlc-product-agent | inline |
+| 2.9 | Delivery Planning | Inception | ALWAYS | aidlc-delivery-agent | aidlc-architect-agent | inline |
 | 3.1 | Functional Design | Construction | CONDITIONAL | aidlc-architect-agent | aidlc-developer-agent | inline |
-| 3.2 | NFR Requirements | Construction | CONDITIONAL | aidlc-architect-agent | aidlc-devsecops-agent, aidlc-compliance-agent, aidlc-quality-agent | inline |
-| 3.3 | NFR Design | Construction | CONDITIONAL | aidlc-architect-agent | aidlc-aws-platform-agent | inline |
-| 3.4 | Infrastructure Design | Construction | CONDITIONAL | aidlc-aws-platform-agent | aidlc-devsecops-agent, aidlc-compliance-agent | inline |
-| 3.5 | Code Generation | Construction | ALWAYS | aidlc-developer-agent | -- | subagent (aidlc-developer-agent) |
-| 3.6 | Build and Test | Construction | ALWAYS | aidlc-quality-agent | aidlc-devsecops-agent | inline |
-| 3.7 | CI Pipeline | Construction | CONDITIONAL | aidlc-pipeline-deploy-agent | -- | inline |
+| 3.2 | NFR Design | Construction | CONDITIONAL | aidlc-architect-agent | aidlc-aws-platform-agent, aidlc-devsecops-agent, aidlc-compliance-agent, aidlc-quality-agent | inline |
+| 3.3 | Infrastructure Design | Construction | CONDITIONAL | aidlc-aws-platform-agent | aidlc-devsecops-agent, aidlc-compliance-agent | inline |
+| 3.4 | Code Generation | Construction | ALWAYS | aidlc-developer-agent | -- | subagent (aidlc-developer-agent) |
+| 3.5 | Build and Test | Construction | ALWAYS | aidlc-quality-agent | aidlc-devsecops-agent | inline |
+| 3.6 | CI Pipeline | Construction | CONDITIONAL | aidlc-pipeline-deploy-agent | -- | inline |
 | 4.1 | Deployment Pipeline | Operation | CONDITIONAL | aidlc-pipeline-deploy-agent | -- | inline |
 | 4.2 | Environment Provisioning | Operation | CONDITIONAL | aidlc-aws-platform-agent | aidlc-devsecops-agent, aidlc-compliance-agent | inline |
 | 4.3 | Deployment Execution | Operation | CONDITIONAL | aidlc-pipeline-deploy-agent | aidlc-developer-agent | inline |

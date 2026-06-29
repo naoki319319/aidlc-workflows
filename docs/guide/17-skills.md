@@ -17,7 +17,7 @@ Every command this implementation ships is a skill under `.claude/skills/`. They
 
 - **`/aidlc`** — the full orchestrator. No flags baked in; it detects your scope (or you describe what you want), then drives every stage in your scope to completion. This is the one you reach for most.
 - **Scope-runners** — `/aidlc-bugfix`, `/aidlc-feature`, `/aidlc-mvp`, `/aidlc-security-patch`. Same full workflow, with a scope fixed and scope detection skipped.
-- **Stage-runners** — `/aidlc-application-design`, `/aidlc-code-generation`, and 27 more. Run one stage in isolation, never touching your main workflow.
+- **Stage-runners** — `/aidlc-domain-design`, `/aidlc-code-generation`, and 27 more. Run one stage in isolation, never touching your main workflow.
 - **`/aidlc-init`** — scaffold a workspace in one step (wraps `/aidlc --init`).
 - **Session skills** — `/aidlc-session-cost`, `/aidlc-replay`, `/aidlc-outcomes-pack`. Read-only views over a workflow; covered in [Session Management](10-session-management.md).
 
@@ -66,7 +66,7 @@ Once a workflow has started, its scope is fixed in `aidlc-state.md`, so re-runni
 A stage-runner runs a **single stage in isolation**. It never advances your main workflow's `Current Stage`; the tool itself enforces that isolation.
 
 ```
-/aidlc-application-design
+/aidlc-domain-design
 /aidlc-code-generation
 /aidlc-requirements-analysis
 /aidlc-reverse-engineering
@@ -103,7 +103,7 @@ The three bootstrap **initialization** stages ship no stage-runner — scaffoldi
 |---|---|---|---|
 | Orchestrator | `/aidlc` | Full workflow, scope detected | — |
 | Scope-runner | `/aidlc-bugfix`, `/aidlc-feature`, `/aidlc-mvp`, `/aidlc-security-patch` | Full workflow, scope fixed, no detection | `/aidlc --scope <name>` |
-| Stage-runner | `/aidlc-application-design`, `/aidlc-code-generation`, … (29 total) | One stage in isolation, never advances your workflow | `/aidlc --stage <slug> --single` |
+| Stage-runner | `/aidlc-domain-design`, `/aidlc-code-generation`, … (29 total) | One stage in isolation, never advances your workflow | `/aidlc --stage <slug> --single` |
 | Init wrapper | `/aidlc-init` | Scaffold a workspace | `/aidlc --init` |
 | Session views | `/aidlc-session-cost`, `/aidlc-replay`, `/aidlc-outcomes-pack` | Read-only workflow reports | see [Session Management](10-session-management.md) |
 

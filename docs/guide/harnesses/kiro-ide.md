@@ -50,7 +50,7 @@ In the chat panel, run `/aidlc --doctor` to verify the setup, then
 Identical to the Claude Code harness: `/aidlc <description>` starts a
 workflow, `/aidlc --status` reports position, `/aidlc --init`, `--doctor`,
 `--stage`, `--phase`, `--depth`, `--test-strategy`, `--test-run` all work, and
-the per-stage (`/aidlc-application-design`) and per-scope (`/aidlc-feature`)
+the per-stage (`/aidlc-domain-design`) and per-scope (`/aidlc-feature`)
 runner skills are installed.
 
 ## How hooks work on Kiro IDE

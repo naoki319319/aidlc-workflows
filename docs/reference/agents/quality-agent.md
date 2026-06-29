@@ -25,7 +25,7 @@
 | Stage | Name | What This Agent Contributes |
 |-------|------|-----------------------------|
 | practices-discovery | Practices Discovery | Scans testing posture (TDD vs after-the-fact), coverage floor, and CI block-or-warn behaviour to surface team testing practices |
-| nfr-requirements | NFR Requirements | Defines testable quality attribute scenarios and measurable NFR targets |
+| nfr-design | NFR Design | Defines testable quality attribute scenarios and measurable NFR targets |
 
 ---
 

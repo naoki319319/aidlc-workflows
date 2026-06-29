@@ -162,11 +162,11 @@ The walking skeleton shipped. How should the remaining Bolts run?
   ▸ Gate every Bolt
 ```
 
-Your answer is recorded in `aidlc-state.md` as `Construction Autonomy Mode` and governs every remaining Bolt in this workflow (session resume respects it). Stage 3.5 (Code Generation) runs as a subagent for each Unit inside the Bolt; the per-Unit gate in that stage file is suppressed — a single Bolt-level (or batch-level) gate replaces it.
+Your answer is recorded in `aidlc-state.md` as `Construction Autonomy Mode` and governs every remaining Bolt in this workflow (session resume respects it). Stage 3.4 (Code Generation) runs as a subagent for each Unit inside the Bolt; the per-Unit gate in that stage file is suppressed — a single Bolt-level (or batch-level) gate replaces it.
 
 Bolts whose dependencies are satisfied and that don't depend on each other run in a **parallel batch** — the orchestrator issues multiple `Task` calls in a single turn. A failure always halts and asks for retry / skip / abort, even when you've chosen autonomous mode.
 
-After all Bolts complete, stages 3.6 (Build and Test) and 3.7 (CI Pipeline) run once across the whole solution.
+After all Bolts complete, stages 3.5 (Build and Test) and 3.6 (CI Pipeline) run once across the whole solution.
 
 ---
 
@@ -209,7 +209,7 @@ sequenceDiagram
 
 ### Subagent Delegation
 
-Two stages (2.1 Reverse Engineering, 3.5 Code Generation) run as subagents. The conductor delegates to a background subprocess — you do not interact during execution. Workspace detection (0.2) now runs deterministically inside `aidlc-utility init` rather than as a subagent.
+Two stages (2.1 Reverse Engineering, 3.4 Code Generation) run as subagents. The conductor delegates to a background subprocess — you do not interact during execution. Workspace detection (0.2) now runs deterministically inside `aidlc-utility init` rather than as a subagent.
 
 ```mermaid
 sequenceDiagram

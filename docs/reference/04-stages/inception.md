@@ -1,4 +1,4 @@
-# Inception Phase -- Stage Reference (2.1--2.8)
+# Inception Phase -- Stage Reference (2.1--2.9)
 
 ## Phase Overview
 
@@ -6,11 +6,11 @@ The Inception phase is the third of five phases in the AI-DLC methodology. It
 transforms the Ideation phase's business intent and scope into concrete
 technical artifacts: reverse-engineered codebase understanding (for brownfield
 projects), team practices and operational rules, formal requirements, user
-stories, refined mockups, application architecture, unit-of-work decomposition,
-and a delivery plan that governs the Construction phase.
+stories, refined mockups, a domain component model, unit-of-work decomposition,
+inter-unit contracts, and a delivery plan that governs the Construction phase.
 
-Inception runs stages 2.1 through 2.8 (8 stages) and concludes with a phase
-boundary verification check at Stage 2.8 (Delivery Planning) before handing
+Inception runs stages 2.1 through 2.9 (9 stages) and concludes with a phase
+boundary verification check at Stage 2.9 (Delivery Planning) before handing
 off to Construction. The phase contains a mix of inline and subagent
 execution modes, including a two-step subagent delegation at Stage 2.1
 (aidlc-developer-agent for the code scan, then aidlc-architect-agent for the synthesis)
@@ -20,7 +20,7 @@ and a parallel multi-agent dispatch at Stage 2.2 (Practices Discovery).
 
 - The phase begins with a technical discovery stage (2.1 Reverse Engineering)
   that uses subagent delegation, followed by a methodology-discovery stage
-  (2.2 Practices Discovery) that uses parallel multi-agent dispatch, then six
+  (2.2 Practices Discovery) that uses parallel multi-agent dispatch, then
   inline analysis and design stages.
 - Stage 2.1 uses a two-step subagent pattern: aidlc-developer-agent scans the code,
   then aidlc-architect-agent synthesizes the scan into 9 structured artifacts. It
@@ -33,26 +33,29 @@ and a parallel multi-agent dispatch at Stage 2.2 (Practices Discovery).
   promotion that makes this stage structurally distinct from every other stage.
 - Stage 2.7 produces `unit-of-work.md`, which defines the units that drive
   the phased construction flow in the Construction phase.
-- Stage 2.8 produces the execution plan that determines which Construction
+- Stage 2.8 (Contract Design) is CONDITIONAL — it auto-skips for single-unit
+  projects and otherwise produces the inter-unit API contracts so teams can
+  build against agreed boundaries.
+- Stage 2.9 produces the execution plan that determines which Construction
   stages run for each unit and in what order. It reads `.claude/rules/aidlc-team.md`
   for the team's Way of Working (branching), Walking Skeleton stance, and
   Deployment sections.
-- The phase boundary verification at Stage 2.8 validates Requirements to
+- The phase boundary verification at Stage 2.9 validates Requirements to
   Stories to Architecture alignment.
 
 **Scope-driven stage inclusion:**
 
 | Scope            | Stages Included                                                |
 |------------------|----------------------------------------------------------------|
-| enterprise       | All 2.1--2.8                                                   |
-| feature          | All 2.1--2.8                                                   |
-| mvp              | 2.1 (if brownfield), 2.2, 2.3, 2.4, 2.5 (if UI), 2.6, 2.7, 2.8 |
+| enterprise       | All 2.1--2.9                                                   |
+| feature          | All 2.1--2.9                                                   |
+| mvp              | 2.1 (if brownfield), 2.2, 2.3, 2.4, 2.5 (if UI), 2.6, 2.7, 2.8 (if multi-unit), 2.9 |
 | poc              | 2.1 (if brownfield), 2.3 (minimal)                             |
 | bugfix           | 2.1 (always -- find the bug), 2.3 (minimal -- bug description) |
 | refactor         | 2.1 (always -- understand current code), 2.3 (minimal)         |
 | infra            | 2.2, 2.3 (infra requirements)                                  |
 | security-patch   | 2.1 (find vulnerability context)                                |
-| workshop         | 2.1--2.8                                                       |
+| workshop         | 2.1--2.9                                                       |
 
 ---
 
@@ -65,9 +68,10 @@ and a parallel multi-agent dispatch at Stage 2.2 (Practices Discovery).
 | 2.3   | Requirements Analysis  | ALWAYS      | aidlc-product-agent          | --                                                   | inline                           |
 | 2.4   | User Stories           | CONDITIONAL | aidlc-product-agent          | aidlc-design-agent                                         | inline                           |
 | 2.5   | Refined Mockups        | CONDITIONAL | aidlc-design-agent           | aidlc-product-agent                                        | inline                           |
-| 2.6   | Application Design     | CONDITIONAL | aidlc-architect-agent        | aidlc-aws-platform-agent, aidlc-design-agent               | inline                           |
+| 2.6   | Domain Design          | CONDITIONAL | aidlc-architect-agent        | aidlc-aws-platform-agent, aidlc-design-agent               | inline                           |
 | 2.7   | Units Generation       | ALWAYS      | aidlc-architect-agent        | aidlc-delivery-agent                                       | inline                           |
-| 2.8   | Delivery Planning      | ALWAYS      | aidlc-delivery-agent         | aidlc-architect-agent                                      | inline                           |
+| 2.8   | Contract Design        | CONDITIONAL | aidlc-architect-agent        | aidlc-product-agent                                        | inline                           |
+| 2.9   | Delivery Planning      | ALWAYS      | aidlc-delivery-agent         | aidlc-architect-agent                                      | inline                           |
 
 ---
 
@@ -180,7 +184,7 @@ Standard 2-option gate: **Approve** (continue to Requirements Analysis) /
   essential.
 - For security-patch scope, this stage executes to find vulnerability context.
 - The 9 artifacts produced here are consumed by Requirements Analysis (2.3),
-  User Stories (2.4), Application Design (2.6), and Units Generation (2.7).
+  User Stories (2.4), Domain Design (2.6), and Units Generation (2.7).
 - The `architecture.md` artifact must include Interaction Diagrams showing how
   business transactions are implemented across components, using sequence or
   flow diagrams.
@@ -429,8 +433,8 @@ Conditional gate format:
 - For bugfix scope, this stage captures the bug description at minimal depth.
 - For infra scope, this stage captures infrastructure requirements.
 - The requirements document produced here is consumed by User Stories (2.4),
-  Refined Mockups (2.5), Application Design (2.6), Units Generation (2.7),
-  and Delivery Planning (2.8).
+  Refined Mockups (2.5), Domain Design (2.6), Units Generation (2.7),
+  and Delivery Planning (2.9).
 
 ---
 
@@ -574,11 +578,11 @@ Changes**.
 - The two-part structure (plan then generate) allows the user to influence the
   story decomposition approach before stories are written.
 - User story priorities (MoSCoW) inform but do not determine the MVP boundary.
-  The formal MVP boundary is set during Delivery Planning (Stage 2.8).
+  The formal MVP boundary is set during Delivery Planning (Stage 2.9).
 - The `user-stories-assessment.md` artifact is always produced, even when the
   stage is skipped, to document the rationale.
-- Stories produced here are consumed by Refined Mockups (2.5), Application
-  Design (2.6), Units Generation (2.7), and Delivery Planning (2.8).
+- Stories produced here are consumed by Refined Mockups (2.5), Domain
+  Design (2.6), Units Generation (2.7), and Delivery Planning (2.9).
 - The aidlc-design-agent support is a deliberate addition for UX-informed
   development, noted in SKILL.md's Deliberate Deviations section.
 
@@ -679,14 +683,14 @@ Standard 2-option gate: **Approve** / **Request Changes**.
 - Skip condition: non-UI, API-only, or infrastructure-only initiatives. Also
   typically skipped if Stage 1.6 (Rough Mockups) was skipped.
 - For mvp scope, this stage executes only if the project has UI.
-- The mockups produced here feed into Application Design (2.6) and ultimately
-  into Construction's Code Generation (3.5) for UI components.
+- The mockups produced here feed into Domain Design (2.6) and ultimately
+  into Construction's Code Generation (3.4) for UI components.
 - The accessibility checklist provides testable criteria that feed into Build
-  and Test (3.6).
+  and Test (3.5).
 
 ---
 
-## Stage 2.6: Application Design
+## Stage 2.6: Domain Design
 
 ### Metadata
 
@@ -694,7 +698,7 @@ Standard 2-option gate: **Approve** / **Request Changes**.
 |------------------|------------------------------------------------------------------------|
 | Phase            | Inception                                                              |
 | Stage #          | 2.6                                                                    |
-| Condition        | CONDITIONAL -- execute when new components or services are needed; skip for modifications to existing components only |
+| Condition        | CONDITIONAL -- execute when new components are needed or the logical building blocks of the system need to be identified; skip for modifications to existing components only |
 | Lead Agent       | aidlc-architect-agent                                                        |
 | Support Agents   | aidlc-aws-platform-agent, aidlc-design-agent                                |
 | Mode             | inline                                                                 |
@@ -702,18 +706,24 @@ Standard 2-option gate: **Approve** / **Request Changes**.
 
 ### Purpose
 
-Application Design defines the system architecture for the project: component
-boundaries, interfaces, service definitions, communication patterns, dependency
-relationships, and architecture decision records (ADRs). It translates
-requirements and user stories into a concrete technical design that guides
-Construction.
+Domain Design identifies and details the logical building blocks
+(**components**) of the system. A component is a bounded piece of software with
+its own business logic, entities, and lifecycle — code you write, not
+infrastructure you deploy. Databases, caches, queues, and third-party services
+are dependencies OF components, not components themselves. This stage does NOT
+decide deployment topology (monolith, microservices, etc.) — that is
+Units Generation's job. It produces the building blocks so Units Generation can
+then decide how to group them.
 
-The aidlc-aws-platform-agent provides supporting perspective on AWS service mapping.
-The aidlc-design-agent support is also noted in SKILL.md's Deliberate Deviations
-section for UX-informed architecture.
+It produces a **single `components` artifact** (`components.md`) — the canonical
+component model and single source of truth that every downstream design stage
+references by stable ID. Every component gets a stable `cmp-NNN` ID assigned
+here and never renumbered downstream.
 
-The `decisions.md` artifact (ADRs) is a deliberate addition not present in the
-upstream reference, documented in SKILL.md's "Deliberate Deviations" section.
+The aidlc-aws-platform-agent provides supporting perspective on dependency
+identification (what external services components rely on). The aidlc-design-agent
+support is also noted in SKILL.md's Deliberate Deviations section for
+UX-informed component structure.
 
 ### Inputs
 
@@ -728,7 +738,8 @@ upstream reference, documented in SKILL.md's "Deliberate Deviations" section.
    `agents/aidlc-architect-agent.md` and knowledge from
    `.claude/knowledge/aidlc-architect-agent/`. Load aidlc-aws-platform-agent persona
    from `agents/aidlc-aws-platform-agent.md` and knowledge from
-   `.claude/knowledge/aidlc-aws-platform-agent/` for AWS service mapping.
+   `.claude/knowledge/aidlc-aws-platform-agent/` for dependency identification.
+   Load aidlc-design-agent for UI-facing component structure (if user-facing).
 
 2. **Load Prior Context** -- Read requirements, user stories (if produced),
    and RE artifacts (if brownfield, especially architecture.md,
@@ -736,51 +747,51 @@ upstream reference, documented in SKILL.md's "Deliberate Deviations" section.
    `aidlc-docs/aidlc-state.md`.
 
 3. **Create Design Plan with Questions** -- Create
-   `aidlc-docs/inception/application-design/application-design-questions.md`
+   `aidlc-docs/inception/domain-design/domain-design-questions.md`
    with context-appropriate questions using `[Answer]:` tag format covering:
-   - Component boundary decisions
-   - Architectural style preferences (if not already decided)
-   - Service communication patterns (sync vs. async, REST vs. gRPC vs.
-     events)
-   - Data ownership and storage strategy
-   - Integration approach with existing components (brownfield)
+   - Component boundary decisions (what is one component vs. two)
+   - Which capabilities are components (code you write) vs. dependencies
+     (databases, caches, queues, third-party services)
+   - Data ownership: which component owns which entities
+   - Component interaction style (sync call, async event) at the logical level
    - UI component structure (if user-facing, informed by UX designer
      perspective)
+
+   NOTE: Do NOT decide deployment topology (monolith vs. microservices) here —
+   that is Units Generation's decision.
 
 4. **Collect and Analyze Answers** -- Collect answers following
    stage-protocol.md section 3 question flow. MANDATORY ambiguity analysis:
    scan for vague language, contradictions, missing details. Create follow-up
    questions if ANY ambiguity found. Resolve all ambiguities before proceeding.
 
-5. **Generate Design Artifacts** -- Create 5 design artifacts (see Outputs
-   below).
+5. **Generate the Components Blueprint** -- Create `components.md` (see Outputs
+   below), the canonical component model carrying a machine-readable fenced
+   `yaml` block plus human-readable prose and a diagram.
 
-6. **Update State** -- Mark Application Design as `[x]` completed in
+6. **Update State** -- Mark Domain Design as `[x]` completed in
    `aidlc-docs/aidlc-state.md`. Update current and next stage.
 
 7. **Present Completion & Request Approval** -- Display completion message
-   with :building_construction: emoji, summary of design artifacts, key
-   architectural decisions highlighted, and review path. 3-option approval
-   gate: Approve / Request Changes / Add Units Generation (if it was skipped
-   in execution plan).
+   with :building_construction: emoji, summary of the components identified
+   (count + names + stable IDs), key boundary decisions highlighted, and
+   review path. 3-option approval gate: Approve / Request Changes / Add Units
+   Generation (if it was skipped in execution plan).
 
 ### Outputs
 
-All 5 artifacts written to `aidlc-docs/inception/application-design/`:
+The single `components` artifact is written to
+`aidlc-docs/inception/domain-design/`:
 
-| File                              | Contents                                                  |
-|-----------------------------------|-----------------------------------------------------------|
-| `components.md`                   | Component names, purposes, responsibilities, interfaces, boundaries, ownership |
-| `component-methods.md`            | Method signatures for each component's public interface, input/output types, error handling approach (detailed business rules belong in Functional Design) |
-| `services.md`                     | Service definitions, responsibilities, orchestration patterns (choreography vs. orchestration), communication contracts, lifecycle and scaling characteristics |
-| `component-dependency.md`         | Dependency matrix, communication patterns (sync/async/event-driven), data flow between components, shared resource identification |
-| `decisions.md`                    | Architecture Decision Records (ADRs) with Context, Decision, Consequences, Alternatives Considered; trade-off analysis; reversibility assessment |
+| File              | Contents                                                  |
+|-------------------|-----------------------------------------------------------|
+| `components.md`   | The canonical component model. Carries a fenced `yaml` block where every component has a stable `cmp-NNN` id, a name, a behaviour, owned entities, and dependencies/dependent-components lists; plus a human-readable summary table, a mermaid component diagram, and per-component prose (responsibilities, public interface surface, boundaries, ownership). External dependencies (databases, caches, queues, third-party services) appear as descriptive strings, not components. |
 
 Additionally, a questions file is created as input:
 
-| File                                      | Contents                                        |
-|-------------------------------------------|-------------------------------------------------|
-| `application-design-questions.md`         | Design questions with `[Answer]:` tags          |
+| File                              | Contents                                        |
+|-----------------------------------|-------------------------------------------------|
+| `domain-design-questions.md`      | Design questions with `[Answer]:` tags          |
 
 ### Approval Gate
 
@@ -794,13 +805,16 @@ Special 3-option gate:
 ### Notes
 
 - Skip condition: changes are modifications to existing components only, with
-  no new components or services needed.
-- The `decisions.md` artifact (ADRs) is a deliberate deviation from the
-  upstream reference. Each ADR includes Context, Decision, Consequences, and
-  Alternatives Considered, plus trade-off analysis and reversibility assessment.
-- The design artifacts produced here are the primary input for Units Generation
-  (2.7) and directly inform Construction stages (Functional Design 3.1, Code
-  Generation 3.5).
+  no new components needed.
+- Stable `cmp-NNN` IDs are the durable identity of each component:
+  functional-design, nfr-design, infrastructure-design, and contract-design all
+  reference them. IDs are assigned here and NEVER renumbered downstream.
+- The `components` blueprint is validated by the `blueprint-shape` sensor:
+  every component carries a unique `cmp-NNN`, a name, a behaviour, and every
+  `cmp-NNN` referenced internally resolves to a declared component.
+- The components blueprint produced here is the primary input for Units
+  Generation (2.7), Contract Design (2.8), and directly informs Construction
+  stages (Functional Design 3.1, Code Generation 3.4).
 - For brownfield projects, the design must account for integration with
   existing components documented in the RE artifacts.
 
@@ -814,7 +828,7 @@ Special 3-option gate:
 |------------------|------------------------------------------------------------------------|
 | Phase            | Inception                                                              |
 | Stage #          | 2.7                                                                    |
-| Condition        | ALWAYS -- produces the dependency DAG that Stage 2.8 consumes for Bolt sequencing; travels with 2.8 in the compiled scope grid |
+| Condition        | ALWAYS -- produces the dependency DAG that Stage 2.9 consumes for Bolt sequencing; travels with 2.9 in the compiled scope grid |
 | Lead Agent       | aidlc-architect-agent                                                        |
 | Support Agents   | aidlc-delivery-agent                                                         |
 | Mode             | inline                                                                 |
@@ -822,18 +836,18 @@ Special 3-option gate:
 
 ### Purpose
 
-Units Generation decomposes the application design into discrete Units of
+Units Generation decomposes the domain component model into discrete Units of
 Work that drive the phased construction flow in the Construction phase. Each
 Unit represents an independently implementable piece of the system (a
 service, module, or deployable component). The stage produces the
 `unit-of-work.md` file that Construction uses to determine what to build,
-the dependency DAG (`unit-of-work-dependency.md`) that Stage 2.8 consumes
+the dependency DAG (`unit-of-work-dependency.md`) that Stage 2.9 consumes
 for Bolt sequencing, and the story map that ensures every user story is
 assigned to a Unit.
 
-**Stage 2.7 produces the dependency DAG (topology). Stage 2.8 chooses the
+**Stage 2.7 produces the dependency DAG (topology). Stage 2.9 chooses the
 economic path through it (the Bolt sequence).** 2.7 MUST NOT recommend an
-implementation order or identify a critical path — those are 2.8's
+implementation order or identify a critical path — those are 2.9's
 economic-sequencing decisions.
 
 This is a critical bridge stage between Inception's design work and
@@ -847,9 +861,8 @@ actual unit artifacts.
 
 ### Inputs
 
-- All design artifacts from Stage 2.6
-  (`aidlc-docs/inception/application-design/`: components.md,
-  component-methods.md, services.md, component-dependency.md, decisions.md)
+- The `components` blueprint from Stage 2.6
+  (`aidlc-docs/inception/domain-design/components.md`)
 - `aidlc-docs/inception/requirements-analysis/requirements.md`
 - `aidlc-docs/inception/user-stories/stories.md` (if produced)
 
@@ -864,8 +877,8 @@ actual unit artifacts.
    `.claude/knowledge/aidlc-delivery-agent/` for feasibility validation and
    prioritization.
 
-2. **Load Prior Context** -- Read all artifacts from
-   `aidlc-docs/inception/application-design/` (all 5 files). Read
+2. **Load Prior Context** -- Read the `components` blueprint from
+   `aidlc-docs/inception/domain-design/components.md`. Read
    requirements. Read user stories (if produced). Scope context comes from
    `aidlc-docs/aidlc-state.md`.
 
@@ -882,7 +895,7 @@ actual unit artifacts.
 
    NOTE: Do NOT ask about implementation order priorities (value-first,
    risk-first, walking-skeleton-first). Those are economic-sequencing
-   decisions that belong to Stage 2.8 Delivery Planning.
+   decisions that belong to Stage 2.9 Delivery Planning.
 
 4. **Collect and Analyze Answers** -- Collect answers following
    stage-protocol.md section 3 question flow. MANDATORY ambiguity analysis:
@@ -905,7 +918,7 @@ actual unit artifacts.
 8. **Present Completion & Request Approval** -- Display completion message
    with :wrench: emoji, summary of units defined, dependencies mapped, stories
    assigned, and review path. Standard 2-option approval gate: Approve
-   (continue to Construction phase) / Request Changes.
+   (continue to next stage) / Request Changes.
 
 ### Outputs
 
@@ -914,7 +927,7 @@ All 3 artifacts written to `aidlc-docs/inception/units-generation/`:
 | File                            | Contents                                                    |
 |---------------------------------|-------------------------------------------------------------|
 | `unit-of-work.md`               | Unit definitions (name, description, boundaries), responsibilities, deployment model per Unit (standalone/shared/embedded), relative complexity estimate (S/M/L/XL), implementation notes and constraints |
-| `unit-of-work-dependency.md`    | Dependency DAG between Units (directed edges, cycle-free), integration points (APIs/shared data/events), parallel development opportunities (sets of Units with no dependency between them). Topology only — economic path-choice (recommended order, critical path) is 2.8's job |
+| `unit-of-work-dependency.md`    | Dependency DAG between Units (directed edges, cycle-free), integration points (APIs/shared data/events), parallel development opportunities (sets of Units with no dependency between them). Topology only — economic path-choice (recommended order, critical path) is 2.9's job |
 | `unit-of-work-story-map.md`     | Each user story mapped to implementing Unit(s), cross-cutting stories spanning multiple Units, story implementation order within each Unit, coverage verification (every story assigned, every Unit has stories) |
 
 Additionally, a questions file is created as input:
@@ -933,9 +946,9 @@ Standard 2-option gate: **Approve** (continue to Construction phase) /
 - **This stage's output drives Construction.** The `unit-of-work.md` file
   defines the Units that the Construction phase iterates over in its per-Unit
   loop. Each Unit goes through the applicable Construction stages (Functional
-  Design, NFR Requirements, NFR Design, Infrastructure Design, Code
-  Generation) before the next Unit begins.
-- **2.7 is ALWAYS when in scope.** In the compiled scope grid, 2.7 and 2.8 travel
+  Design, NFR Design, Infrastructure Design, Code Generation) before the next
+  Unit begins.
+- **2.7 is ALWAYS when in scope.** In the compiled scope grid, 2.7 and 2.9 travel
   together (both EXECUTE or both SKIP per scope). There is no single-unit
   skip condition at this stage — single-Unit flows still produce a trivial
   DAG.
@@ -943,8 +956,9 @@ Standard 2-option gate: **Approve** (continue to Construction phase) /
   decomposition strategy before Units are defined. Step 5 has an intermediate
   approval gate (Approve Plan / Revise Plan) separate from the final
   completion gate.
-- The dependency DAG feeds 2.8's economic Bolt sequencing. 2.8 chooses a
-  path through the DAG weighted by risk, value, and learning.
+- The dependency DAG feeds Contract Design (2.8, when multi-unit) and 2.9's
+  economic Bolt sequencing. 2.9 chooses a path through the DAG weighted by
+  risk, value, and learning.
 - The story map provides traceability: every user story must be assigned to at
   least one Unit, and every Unit must have at least one story.
 - The aidlc-delivery-agent provides feasibility validation and prioritization input,
@@ -952,7 +966,7 @@ Standard 2-option gate: **Approve** (continue to Construction phase) /
 
 ---
 
-## Stage 2.8: Delivery Planning
+## Stage 2.8: Contract Design
 
 ### Metadata
 
@@ -960,6 +974,113 @@ Standard 2-option gate: **Approve** (continue to Construction phase) /
 |------------------|------------------------------------------------------------------------|
 | Phase            | Inception                                                              |
 | Stage #          | 2.8                                                                    |
+| Condition        | CONDITIONAL -- execute when Units Generation produced more than one unit (inter-unit boundaries exist that need contracts); auto-skips for single-unit projects |
+| Lead Agent       | aidlc-architect-agent                                                        |
+| Support Agents   | aidlc-product-agent (business-meaning validation of boundary data)           |
+| Mode             | inline                                                                 |
+| Completion Emoji | :handshake:                                                            |
+
+### Purpose
+
+Contract Design defines the contracts between units so teams can build in
+parallel with confidence. A **contract** is the formal agreement between a
+provider unit and a consumer unit — what data crosses the boundary, in what
+shape, via what protocol, and what happens when things go wrong. This must be
+~90% right from the start: think of two teams in two companies, where the
+contract is the B2B agreement. Contracts cover the boundaries BETWEEN units;
+the internals of each unit are detailed later, per-unit, in Functional Design.
+
+This stage is **conditional**: single-unit projects have no inter-unit edges,
+so the orchestrator auto-skips it. When multiple units exist, it produces a
+`contracts` artifact set (plus a `contract-summary`) describing each inter-unit
+API contract, referencing the `cmp-NNN` component IDs on each side of the
+boundary.
+
+### Inputs
+
+- `aidlc-docs/inception/units-generation/unit-of-work.md` and
+  `aidlc-docs/inception/units-generation/unit-of-work-dependency.md` (the
+  inter-unit edges)
+- The `components` blueprint from
+  `aidlc-docs/inception/domain-design/components.md` (entity shapes inform
+  payload design)
+- `aidlc-docs/inception/requirements-analysis/requirements.md` (NFRs shape SLAs
+  and error budgets)
+
+### Steps
+
+1. **Load Agent Personas** -- Load aidlc-architect-agent persona and knowledge.
+   Load aidlc-product-agent persona and knowledge for business-meaning
+   validation of the data crossing each boundary.
+
+2. **Load Prior Context** -- Read the unit-of-work and unit-of-work-dependency
+   artifacts (who talks to whom), the `components` blueprint (the `cmp-NNN`
+   model), and requirements (NFRs that shape SLAs).
+
+3. **Identify the Boundaries Needing Contracts** -- From
+   `unit-of-work-dependency.md`, enumerate every inter-unit edge. Each such edge
+   is a boundary that needs a contract. Single-unit projects have no inter-unit
+   edges — the stage is skipped by the orchestrator in that case.
+
+4. **Create Plan with Questions** -- Create
+   `aidlc-docs/inception/contract-design/contract-design-questions.md` using
+   `[Answer]:` tags. Focus on integration mechanism per boundary (sync REST/HTTP,
+   event-driven/async, shared schema), payload shapes and the owning `cmp-NNN`,
+   error/failure behaviour, retries, idempotency, timeouts, versioning strategy,
+   and SLAs/error budgets. Resolve ambiguities before proceeding.
+
+5. **Generate Contract Artifacts** -- Create a `contracts/` directory (one spec
+   per inter-unit boundary) plus `contract-summary.md` (see Outputs below).
+
+6. **Update State** -- Mark Contract Design as `[x]` completed in
+   `aidlc-docs/aidlc-state.md`. Update current and next stage.
+
+7. **Present Completion & Request Approval** -- Display completion message with
+   :handshake: emoji, summary of the contracts defined (count + boundaries
+   covered), key integration-mechanism decisions highlighted, and review path.
+   Standard 2-option approval gate: Approve / Request Changes.
+
+### Outputs
+
+Artifacts written to `aidlc-docs/inception/contract-design/`:
+
+| File                       | Contents                                                  |
+|----------------------------|-----------------------------------------------------------|
+| `contracts/` (directory)   | One spec per inter-unit boundary, in the format appropriate to its mechanism (OpenAPI for sync REST/HTTP, AsyncAPI for event-driven, shared schema for shared-data). Each names the provider/consumer units, the `cmp-NNN` on each side, payload shapes, protocol, error behaviour, and versioning stance |
+| `contract-summary.md`      | Human-readable overview: a table of every inter-unit boundary, its mechanism, provider/consumer units, referenced `cmp-NNN`, and contract ownership, plus a diagram of the unit boundaries and their contracts |
+
+Additionally, a questions file is created as input:
+
+| File                              | Contents                                        |
+|-----------------------------------|-------------------------------------------------|
+| `contract-design-questions.md`    | Contract questions with `[Answer]:` tags        |
+
+### Approval Gate
+
+Standard 2-option gate: **Approve** / **Request Changes**.
+
+### Notes
+
+- **Conditional execution.** The orchestrator auto-skips this stage for
+  single-unit projects (no inter-unit boundary to contract). It runs only when
+  Units Generation produced more than one unit.
+- Contracts reference the `cmp-NNN` component IDs from the Domain Design
+  blueprint on each side of every boundary, keeping the inter-unit interface
+  traceable back to the component model.
+- The contracts produced here are consumed per-unit by Functional Design (3.1,
+  to align the unit's api-specification) and optionally by Infrastructure
+  Design (3.3).
+
+---
+
+## Stage 2.9: Delivery Planning
+
+### Metadata
+
+| Field            | Value                                                                  |
+|------------------|------------------------------------------------------------------------|
+| Phase            | Inception                                                              |
+| Stage #          | 2.9                                                                    |
 | Condition        | ALWAYS -- capstone Inception stage                                     |
 | Lead Agent       | aidlc-delivery-agent                                                         |
 | Support Agents   | aidlc-architect-agent (validates build order against architecture dependencies) |
@@ -971,13 +1092,13 @@ Standard 2-option gate: **Approve** (continue to Construction phase) /
 Delivery Planning is the capstone of the Inception phase. It plans the Bolt
 sequence — the order in which Units of Work produced by Stage 2.7 are
 executed through Construction. Where Stage 2.7 is analytical (the dependency
-DAG), Stage 2.8 is economic: it chooses a path through the DAG weighted by
+DAG), Stage 2.9 is economic: it chooses a path through the DAG weighted by
 risk, value, team capacity, and learning.
 
 Per the canonical Glossary in `stage-protocol.md`, a **Bolt** is
 "a deployable unit of work within Construction — one pass through stages
-3.1–3.5." A Bolt is one Construction pass over one or more Units of
-Work, distinct from an MMF or a sprint. (Stages 3.6 build-and-test and 3.7
+3.1–3.4." A Bolt is one Construction pass over one or more Units of
+Work, distinct from an MMF or a sprint. (Stages 3.5 build-and-test and 3.6
 ci-pipeline run once at end across all Bolts, not per-Bolt.)
 
 Economic value cannot be derived from the DAG — AI agents can topologically
@@ -999,9 +1120,11 @@ All Inception phase artifacts:
 
 - Requirements from Stage 2.3 (`aidlc-docs/inception/requirements-analysis/`)
 - User stories from Stage 2.4 (`aidlc-docs/inception/user-stories/`)
-- Application design from Stage 2.6
-  (`aidlc-docs/inception/application-design/`)
+- Domain component model from Stage 2.6
+  (`aidlc-docs/inception/domain-design/`)
 - Units from Stage 2.7 (`aidlc-docs/inception/units-generation/`)
+- Contracts from Stage 2.8 (`aidlc-docs/inception/contract-design/`), if
+  multi-unit
 - Team formation from Stage 1.5
   (`aidlc-docs/ideation/team-formation/`), if exists
 
@@ -1013,7 +1136,8 @@ All Inception phase artifacts:
    order validation.
 
 2. **Load Prior Context** -- Read all Inception phase artifacts: requirements,
-   user stories, application design, units, and team formation (if exists).
+   user stories, domain component model, units, contracts (if multi-unit), and
+   team formation (if exists).
 
 3. **Generate Clarifying Questions** -- Create
    `aidlc-docs/inception/delivery-planning/delivery-planning-questions.md`
@@ -1058,7 +1182,7 @@ All Inception phase artifacts:
    - Architecture covers all stories
    - Write results to `aidlc-docs/verification/phase-check-inception.md`
 
-7. **Update State** -- Mark 2.8 Delivery Planning as `[x]` completed in
+7. **Update State** -- Mark 2.9 Delivery Planning as `[x]` completed in
    `aidlc-docs/aidlc-state.md`. Update Lifecycle Phase to CONSTRUCTION.
 
 8. **Present Completion & Request Approval** -- Display completion message
@@ -1092,16 +1216,16 @@ Changes**. The user can override stage inclusion/exclusion at this gate.
 ### Notes
 
 - **Phase boundary stage.** This is the second of three phase boundary stages
-  (after 1.7 and before 3.7). The verification check validates
+  (after 1.7 and before 3.6). The verification check validates
   Requirements-to-Stories-to-Architecture alignment.
 - **Economic vs topological sequencing.** Stage 2.7 produces the dependency
-  DAG (topological order falls out as descriptive geometry). Stage 2.8
+  DAG (topological order falls out as descriptive geometry). Stage 2.9
   chooses a path through that DAG weighted by human value judgment.
   Bolt order may deviate from topological order when risk-first or
   walking-skeleton-first arguments justify it — the deviation is captured
   in `risk-and-sequencing-rationale.md`.
 - **Bolt ≠ sprint ≠ MMF.** Per the canonical Glossary, a Bolt is one pass
-  through Construction stages 3.1–3.5 (3.6 Build and Test and 3.7 CI Pipeline
+  through Construction stages 3.1–3.4 (3.5 Build and Test and 3.6 CI Pipeline
   run once after all Bolts). Sequencing heuristics (walking skeleton, WSJF)
   apply within Bolts; they do not redefine what a Bolt is.
 - **Deliberate deviation from upstream.** The upstream reference calls this
@@ -1111,8 +1235,7 @@ Changes**. The user can override stage inclusion/exclusion at this gate.
 - The bolt plan defines a confidence-building sequence. Each Bolt has
   defined Units of Work, a Definition of Done, and a confidence hypothesis.
 - The aidlc-architect-agent validates that the proposed Bolt sequence respects
-  dependencies defined in the component-dependency and
-  unit-of-work-dependency artifacts.
+  dependencies defined in the unit-of-work-dependency artifact.
 - Team allocation draws from the Team Formation artifacts (Stage 1.5) if
   they exist; when 1.5 is SKIP (mvp, workshop), all Bolts are executed by
   aidlc-developer-agent (AI).
@@ -1138,23 +1261,26 @@ Construction and Operation:
 4. **Refined Mockups** (2.5) -- Mid-to-high fidelity mockups, interaction
    specifications, design system mapping, accessibility checklist. (When
    applicable.)
-5. **Application Design** (2.6) -- Component definitions, method signatures,
-   service definitions, dependency matrix, architecture decision records.
-   (When applicable.)
+5. **Domain Component Model** (2.6) -- A single `components.md` blueprint:
+   the canonical component model with stable `cmp-NNN` IDs, owned entities,
+   and dependency edges. (When applicable.)
 6. **Units of Work** (2.7) -- Unit definitions with boundaries and complexity
-   estimates, unit dependency matrix with build order, story-to-unit mapping.
+   estimates, unit dependency DAG, story-to-unit mapping.
    (When applicable.) This is the artifact that drives the Construction
    phased construction flow.
-7. **Delivery Plan** (2.8) -- Bolt plan, build order, dependency matrix, team
+7. **Inter-Unit Contracts** (2.8) -- One contract spec per inter-unit boundary
+   plus a contract summary, referencing the `cmp-NNN` on each side. (Multi-unit
+   projects only; auto-skipped for single-unit.)
+8. **Delivery Plan** (2.9) -- Bolt plan, build order, dependency matrix, team
    allocation. This is the execution plan that governs Construction and
    Operation.
-8. **Phase Boundary Verification** (2.8) -- Inception-to-Construction
+9. **Phase Boundary Verification** (2.9) -- Inception-to-Construction
    traceability check written to
    `aidlc-docs/verification/phase-check-inception.md`.
 
 ### Handoff to Construction
 
-Upon approval at Stage 2.8, the framework transitions to the Construction
+Upon approval at Stage 2.9, the framework transitions to the Construction
 phase. Construction creates stage-level tasks based on the execution plan from
 Delivery Planning and executes a phased construction flow:
 
@@ -1164,14 +1290,13 @@ more Units (per `unit-of-work.md` and `unit-of-work-dependency.md`):
 
 For each Bolt:
 1. **3.1 Functional Design** (conditional per execution plan)
-2. **3.2 NFR Requirements** (conditional per execution plan)
-3. **3.3 NFR Design** (conditional per execution plan)
-4. **3.4 Infrastructure Design** (conditional per execution plan)
-5. **3.5 Code Generation** (always, per unit within the Bolt)
+2. **3.2 NFR Design** (conditional per execution plan)
+3. **3.3 Infrastructure Design** (conditional per execution plan)
+4. **3.4 Code Generation** (always, per unit within the Bolt)
 
 After the final Bolt completes:
-6. **3.6 Build and Test** (always)
-7. **3.7 CI Pipeline** (conditional)
+5. **3.5 Build and Test** (always)
+6. **3.6 CI Pipeline** (conditional)
 
 Bolts can run in parallel batches as the dependency graph allows; the
 walking-skeleton Bolt always runs first as a single-Bolt batch to verify
@@ -1191,7 +1316,7 @@ narrative.
 - **Ideation Phase**: `docs/reference/04-stages/ideation.md` -- Previous phase
   documentation
 - **Construction Phase**: Construction stages execute per the delivery plan
-  produced by Stage 2.8
+  produced by Stage 2.9
 - **Deliberate Deviations**: SKILL.md documents intentional differences from
   the upstream reference, including the always-rerun RE policy, aidlc-design-agent
   support additions, ADR artifacts, and the Delivery Planning expansion

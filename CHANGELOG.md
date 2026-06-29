@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.3] - 2026-06-29
+
+Reworks the design stages per RFC 0001 so the inception and construction design surface centres on a single stable-ID component blueprint that downstream stages reference rather than re-derive. Inception's `application-design` becomes `domain-design` (one `components` artifact with stable `cmp-NNN` IDs), a new `contract-design` stage captures inter-unit contracts, `functional-design` now emits `entities`/`rules`/`api-specification`/`functional-spec`, `nfr-requirements` is folded into a self-sufficient `nfr-design` producing one `nfr-specification`, and `infrastructure-design` consolidates its five artifacts into one `infrastructure-specification`. A new advisory `blueprint-shape` sensor validates the fenced-YAML blueprint blocks and that every `cmp-NNN` referenced downstream resolves to a declared component. Net stage count is unchanged at 32. This is a breaking change to artifact and stage names — re-copy your `dist/<harness>/` and migrate any hand-authored stages or workflow docs that reference the old names.
+
+* **Stage rename (breaking):** `application-design` → `domain-design`. Any `requires_stage`/path reference to `application-design` must be updated; there is no alias.
+* **New stage:** `contract-design` (inception, after `units-generation`) — produces `contracts` for inter-unit boundaries. CONDITIONAL: auto-skips single-unit workflows.
+* **Stage merge (breaking):** `nfr-requirements` is removed; `nfr-design` is now self-sufficient and produces a single `nfr-specification`. Construction renumbers (`nfr-design` 3.2, `infrastructure-design` 3.3, `code-generation` 3.4, `build-and-test` 3.5, `ci-pipeline` 3.6).
+* **Artifact consolidation (breaking):** `functional-design` now produces `entities`, `rules`, `api-specification`, `functional-spec` (was `business-logic-model`/`business-rules`/`domain-entities`/`frontend-components`). `infrastructure-design` now produces one `infrastructure-specification` (was `deployment-architecture`, `infrastructure-services`, `monitoring-design`, `cicd-pipeline`, `shared-infrastructure`). `domain-design` produces one `components` artifact (was `components`/`component-methods`/`services`/`component-dependency`/`decisions`).
+* **New sensor:** `blueprint-shape` (advisory) — checks fenced-YAML blueprint shape (stable `cmp-NNN`/`ent-NNN`/`rule-NNN` ids) and that downstream `cmp-NNN` references resolve to the upstream `components` blueprint. Wired onto `domain-design`, `functional-design`, `nfr-design`, and `infrastructure-design`.
+* **Consumer updates:** every stage that consumed a removed/renamed artifact now consumes the consolidated name; `/aidlc --doctor` "Graph references" and `aidlc-graph compile --check` catch any miss.
+
 ## [2.0.2] - 2026-06-18
 
 Validates the stage `reviewer:` / `reviewer_max_iterations` frontmatter fields, which were carried through schema → graph → directive by the 2.0.0 reviewer mechanism but never checked. A malformed cap, a non-positive-integer cap, a cap declared with no reviewer, or a `reviewer:` naming an agent with no `.claude/agents/*.md` file all passed validation before and surfaced only as a runtime failure or a silently-disabled review loop; they now fail validation/compile loudly and deterministically. This is a behaviour change at authoring time only — the reviewer's runtime behaviour is unchanged. Re-copy your `dist/<harness>/` to pick up the regenerated tools. Refs #389.

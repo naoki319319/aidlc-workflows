@@ -10,7 +10,7 @@ The aidlc-quality-agent leads two stages — one in Construction and one in Oper
 
 | Stage | Phase | Description |
 |-------|-------|-------------|
-| 3.6 Build and Test | Construction | Runs build, generates and executes test suites, validates quality gates |
+| 3.5 Build and Test | Construction | Runs build, generates and executes test suites, validates quality gates |
 | 4.6 Performance Validation | Operation | Load testing, NFR validation matrix, capacity planning |
 
 ## Stages Supported
@@ -18,7 +18,7 @@ The aidlc-quality-agent leads two stages — one in Construction and one in Oper
 | Stage | Phase | Contribution |
 |-------|-------|-------------|
 | 2.2 Practices Discovery | Inception | Surfaces testing posture and quality practices from existing code |
-| 3.2 NFR Requirements | Construction | Defines testable quality attribute scenarios |
+| 3.2 NFR Design | Construction | Defines testable quality attribute scenarios |
 
 ## What to Expect
 

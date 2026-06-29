@@ -83,14 +83,14 @@ category.
 | Agent | Lead Stages | Support Stages | Model | Tools Expected to Exercise |
 |-------|-------------|----------------|-------|------------------------------|
 | [aidlc-product-agent](product-agent.md) | intent-capture, market-research, scope-definition, requirements-analysis, user-stories | rough-mockups, approval-handoff, refined-mockups | opus | WebSearch |
-| [aidlc-design-agent](design-agent.md) | rough-mockups, refined-mockups | user-stories, application-design | opus | WebSearch |
+| [aidlc-design-agent](design-agent.md) | rough-mockups, refined-mockups | user-stories, domain-design | opus | WebSearch |
 | [aidlc-delivery-agent](delivery-agent.md) | team-formation, approval-handoff, delivery-planning | scope-definition, units-generation | sonnet | -- |
-| [aidlc-architect-agent](architect-agent.md) | feasibility, application-design, units-generation, functional-design, nfr-requirements, nfr-design | intent-capture, reverse-engineering (synthesis), delivery-planning | opus | -- |
-| [aidlc-aws-platform-agent](aws-platform-agent.md) | infrastructure-design, environment-provisioning | feasibility, application-design, nfr-design, feedback-optimization | opus | Bash |
-| [aidlc-compliance-agent](compliance-agent.md) | (none) | feasibility, nfr-requirements, infrastructure-design, environment-provisioning | opus | WebSearch |
-| [aidlc-devsecops-agent](devsecops-agent.md) | (none) | practices-discovery, nfr-requirements, infrastructure-design, build-and-test, environment-provisioning | opus | Bash |
+| [aidlc-architect-agent](architect-agent.md) | feasibility, domain-design, units-generation, contract-design, functional-design, nfr-design | intent-capture, reverse-engineering (synthesis), delivery-planning | opus | -- |
+| [aidlc-aws-platform-agent](aws-platform-agent.md) | infrastructure-design, environment-provisioning | feasibility, domain-design, nfr-design, feedback-optimization | opus | Bash |
+| [aidlc-compliance-agent](compliance-agent.md) | (none) | feasibility, nfr-design, infrastructure-design, environment-provisioning | opus | WebSearch |
+| [aidlc-devsecops-agent](devsecops-agent.md) | (none) | practices-discovery, nfr-design, infrastructure-design, build-and-test, environment-provisioning | opus | Bash |
 | [aidlc-developer-agent](developer-agent.md) | reverse-engineering (code scan), code-generation | practices-discovery, functional-design, deployment-execution | opus | Bash |
-| [aidlc-quality-agent](quality-agent.md) | build-and-test, performance-validation | practices-discovery, nfr-requirements | opus | Bash |
+| [aidlc-quality-agent](quality-agent.md) | build-and-test, performance-validation | practices-discovery, nfr-design | opus | Bash |
 | [aidlc-pipeline-deploy-agent](pipeline-deploy-agent.md) | practices-discovery, ci-pipeline, deployment-pipeline, deployment-execution | (none) | sonnet | Bash |
 | [aidlc-operations-agent](operations-agent.md) | observability-setup, incident-response, feedback-optimization | (none) | sonnet | Bash |
 
@@ -128,15 +128,15 @@ serve as lead (L) or support (S) in that phase.
 
 | Agent | Initialization (Phase 0) | Ideation (Phase 1) | Inception (Phase 2) | Construction (Phase 3) | Operation (Phase 4) |
 |-------|--------------------------|---------------------|---------------------|------------------------|---------------------|
-| aidlc-product-agent | -- | L (intent-capture, market-research, scope-definition), S (rough-mockups, approval-handoff) | L (requirements-analysis, user-stories), S (refined-mockups) | -- | -- |
-| aidlc-design-agent | -- | L (rough-mockups) | L (refined-mockups), S (user-stories, application-design) | -- | -- |
+| aidlc-product-agent | -- | L (intent-capture, market-research, scope-definition), S (rough-mockups, approval-handoff) | L (requirements-analysis, user-stories), S (refined-mockups, contract-design) | -- | -- |
+| aidlc-design-agent | -- | L (rough-mockups) | L (refined-mockups), S (user-stories, domain-design) | -- | -- |
 | aidlc-delivery-agent | -- | L (team-formation, approval-handoff), S (scope-definition) | L (delivery-planning), S (units-generation) | -- | -- |
-| aidlc-architect-agent | -- | L (feasibility), S (intent-capture) | L (application-design, units-generation), S (reverse-engineering, delivery-planning) | L (functional-design, nfr-requirements, nfr-design) | -- |
-| aidlc-aws-platform-agent | -- | S (feasibility) | S (application-design) | L (infrastructure-design), S (nfr-design) | L (environment-provisioning), S (feedback-optimization) |
-| aidlc-compliance-agent | -- | S (feasibility) | -- | S (nfr-requirements, infrastructure-design) | S (environment-provisioning) |
-| aidlc-devsecops-agent | -- | -- | S (practices-discovery) | S (nfr-requirements, infrastructure-design, build-and-test) | S (environment-provisioning) |
+| aidlc-architect-agent | -- | L (feasibility), S (intent-capture) | L (domain-design, units-generation, contract-design), S (reverse-engineering, delivery-planning) | L (functional-design, nfr-design) | -- |
+| aidlc-aws-platform-agent | -- | S (feasibility) | S (domain-design) | L (infrastructure-design), S (nfr-design) | L (environment-provisioning), S (feedback-optimization) |
+| aidlc-compliance-agent | -- | S (feasibility) | -- | S (nfr-design, infrastructure-design) | S (environment-provisioning) |
+| aidlc-devsecops-agent | -- | -- | S (practices-discovery) | S (nfr-design, infrastructure-design, build-and-test) | S (environment-provisioning) |
 | aidlc-developer-agent | -- | -- | L (reverse-engineering), S (practices-discovery) | L (code-generation), S (functional-design) | S (deployment-execution) |
-| aidlc-quality-agent | -- | -- | S (practices-discovery) | L (build-and-test), S (nfr-requirements) | L (performance-validation) |
+| aidlc-quality-agent | -- | -- | S (practices-discovery) | L (build-and-test), S (nfr-design) | L (performance-validation) |
 | aidlc-pipeline-deploy-agent | -- | -- | L (practices-discovery) | L (ci-pipeline) | L (deployment-pipeline, deployment-execution) |
 | aidlc-operations-agent | -- | -- | -- | -- | L (observability-setup, incident-response, feedback-optimization) |
 

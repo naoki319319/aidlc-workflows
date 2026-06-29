@@ -17,7 +17,7 @@ Keeping both in one file means you see the graph edges and the execution steps s
 
 This split is the key to knowing what you're editing. Change a frontmatter field and you've changed the *graph* (a dependency edge, the agent that leads, the execution mode). Change the body and you've changed the *work* (what the agent actually does). The two are independent.
 
-A real stage is authored at `core/aidlc-common/stages/<phase>/<slug>.md` — for example `stages/inception/application-design.md`. Open one alongside this chapter; the shape will be familiar by the end.
+A real stage is authored at `core/aidlc-common/stages/<phase>/<slug>.md` — for example `stages/inception/domain-design.md`. Open one alongside this chapter; the shape will be familiar by the end.
 
 ---
 
@@ -39,7 +39,7 @@ A few notes on the calls that bite hardest:
 - **`consumes[].required` is scoped to the active plan, not global.** `required: true` means "if the producing stage runs in *this* workflow, this consume must be satisfied" — not "the producer always runs." Scopes deliberately skip upstream stages, and a flat global requirement would make those scopes structurally invalid. The stage body handles the absent-input case gracefully (prose like "if produced").
 - **`consumes[].conditional_on` captures the brownfield/greenfield split.** A consume marked `conditional_on: brownfield` is only required when the workflow is brownfield. For an unconditional consume, omit the field entirely — there is no `always` value.
 - **`mode` is a dispatch mechanism.** `inline` runs short stages in the conductor's own context; `subagent` delegates long stages (like Construction code generation) to a fresh context so they don't blow out the main context window. Multiple agents touching a stage is expressed with `support_agents`, not `mode` — the conductor invokes the lead first, then each supporter in turn.
-- **`for_each` names the iteration artifact.** The five Construction stages that run once per Unit declare `for_each: unit-of-work`; the other stages omit the field and run once. Aggregation is inferred from the graph, not declared.
+- **`for_each` names the iteration artifact.** The four Construction stages that run once per Unit declare `for_each: unit-of-work`; the other stages omit the field and run once. Aggregation is inferred from the graph, not declared.
 - **`lead_agent` and `support_agents` validate against `core/agents/*.md`.** There's no hardcoded list — adding an agent means dropping its file in that directory (see [Adding an Agent](03-adding-an-agent.md)).
 
 This is the orientation, not the contract. For the complete field table with types, constraints, and the reserved-namespace fields AI-DLC will add later, read [Field reference — when to use](../reference/15-stage-definition.md#field-reference--when-to-use) in the Developer Reference.
@@ -48,10 +48,10 @@ This is the orientation, not the contract. For the complete field table with typ
 
 ## The three-compartment body
 
-Below the frontmatter, the body has three compartments, always in this order: `## Steps`, `## Sensors`, `## Learn`. Looking at `application-design.md` shows all three populated.
+Below the frontmatter, the body has three compartments, always in this order: `## Steps`, `## Sensors`, `## Learn`. Looking at `domain-design.md` shows all three populated.
 
 - **`## Steps`** is the imperative prose the agent follows — load personas, read prior context, create the questions file, generate the artifacts, present the approval gate. This is where the stage's domain work lives, and it's the compartment you'll edit most when you change *what a stage does* without touching the graph.
-- **`## Sensors`** documents the deterministic checks bound to the stage's outputs. In `application-design.md` it explains that `required-sections` and `upstream-coverage` fire on the stage's markdown artifacts and what each one verifies. The binding itself is the `sensors:` list up in the frontmatter; this compartment is the human-readable description of what those bindings do. Sensors are covered in full in [Sensors](06-sensors.md).
+- **`## Sensors`** documents the deterministic checks bound to the stage's outputs. In `domain-design.md` it explains that `required-sections`, `upstream-coverage`, and `blueprint-shape` fire on the stage's markdown artifacts and what each one verifies. The binding itself is the `sensors:` list up in the frontmatter; this compartment is the human-readable description of what those bindings do. Sensors are covered in full in [Sensors](06-sensors.md).
 - **`## Learn`** documents the learning-loop ritual — the `memory.md` diary the agent keeps while the stage runs, and how kept observations route into rules and sensors at the approval gate. Crucially, this ritual writes into the *harness's config* (`.claude/rules/`, `.claude/sensors/`), never back into the stage file itself.
 
 These three compartments were pre-declared so that v0.5.0's additions — the populated Sensors and Learn bindings — slotted in cleanly rather than forcing a body restructure. The full body model and what each compartment may contain is in [Three-compartment body model](../reference/15-stage-definition.md#three-compartment-body-model).

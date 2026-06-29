@@ -49,7 +49,7 @@ conductor reasons at full depth out of the box. Override it per session with
 Identical to the Claude Code harness: `/aidlc <description>` starts a
 workflow, `/aidlc --status` reports position, `/aidlc --init`, `--doctor`,
 `--stage`, `--phase`, `--depth`, `--test-strategy`, `--test-run` all work, and
-the per-stage (`/aidlc-application-design`) and per-scope (`/aidlc-feature`)
+the per-stage (`/aidlc-domain-design`) and per-scope (`/aidlc-feature`)
 runner skills are installed.
 
 ## What's different on Kiro

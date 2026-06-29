@@ -23,7 +23,7 @@ advisory capacity across the lifecycle.
 | Stage | Name | What This Agent Contributes |
 |-------|------|-----------------------------|
 | feasibility | Feasibility and Constraint Analysis | Regulatory constraint identification, compliance feasibility assessment, RAID log initialization |
-| nfr-requirements | NFR Requirements | Compliance-driven non-functional requirements and control specifications |
+| nfr-design | NFR Design | Compliance-driven non-functional requirements and control specifications |
 | infrastructure-design | Infrastructure Design | Data residency validation, encryption requirements, IAM audit |
 | environment-provisioning | Environment Provisioning | Compliance posture validation for provisioned environments |
 

@@ -20,16 +20,16 @@ graph LR
         I1 -.->|"7 stages"| I7
     end
 
-    subgraph INCEPTION["INCEPTION (2.1-2.8)"]
+    subgraph INCEPTION["INCEPTION (2.1-2.9)"]
         N1["Reverse Engineering"]
         N7["Delivery Planning"]
-        N1 -.->|"8 stages"| N7
+        N1 -.->|"9 stages"| N7
     end
 
-    subgraph CONSTRUCTION["CONSTRUCTION (3.1-3.7)"]
+    subgraph CONSTRUCTION["CONSTRUCTION (3.1-3.6)"]
         C1["Functional Design"]
         C7["CI Pipeline"]
-        C1 -.->|"7 stages per unit"| C7
+        C1 -.->|"6 stages"| C7
     end
 
     subgraph OPERATION["OPERATION (4.1-4.7)"]
@@ -160,7 +160,7 @@ If any of the three is false, default to per-workflow-only.
 
 **Inline stages** -- The conductor reads the lead agent's flat file (e.g., `agents/aidlc-architect-agent.md`) and knowledge from `knowledge/[agent]/` for persona framing, then executes the stage directly in conversation. This allows real-time user interaction: asking questions, resolving ambiguity, and iterating on artifacts before approval.
 
-Most stages use inline execution, including all three Initialization stages (Workspace Scaffold, Workspace Detection, State Init — all run deterministically inside `aidlc-utility init`), all Ideation stages (Intent Capture, Market Research, Feasibility, Scope Definition, Team Formation, Rough Mockups, Approval & Handoff), most Inception stages (Practices Discovery, Requirements Analysis, User Stories, Refined Mockups, Application Design, Units Generation, Delivery Planning), most Construction stages (Functional Design, NFR Requirements, NFR Design, Infrastructure Design, Build and Test, CI Pipeline), and all Operation stages. Note: Build and Test (3.6) runs once after all units are complete, not per-unit.
+Most stages use inline execution, including all three Initialization stages (Workspace Scaffold, Workspace Detection, State Init — all run deterministically inside `aidlc-utility init`), all Ideation stages (Intent Capture, Market Research, Feasibility, Scope Definition, Team Formation, Rough Mockups, Approval & Handoff), most Inception stages (Practices Discovery, Requirements Analysis, User Stories, Refined Mockups, Domain Design, Units Generation, Contract Design, Delivery Planning), most Construction stages (Functional Design, NFR Design, Infrastructure Design, Build and Test, CI Pipeline), and all Operation stages. Note: Build and Test (3.5) runs once after all units are complete, not per-unit.
 
 **Subagent stages** -- The conductor prepares context (prior artifacts, project description, workspace findings) and delegates to a Claude Code Task tool subagent. The subagent executes autonomously and returns a structured summary. This is used for stages that benefit from focused, independent work without user interaction during execution. If a subagent call fails, the conductor retries once with a reduced-context prompt, then offers the user inline execution or skip-and-revisit as fallback options.
 
@@ -371,12 +371,12 @@ dist/claude/.claude/
             |   +-- requirements-analysis.md
             |   +-- user-stories.md
             |   +-- refined-mockups.md
-            |   +-- application-design.md
+            |   +-- domain-design.md
             |   +-- units-generation.md
+            |   +-- contract-design.md
             |   +-- delivery-planning.md
             +-- construction/
             |   +-- functional-design.md
-            |   +-- nfr-requirements.md
             |   +-- nfr-design.md
             |   +-- infrastructure-design.md
             |   +-- code-generation.md
@@ -396,7 +396,7 @@ dist/claude/.claude/
 
 1. **Hybrid execution model (inline + subagent)** -- Stages requiring user interaction (questions, clarifications, approval iteration) run inline where the conductor has direct conversation access. Stages performing focused, autonomous work (code scanning, code generation) delegate to subagents. A pure-subagent model would prevent mid-stage user interaction; a pure-inline model would not benefit from focused agent specialization.
 
-2. **Agent personas for inline stages** -- For inline stages, the conductor loads the agent's flat file as context to frame its perspective, rather than delegating to a subagent. This gives the benefits of domain-expert framing (the conductor thinks like an architect during Application Design) without the costs of subagent context transfer and loss of user interaction.
+2. **Agent personas for inline stages** -- For inline stages, the conductor loads the agent's flat file as context to frame its perspective, rather than delegating to a subagent. This gives the benefits of domain-expert framing (the conductor thinks like an architect during Domain Design) without the costs of subagent context transfer and loss of user interaction.
 
 3. **Two-step Reverse Engineering** -- Reverse Engineering uses a developer subagent for code scanning, then an architect subagent for synthesis. This is necessary because subagents cannot spawn subagents in Claude Code. The conductor acts as the bridge, passing the developer's code scan results to the architect for synthesis into a coherent architectural model.
 

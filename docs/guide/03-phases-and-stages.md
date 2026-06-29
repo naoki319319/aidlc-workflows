@@ -27,16 +27,16 @@ graph LR
         I1 -.->|"7 stages"| I7
     end
 
-    subgraph INCEPTION["INCEPTION (2.1-2.8)"]
+    subgraph INCEPTION["INCEPTION (2.1-2.9)"]
         N1["Reverse Engineering"]
         N7["Delivery Planning"]
-        N1 -.->|"8 stages"| N7
+        N1 -.->|"9 stages"| N7
     end
 
-    subgraph CONSTRUCTION["CONSTRUCTION (3.1-3.7)"]
+    subgraph CONSTRUCTION["CONSTRUCTION (3.1-3.6)"]
         C1["Functional Design"]
         C7["CI Pipeline"]
-        C1 -.->|"7 stages per unit"| C7
+        C1 -.->|"6 stages per unit"| C7
     end
 
     subgraph OPERATION["OPERATION (4.1-4.7)"]
@@ -58,7 +58,7 @@ graph LR
     style OPERATION fill:#fce4ec,stroke:#e91e63
 ```
 
-<!-- Text fallback: Linear flow: INITIALIZATION (0.1-0.3) auto-proceeds to IDEATION (1.1-1.7), which passes through Verification Gate 1 to INCEPTION (2.1-2.8), through Verification Gate 2 to CONSTRUCTION (3.1-3.7), through Verification Gate 3 to OPERATION (4.1-4.7). A feedback loop returns from 4.7 back to 1.1. -->
+<!-- Text fallback: Linear flow: INITIALIZATION (0.1-0.3) auto-proceeds to IDEATION (1.1-1.7), which passes through Verification Gate 1 to INCEPTION (2.1-2.9), through Verification Gate 2 to CONSTRUCTION (3.1-3.6), through Verification Gate 3 to OPERATION (4.1-4.7). A feedback loop returns from 4.7 back to 1.1. -->
 
 Phases execute sequentially. At each phase boundary (except Initialization → Ideation), a **verification gate** runs automated traceability checks to catch missing links, orphaned artifacts, or inconsistencies before downstream stages build on them.
 
@@ -149,9 +149,10 @@ flowchart TD
     S22["2.3 Requirements Analysis\n(aidlc-product-agent)"]
     S23["2.4 User Stories\n(aidlc-product-agent)"]
     S24["2.5 Refined Mockups\n(aidlc-design-agent)"]
-    S25["2.6 Application Design\n(aidlc-architect-agent)"]
+    S25["2.6 Domain Design\n(aidlc-architect-agent)"]
     S26["2.7 Units Generation\n(aidlc-architect-agent)"]
-    S27["2.8 Delivery Planning\n(aidlc-delivery-agent)"]
+    S26B["2.8 Contract Design\n(aidlc-architect-agent)"]
+    S27["2.9 Delivery Planning\n(aidlc-delivery-agent)"]
     VG2{{"Verification Gate:\nInception → Construction"}}
 
     BF_CHECK{"Brownfield?\n(from Initialization 0.3)"}
@@ -176,13 +177,16 @@ flowchart TD
     S24 -.->|CONDITIONAL| S25
     S25 -.->|"if in scope"| S26
     S22 -.->|"if 2.6 skipped"| S26
-    S26 ==>|ALWAYS| S27
+    S26 ==>|ALWAYS| S26B
+    S26B -.->|"CONDITIONAL\n(multi-unit only)"| S27
+    S26 -.->|"if single-unit\n(2.8 skipped)"| S27
     S27 ==>|ALWAYS| VG2
 
     style S21 fill:#bbdefb,stroke:#1565c0
     style S2P fill:#fff9c4,stroke:#f9a825
     style S22 fill:#c8e6c9,stroke:#388e3c
     style S26 fill:#c8e6c9,stroke:#388e3c
+    style S26B fill:#fff9c4,stroke:#f9a825
     style S27 fill:#c8e6c9,stroke:#388e3c
     style S23 fill:#fff9c4,stroke:#f9a825
     style S24 fill:#fff9c4,stroke:#f9a825
@@ -191,7 +195,7 @@ flowchart TD
     style RE_DETAIL fill:#e8eaf6,stroke:#3f51b5
 ```
 
-<!-- Text fallback: Brownfield check (from stage 0.3). If yes, 2.1 Reverse Engineering runs with two-step delegation (developer code scan then architect synthesis). Then 2.2 Practices Discovery (CONDITIONAL — discovers the team's way of working and promotes it to the team/project rule files at an affirmation gate), 2.3 Requirements Analysis (ALWAYS), optionally 2.4 User Stories, optionally 2.5 Refined Mockups, optionally 2.6 Application Design, 2.7 Units Generation (ALWAYS), and 2.8 Delivery Planning (ALWAYS) passes through Verification Gate 2. -->
+<!-- Text fallback: Brownfield check (from stage 0.3). If yes, 2.1 Reverse Engineering runs with two-step delegation (developer code scan then architect synthesis). Then 2.2 Practices Discovery (CONDITIONAL — discovers the team's way of working and promotes it to the team/project rule files at an affirmation gate), 2.3 Requirements Analysis (ALWAYS), optionally 2.4 User Stories, optionally 2.5 Refined Mockups, optionally 2.6 Domain Design, 2.7 Units Generation (ALWAYS), optionally 2.8 Contract Design (CONDITIONAL — multi-unit only), and 2.9 Delivery Planning (ALWAYS) passes through Verification Gate 2. -->
 
 | # | Stage | Lead | Supporting | Key Artifacts | Condition |
 |---|-------|------|-----------|---------------|-----------|
@@ -200,9 +204,10 @@ flowchart TD
 | 2.3 | Requirements Analysis | aidlc-product-agent | — | `requirements.md` | ALWAYS |
 | 2.4 | User Stories | aidlc-product-agent | aidlc-design-agent | `stories.md`, `personas.md` | User-facing features |
 | 2.5 | Refined Mockups | aidlc-design-agent | aidlc-product-agent | Hi-fi mockups, interaction spec | UI projects |
-| 2.6 | Application Design | aidlc-architect-agent | aidlc-aws-platform-agent, aidlc-design-agent | App design artifacts, ADRs | Per execution plan |
+| 2.6 | Domain Design | aidlc-architect-agent | aidlc-aws-platform-agent, aidlc-design-agent | `components.md` (single `cmp-NNN` component blueprint) | Per execution plan |
 | 2.7 | Units Generation | aidlc-architect-agent | aidlc-delivery-agent | `unit-of-work.md`, `unit-of-work-dependency.md` (DAG), `unit-of-work-story-map.md` | ALWAYS |
-| 2.8 | Delivery Planning | aidlc-delivery-agent | aidlc-architect-agent | `bolt-plan.md`, `team-allocation.md`, `risk-and-sequencing-rationale.md`, `external-dependency-map.md` | ALWAYS |
+| 2.8 | Contract Design | aidlc-architect-agent | aidlc-product-agent | `contracts/` (one spec per inter-unit boundary), `contract-summary.md` | CONDITIONAL (multi-unit only) |
+| 2.9 | Delivery Planning | aidlc-delivery-agent | aidlc-architect-agent | `bolt-plan.md`, `team-allocation.md`, `risk-and-sequencing-rationale.md`, `external-dependency-map.md` | ALWAYS |
 
 **Key behavior:** Stage 2.1 runs as a **subagent** using the two-step Reverse Engineering pattern — first an aidlc-developer-agent code scan, then an aidlc-architect-agent synthesis. It only executes for brownfield (existing codebase) projects.
 
@@ -218,31 +223,31 @@ Construction used to run stage-by-stage per [unit of work](glossary.md), with an
 
 The first fix batched all questions, all design artifacts, then all code generation across every unit — one review at the end. That swung the pendulum the other way. A 15-unit run could land 15,000 lines of code at the build-and-test gate. Too much to verify in a single review.
 
-The current shape is the middle path: Construction runs **Bolt by Bolt**. Each [Bolt](glossary.md) is one pass through stages 3.1–3.5 for a Unit (or small group of dependency-linked Units). The first Bolt is the **walking skeleton** — gated and interactive: the smallest end-to-end slice that proves the architecture. Once that ships, the **ladder prompt** fires exactly once: "continue autonomously, or gate every Bolt?" Your answer is recorded in state and governs every remaining Bolt in the workflow. Stages 3.6 (Build and Test) and 3.7 (CI Pipeline) run once at the end across everything.
+The current shape is the middle path: Construction runs **Bolt by Bolt**. Each [Bolt](glossary.md) is one pass through stages 3.1–3.4 for a Unit (or small group of dependency-linked Units). The first Bolt is the **walking skeleton** — gated and interactive: the smallest end-to-end slice that proves the architecture. Once that ships, the **ladder prompt** fires exactly once: "continue autonomously, or gate every Bolt?" Your answer is recorded in state and governs every remaining Bolt in the workflow. Stages 3.5 (Build and Test) and 3.6 (CI Pipeline) run once at the end across everything.
 
-The shape gives you an early confidence checkpoint and a deliberate autonomy choice, with reviewable slices sized to the Bolts 2.8 already planned.
+The shape gives you an early confidence checkpoint and a deliberate autonomy choice, with reviewable slices sized to the Bolts 2.9 already planned.
 
 ### Construction flow
 
 ```mermaid
 flowchart TD
     START(["Begin Construction"])
-    READ[/"Read bolt-plan.md (from 2.8)\n+ unit-of-work-dependency.md (from 2.7)"/]
+    READ[/"Read bolt-plan.md (from 2.9)\n+ unit-of-work-dependency.md (from 2.7)"/]
 
-    BOLT1["Bolt 1 — Walking Skeleton\n(stages 3.1–3.5)"]
+    BOLT1["Bolt 1 — Walking Skeleton\n(stages 3.1–3.4)"]
     GATE1{{"Walking-skeleton gate\nAlways presented"}}
 
     LADDER{"Ladder prompt\n(fires once)"}
     MODE_AUTO["Continue autonomously\nConstruction Autonomy Mode: autonomous"]
     MODE_GATED["Gate every Bolt\nConstruction Autonomy Mode: gated"]
 
-    NEXT_BATCH["Next Bolt (or parallel batch)\n(stages 3.1–3.5)"]
+    NEXT_BATCH["Next Bolt (or parallel batch)\n(stages 3.1–3.4)"]
     GATE_N{{"Bolt/batch gate\n(skipped if autonomous)"}}
 
     MORE{"More Bolts?"}
 
-    S36["3.6 Build and Test\n(aidlc-quality-agent)\nALWAYS — once"]
-    S37["3.7 CI Pipeline\n(aidlc-pipeline-deploy-agent)\nCONDITIONAL — once"]
+    S36["3.5 Build and Test\n(aidlc-quality-agent)\nALWAYS — once"]
+    S37["3.6 CI Pipeline\n(aidlc-pipeline-deploy-agent)\nCONDITIONAL — once"]
     VG3{{"Verification Gate:\nConstruction → Operation"}}
 
     START --> READ --> BOLT1 --> GATE1 --> LADDER
@@ -269,7 +274,7 @@ flowchart TD
     style VG3 fill:#ef9a9a,stroke:#c62828
 ```
 
-<!-- Text fallback: Begin Construction → read bolt-plan.md and unit-of-work-dependency.md → execute Bolt 1 (walking skeleton, stages 3.1–3.5) → walking-skeleton gate (always) → ladder prompt (fires once, choose autonomous or gated) → loop executing remaining Bolts (each covers 3.1–3.5) with or without per-Bolt gate depending on mode → once all Bolts are done, run 3.6 Build and Test then optionally 3.7 CI Pipeline → Verification Gate 3. -->
+<!-- Text fallback: Begin Construction → read bolt-plan.md and unit-of-work-dependency.md → execute Bolt 1 (walking skeleton, stages 3.1–3.4) → walking-skeleton gate (always) → ladder prompt (fires once, choose autonomous or gated) → loop executing remaining Bolts (each covers 3.1–3.4) with or without per-Bolt gate depending on mode → once all Bolts are done, run 3.5 Build and Test then optionally 3.6 CI Pipeline → Verification Gate 3. -->
 
 ### Parallel Bolt batches
 
@@ -316,17 +321,16 @@ Under `--test-run`, a Bolt failure is a test error (no silent auto-retry) so reg
 
 | # | Stage | Lead | Supporting | Key Artifacts | Runs |
 |---|-------|------|-----------|---------------|------|
-| 3.1 | Functional Design | aidlc-architect-agent | aidlc-developer-agent | `business-logic-model.md`, `business-rules.md` | Per Bolt (CONDITIONAL by execution plan) |
-| 3.2 | NFR Requirements | aidlc-architect-agent | aidlc-devsecops-agent, aidlc-compliance-agent, aidlc-quality-agent | Security, performance, reliability NFRs | Per Bolt (CONDITIONAL) |
-| 3.3 | NFR Design | aidlc-architect-agent | aidlc-aws-platform-agent | NFR design specifications | Per Bolt (CONDITIONAL) |
-| 3.4 | Infrastructure Design | aidlc-aws-platform-agent | aidlc-devsecops-agent, aidlc-compliance-agent | Infrastructure specifications, IaC designs | Per Bolt (CONDITIONAL) |
-| 3.5 | Code Generation | aidlc-developer-agent | — | Application code + code docs | Per Bolt (ALWAYS, per Unit within the Bolt) |
-| 3.6 | Build and Test | aidlc-quality-agent | aidlc-devsecops-agent | Test results, quality report | ALWAYS, once at end |
-| 3.7 | CI Pipeline | aidlc-pipeline-deploy-agent | — | CI config, quality gates | CONDITIONAL, once at end |
+| 3.1 | Functional Design | aidlc-architect-agent | aidlc-developer-agent | `entities.md`, `rules.md`, `api-specification.md`, `functional-spec.md` | Per Bolt (CONDITIONAL by execution plan) |
+| 3.2 | NFR Design | aidlc-architect-agent | aidlc-aws-platform-agent, aidlc-devsecops-agent, aidlc-compliance-agent, aidlc-quality-agent | `nfr-specification.md` (targets + tech stack + patterns, one self-sufficient pass) | Per Bolt (CONDITIONAL) |
+| 3.3 | Infrastructure Design | aidlc-aws-platform-agent | aidlc-devsecops-agent, aidlc-compliance-agent | `infrastructure-specification.md` (single consolidated spec) | Per Bolt (CONDITIONAL) |
+| 3.4 | Code Generation | aidlc-developer-agent | — | Application code + code docs | Per Bolt (ALWAYS, per Unit within the Bolt) |
+| 3.5 | Build and Test | aidlc-quality-agent | aidlc-devsecops-agent | Test results, quality report | ALWAYS, once at end |
+| 3.6 | CI Pipeline | aidlc-pipeline-deploy-agent | — | CI config, quality gates | CONDITIONAL, once at end |
 
 **Key behaviors:**
 
-- Within each Bolt, questions for stages 3.1–3.4 are collected in a single interactive pass across the Bolt's Units before any artifacts generate. A single Bolt-level answers gate confirms all answers before design artifacts begin.
+- Within each Bolt, questions for stages 3.1–3.3 are collected in a single interactive pass across the Bolt's Units before any artifacts generate. A single Bolt-level answers gate confirms all answers before design artifacts begin.
 - The per-Unit approval gate inside `stages/construction/code-generation.md` is **suppressed by the conductor** during normal Bolt execution. A single Bolt-level (or batch-level) gate replaces it.
 - The ladder prompt fires exactly once per workflow — after the walking-skeleton gate. Your answer is recorded as `Construction Autonomy Mode` in `aidlc-state.md` and honoured on session resume.
 - Parallel batches require multiple `Task`-capable subagent slots to be available — see [Agents](05-agents.md) for concurrency constraints.

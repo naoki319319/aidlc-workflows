@@ -24,11 +24,11 @@ templated planning, CI/CD, and runbook output.
 | Stage | Name | What This Agent Does |
 |-------|------|----------------------|
 | feasibility | Feasibility and Constraint Analysis | Assesses technical feasibility, identifies integration constraints, produces constraint registers and risk assessments |
-| application-design | Application Design | Designs system architecture: bounded contexts, component interfaces, architectural style selection, ADRs |
-| units-generation | Units Generation | Decomposes application design into implementable Units of Work with boundaries and the dependency DAG. Economic ordering (what ships first, why) is the delivery-planning stage's decision |
-| functional-design | Functional Design | Creates detailed domain models, sequence diagrams, API specifications, data models, and state transitions |
-| nfr-requirements | NFR Requirements | Enumerates non-functional requirements with measurable targets for performance, security, scalability, reliability |
-| nfr-design | NFR Design | Designs technical approaches for NFRs: caching, circuit breakers, resilience, security architecture, observability |
+| domain-design | Domain Design | Identifies the logical building blocks (components): a single `components` blueprint with stable `cmp-NNN` IDs, owned entities, boundaries, and dependency edges |
+| units-generation | Units Generation | Decomposes the domain component model into implementable Units of Work with boundaries and the dependency DAG. Economic ordering (what ships first, why) is the delivery-planning stage's decision |
+| contract-design | Contract Design | Defines the inter-unit API contracts (one spec per boundary, referencing the `cmp-NNN` on each side) so teams can build in parallel; conditional, auto-skipped for single-unit projects |
+| functional-design | Functional Design | Creates detailed entity models (`ent-NNN`), business rules (`rule-NNN`), API specifications, and the functional spec, referencing the `cmp-NNN` components |
+| nfr-design | NFR Design | Makes non-functional requirements concrete in one self-sufficient pass: measurable targets, tech-stack selection, and the patterns (caching, circuit breakers, resilience, security, observability) that satisfy them, in a single `nfr-specification` |
 
 ### Support Stages
 

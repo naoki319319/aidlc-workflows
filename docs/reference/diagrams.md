@@ -31,16 +31,16 @@ graph LR
         I1 -.->|"7 stages"| I7
     end
 
-    subgraph INCEPTION["INCEPTION (2.1-2.8)"]
+    subgraph INCEPTION["INCEPTION (2.1-2.9)"]
         N1["Reverse Engineering"]
         N7["Delivery Planning"]
-        N1 -.->|"8 stages"| N7
+        N1 -.->|"9 stages"| N7
     end
 
-    subgraph CONSTRUCTION["CONSTRUCTION (3.1-3.7)"]
+    subgraph CONSTRUCTION["CONSTRUCTION (3.1-3.6)"]
         C1["Functional Design"]
         C7["CI Pipeline"]
-        C1 -.->|"3.1-3.5 per Bolt; 3.6-3.7 once after all Bolts"| C7
+        C1 -.->|"3.1-3.4 per Bolt; 3.5-3.6 once after all Bolts"| C7
     end
 
     subgraph OPERATION["OPERATION (4.1-4.7)"]
@@ -105,7 +105,7 @@ flowchart TD
 
 ## 3. Inception Flow
 
-The Inception phase analyzes the codebase (for brownfield projects), discovers team practices, elicits requirements, produces user stories and mockups, designs the application architecture, decomposes into implementation units, and plans delivery. Stage 2.1 (Reverse Engineering) runs as a subagent and is shown in a hexagonal shape. It uses a two-step RE pattern: first a developer subagent scans the code, then an architect subagent synthesizes the results.
+The Inception phase analyzes the codebase (for brownfield projects), discovers team practices, elicits requirements, produces user stories and mockups, designs the domain component model, decomposes into implementation units, captures inter-unit contracts, and plans delivery. Stage 2.1 (Reverse Engineering) runs as a subagent and is shown in a hexagonal shape. It uses a two-step RE pattern: first a developer subagent scans the code, then an architect subagent synthesizes the results.
 
 ```mermaid
 flowchart TD
@@ -116,9 +116,10 @@ flowchart TD
     S22["2.3 Requirements Analysis\n(aidlc-product-agent)"]
     S23["2.4 User Stories\n(aidlc-product-agent)"]
     S24["2.5 Refined Mockups\n(aidlc-design-agent)"]
-    S25["2.6 Application Design\n(aidlc-architect-agent)"]
+    S25["2.6 Domain Design\n(aidlc-architect-agent)"]
     S26["2.7 Units Generation\n(aidlc-architect-agent)"]
-    S27["2.8 Delivery Planning\n(aidlc-delivery-agent)"]
+    S26b["2.8 Contract Design\n(aidlc-architect-agent)"]
+    S27["2.9 Delivery Planning\n(aidlc-delivery-agent)"]
     VG2{{"Verification Gate:\nInception --> Construction"}}
 
     BF_CHECK{"Brownfield?\n(from Initialization 0.3)"}
@@ -142,8 +143,10 @@ flowchart TD
     S23 -.->|"skip if no UI\nor mockups skipped"| S25
     S24 -.->|CONDITIONAL| S25
     S25 -.->|CONDITIONAL| S26
-    S25 ==>|ALWAYS| S27
-    S26 -.->|CONDITIONAL| S27
+    S25 ==>|ALWAYS| S26
+    S26 ==>|ALWAYS| S26b
+    S26b -.->|"skip: single-unit"| S27
+    S26b -.->|CONDITIONAL| S27
     S27 ==>|ALWAYS| VG2
 
     style S21 fill:#bbdefb,stroke:#1565c0
@@ -153,7 +156,8 @@ flowchart TD
     style S23 fill:#fff9c4,stroke:#f9a825
     style S24 fill:#fff9c4,stroke:#f9a825
     style S25 fill:#fff9c4,stroke:#f9a825
-    style S26 fill:#fff9c4,stroke:#f9a825
+    style S26 fill:#c8e6c9,stroke:#388e3c
+    style S26b fill:#fff9c4,stroke:#f9a825
     style VG2 fill:#ef9a9a,stroke:#c62828
     style RE_DETAIL fill:#e8eaf6,stroke:#3f51b5
 ```
@@ -162,7 +166,7 @@ flowchart TD
 
 ## 4. Construction Flow
 
-The Construction phase executes Bolt-by-Bolt per `bolt-plan.md`. Each Bolt covers a coherent slice of one or more Units of Work and runs stages 3.1–3.5 once. The walking-skeleton Bolt always runs first as a single-Bolt batch; subsequent Bolts may run in parallel batches as the dependency graph allows. After the final Bolt, stages 3.6 (Build and Test) and 3.7 (CI Pipeline) run once across all Bolts. Stage 3.5 (Code Generation) runs as a subagent and is shown in a hexagonal shape.
+The Construction phase executes Bolt-by-Bolt per `bolt-plan.md`. Each Bolt covers a coherent slice of one or more Units of Work and runs stages 3.1–3.4 once. The walking-skeleton Bolt always runs first as a single-Bolt batch; subsequent Bolts may run in parallel batches as the dependency graph allows. After the final Bolt, stages 3.5 (Build and Test) and 3.6 (CI Pipeline) run once across all Bolts. Stage 3.4 (Code Generation) runs as a subagent and is shown in a hexagonal shape.
 
 ```mermaid
 flowchart TD
@@ -170,15 +174,13 @@ flowchart TD
 
     subgraph PER_BOLT["Per-Bolt Loop (walking skeleton first; later Bolts may parallelise)"]
         S31["3.1 Functional Design\n(aidlc-architect-agent)\nCONDITIONAL"]
-        S32["3.2 NFR Requirements\n(aidlc-architect-agent)\nCONDITIONAL"]
-        S33["3.3 NFR Design\n(aidlc-architect-agent)\nCONDITIONAL"]
-        S34["3.4 Infrastructure Design\n(aidlc-aws-platform-agent)\nCONDITIONAL"]
-        S35{{"3.5 Code Generation\n(aidlc-developer-agent)\nsubagent: aidlc-developer-agent\nALWAYS per unit in Bolt"}}
+        S32["3.2 NFR Design\n(aidlc-architect-agent)\nCONDITIONAL"]
+        S33["3.3 Infrastructure Design\n(aidlc-aws-platform-agent)\nCONDITIONAL"]
+        S35{{"3.4 Code Generation\n(aidlc-developer-agent)\nsubagent: aidlc-developer-agent\nALWAYS per unit in Bolt"}}
 
         S31 -.-> S32
         S32 -.-> S33
-        S33 -.-> S34
-        S34 -.-> S35
+        S33 -.-> S35
         S31 -.->|"skip if not\nin plan"| S35
     end
 
@@ -186,8 +188,8 @@ flowchart TD
     PER_BOLT -->|"More Bolts?"| PER_BOLT
     PER_BOLT -->|"All Bolts done"| S36
 
-    S36["3.6 Build and Test\n(aidlc-quality-agent)\nALWAYS"]
-    S37["3.7 CI Pipeline\n(aidlc-pipeline-deploy-agent)\nCONDITIONAL"]
+    S36["3.5 Build and Test\n(aidlc-quality-agent)\nALWAYS"]
+    S37["3.6 CI Pipeline\n(aidlc-pipeline-deploy-agent)\nCONDITIONAL"]
     VG3{{"Verification Gate:\nConstruction --> Operation"}}
 
     S36 ==> S37
@@ -199,7 +201,6 @@ flowchart TD
     style S31 fill:#fff9c4,stroke:#f9a825
     style S32 fill:#fff9c4,stroke:#f9a825
     style S33 fill:#fff9c4,stroke:#f9a825
-    style S34 fill:#fff9c4,stroke:#f9a825
     style S36 fill:#c8e6c9,stroke:#388e3c
     style S37 fill:#fff9c4,stroke:#f9a825
     style VG3 fill:#ef9a9a,stroke:#c62828
@@ -613,16 +614,16 @@ This reference table maps every stage to its execution mode and lead agent for q
 | 2.3 | Requirements Analysis | inline | aidlc-product-agent |
 | 2.4 | User Stories | inline | aidlc-product-agent |
 | 2.5 | Refined Mockups | inline | aidlc-design-agent |
-| 2.6 | Application Design | inline | aidlc-architect-agent |
+| 2.6 | Domain Design | inline | aidlc-architect-agent |
 | 2.7 | Units Generation | inline | aidlc-architect-agent |
-| 2.8 | Delivery Planning | inline | aidlc-delivery-agent |
+| 2.8 | Contract Design | inline | aidlc-architect-agent |
+| 2.9 | Delivery Planning | inline | aidlc-delivery-agent |
 | 3.1 | Functional Design | inline | aidlc-architect-agent |
-| 3.2 | NFR Requirements | inline | aidlc-architect-agent |
-| 3.3 | NFR Design | inline | aidlc-architect-agent |
-| 3.4 | Infrastructure Design | inline | aidlc-aws-platform-agent |
-| 3.5 | Code Generation | subagent (aidlc-developer-agent) | aidlc-developer-agent |
-| 3.6 | Build and Test | inline | aidlc-quality-agent |
-| 3.7 | CI Pipeline | inline | aidlc-pipeline-deploy-agent |
+| 3.2 | NFR Design | inline | aidlc-architect-agent |
+| 3.3 | Infrastructure Design | inline | aidlc-aws-platform-agent |
+| 3.4 | Code Generation | subagent (aidlc-developer-agent) | aidlc-developer-agent |
+| 3.5 | Build and Test | inline | aidlc-quality-agent |
+| 3.6 | CI Pipeline | inline | aidlc-pipeline-deploy-agent |
 | 4.1 | Deployment Pipeline | inline | aidlc-pipeline-deploy-agent |
 | 4.2 | Environment Provisioning | inline | aidlc-aws-platform-agent |
 | 4.3 | Deployment Execution | inline | aidlc-pipeline-deploy-agent |

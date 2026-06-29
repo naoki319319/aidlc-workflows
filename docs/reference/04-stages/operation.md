@@ -58,7 +58,7 @@ every delegation; agents never invoke each other.
 | Execution         | CONDITIONAL (skip if deployment pipeline already exists and is adequate)                           |
 | Lead Agent        | aidlc-pipeline-deploy-agent                                                                             |
 | support_agents    | (none)                                                                                            |
-| Inputs            | CI pipeline config from Stage 3.7, infrastructure design from Stage 3.4                          |
+| Inputs            | CI pipeline config from Stage 3.6, infrastructure specification from Stage 3.3                   |
 
 ### Purpose
 
@@ -90,7 +90,7 @@ Strictly 2-option: Approve / Request Changes.
 | Execution         | CONDITIONAL (skip if environments already provisioned)                                            |
 | Lead Agent        | aidlc-aws-platform-agent                                                                                |
 | support_agents    | aidlc-devsecops-agent (security posture validation), aidlc-compliance-agent (data residency, regulatory controls) |
-| Inputs            | Infrastructure design from Stage 3.4, CD pipeline config from Stage 4.1                          |
+| Inputs            | Infrastructure specification from Stage 3.3, CD pipeline config from Stage 4.1                   |
 
 ### Purpose
 
@@ -152,7 +152,7 @@ Strictly 2-option: Approve / Request Changes.
 | Phase             | Operation                                                                                         |
 | Execution         | CONDITIONAL (skip if observability already configured)                                            |
 | Lead Agent        | aidlc-operations-agent                                                                                  |
-| Inputs            | NFR design from Stage 3.3, infrastructure design from Stage 3.4, deployed application             |
+| Inputs            | NFR specification from Stage 3.2, infrastructure specification from Stage 3.3, deployed application |
 
 ### Purpose
 
@@ -187,7 +187,7 @@ Configure monitoring, dashboards, alarms, SLO/SLI tracking, log queries, distrib
 | Phase             | Operation                                                                                         |
 | Execution         | CONDITIONAL (skip for POCs or non-production deployments)                                         |
 | Lead Agent        | aidlc-operations-agent                                                                                  |
-| Inputs            | Observability setup from Stage 4.4, NFR design from Stage 3.3, infrastructure design from Stage 3.4 |
+| Inputs            | Observability setup from Stage 4.4, NFR specification from Stage 3.2, infrastructure specification from Stage 3.3 |
 
 ### Purpose
 
@@ -214,7 +214,7 @@ Generate operational runbooks, incident response plans, and escalation procedure
 | Phase             | Operation                                                                                         |
 | Execution         | CONDITIONAL (skip for POCs or non-performance-critical applications)                              |
 | Lead Agent        | aidlc-quality-agent                                                                                     |
-| Inputs            | NFR requirements from Stage 3.2, NFR design from Stage 3.3, observability data from Stage 4.4    |
+| Inputs            | NFR specification from Stage 3.2, observability data from Stage 4.4                              |
 
 ### Purpose
 

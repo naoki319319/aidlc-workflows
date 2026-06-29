@@ -11,11 +11,11 @@ The aidlc-architect-agent leads the most stages of any single agent in the lifec
 | Stage | Phase | Description |
 |-------|-------|-------------|
 | 1.3 Feasibility & Constraints | Ideation | Technical feasibility assessment and constraint analysis |
-| 2.6 Application Design | Inception | Component design, API contracts, and ADRs |
+| 2.6 Domain Design | Inception | Component blueprint (`components.md` with stable `cmp-NNN` ids), API contracts, and ADRs |
 | 2.7 Units Generation | Inception | Decomposes design into implementable units of work |
+| 2.8 Contract Design | Inception | Inter-unit API/event contracts referencing `cmp-NNN`; conditional, auto-skipped for single-unit projects |
 | 3.1 Functional Design | Construction | Detailed domain models and business logic (per unit) |
-| 3.2 NFR Requirements | Construction | Non-functional requirements with measurable targets (per unit) |
-| 3.3 NFR Design | Construction | Technical approaches for caching, resilience, security (per unit) |
+| 3.2 NFR Design | Construction | Measurable NFR targets plus the technical approaches for caching, resilience, security (per unit) |
 
 It also leads the synthesis step of stage 2.1 (Reverse Engineering), where it receives code scan results from the aidlc-developer-agent and produces the 9 architectural artifacts.
 
@@ -25,7 +25,7 @@ It also leads the synthesis step of stage 2.1 (Reverse Engineering), where it re
 |-------|-------|-------------|
 | 1.1 Intent Capture | Ideation | Provides technical context |
 | 2.1 Reverse Engineering (Synthesis step) | Inception | Synthesizes code scan results into a coherent architectural model |
-| 2.8 Delivery Planning | Inception | Validates build order against architecture dependencies |
+| 2.9 Delivery Planning | Inception | Validates build order against architecture dependencies |
 
 ## What to Expect
 

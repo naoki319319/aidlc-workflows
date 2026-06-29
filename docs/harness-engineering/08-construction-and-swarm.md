@@ -120,12 +120,11 @@ absent, malformed, or cyclic block omits the node entirely
 dependencies are satisfied by prior levels, so a batch's Units have no edge
 between them and can fan out together.
 
-The parallel surface itself is the five **per-Unit** Construction stages, each
+The parallel surface itself is the four **per-Unit** Construction stages, each
 declaring `for_each: unit-of-work` in its frontmatter:
 
 | Stage | Runs |
 |---|---|
-| `nfr-requirements` | once per Unit |
 | `functional-design` | once per Unit |
 | `nfr-design` | once per Unit |
 | `infrastructure-design` | once per Unit |
@@ -210,7 +209,7 @@ shapes.
 | `"1"` | inline Dynamic Workflow | The conductor authors a `Workflow` whose JS owns the per-Unit pipeline and the iteration cap. |
 | `"1"` but Workflow tool unavailable | loud-degrade to the floor | The conductor falls back to the floor and passes `--degraded-from ultracode` so the referee emits `SWARM_DEGRADED`. |
 
-Both drivers run the same five per-Unit stages and converge against the same
+Both drivers run the same four per-Unit stages and converge against the same
 project check. The difference is purely how the parallel work is dispatched. The
 runaway backstop lives in the harness's 8-block **Stop-hook ceiling**
 (`core/hooks/aidlc-stop.ts`, the `blockCap()` / `DEFAULT_BLOCK_CAP` pair, exposed

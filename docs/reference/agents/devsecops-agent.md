@@ -23,7 +23,7 @@ multiple stages in the Inception, Construction, and Operation phases.
 | Stage | Name | What This Agent Contributes |
 |-------|------|-----------------------------|
 | practices-discovery | Practices Discovery | Security and DevSecOps practice input (scanning, secrets handling, secure-pipeline conventions) for discovered team practices |
-| nfr-requirements | NFR Requirements | Security controls specification and threat model integration |
+| nfr-design | NFR Design | Security controls specification and threat model integration |
 | infrastructure-design | Infrastructure Design | IAM policy review, security group validation, network security assessment |
 | build-and-test | Build and Test | SAST/DAST scan configuration, dependency vulnerability scanning, IaC security linting |
 | environment-provisioning | Environment Provisioning | Security posture validation (Security Hub, Inspector, GuardDuty, encryption, CloudTrail, VPC Flow Logs) |

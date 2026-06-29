@@ -14,7 +14,7 @@ In human software teams, a mob of 3-5 people covers an entire feature from requi
 
 - **Each agent covers a whole domain across many tasks.** The aidlc-architect-agent handles feasibility, application design, units generation, functional design, NFR requirements, and NFR design — six stages across three phases. A narrow specialist model would require six separate agents with nearly identical knowledge bases.
 
-- **Fewer agents means fewer handoffs.** Every agent boundary is a potential information loss point. When the same aidlc-architect-agent leads both Application Design and Functional Design, it retains context naturally instead of requiring an explicit handoff artifact.
+- **Fewer agents means fewer handoffs.** Every agent boundary is a potential information loss point. When the same aidlc-architect-agent leads both Domain Design and Functional Design, it retains context naturally instead of requiring an explicit handoff artifact.
 
 - **Support roles enable collaboration without proliferation.** Rather than creating a "security-reviewer-agent" and a "compliance-reviewer-agent" and a "cost-reviewer-agent," the aidlc-devsecops-agent and aidlc-compliance-agent participate as support agents in stages led by others. On an inline stage (every multi-agent stage in the shipped graph) the conductor adopts each support agent as a persona in its own context rather than dispatching it as a `Task`; `Task` is reserved for `mode: subagent` stages. Either way the conductor performs every delegation — agents never invoke each other.
 
@@ -106,7 +106,7 @@ The aidlc-product-agent acts as the product manager and business analyst. It cap
 The aidlc-design-agent creates wireframes, mockups, and interaction specifications. It works closely with the aidlc-product-agent on user-facing features and with the aidlc-developer-agent to ensure designs are implementable.
 
 - **Leads:** rough-mockups, refined-mockups
-- **Supports:** user-stories, application-design
+- **Supports:** user-stories, domain-design
 - **Special tools:** WebSearch (for design research)
 
 ### [aidlc-delivery-agent](agents/delivery-agent.md)
@@ -125,7 +125,7 @@ The aidlc-delivery-agent acts as the engineering manager. It assesses team capac
 
 The aidlc-architect-agent is the central design authority. It has the broadest stage involvement (9 stages across 3 phases) and runs on the opus model — alongside seven other high-judgment agents (product, design, developer, quality, devsecops, compliance, aws-platform). Only delivery, pipeline-deploy, and operations run on sonnet, because their output is dominantly templated planning, CI/CD YAML, and runbook scaffolding.
 
-- **Leads:** feasibility, application-design, units-generation, functional-design, nfr-requirements, nfr-design
+- **Leads:** feasibility, domain-design, units-generation, contract-design, functional-design, nfr-design
 - **Supports:** intent-capture, reverse-engineering (synthesis), delivery-planning
 
 ### [aidlc-aws-platform-agent](agents/aws-platform-agent.md)
@@ -135,7 +135,7 @@ The aidlc-architect-agent is the central design authority. It has the broadest s
 The aidlc-aws-platform-agent designs infrastructure, provisions environments, and optimizes costs. It has Bash access for running AWS CLI and CDK commands.
 
 - **Leads:** infrastructure-design, environment-provisioning
-- **Supports:** feasibility, application-design, nfr-design, feedback-optimization
+- **Supports:** feasibility, domain-design, nfr-design, feedback-optimization
 - **Special tools:** Bash (for `aws`, `cdk` commands)
 
 ### [aidlc-compliance-agent](agents/compliance-agent.md)
@@ -145,7 +145,7 @@ The aidlc-aws-platform-agent designs infrastructure, provisions environments, an
 The aidlc-compliance-agent operates purely in an advisory capacity — it has no lead stages. It feeds regulatory constraints into stages led by other agents, particularly the aidlc-architect-agent and aidlc-devsecops-agent.
 
 - **Leads:** None (support only)
-- **Supports:** feasibility, nfr-requirements, infrastructure-design, environment-provisioning
+- **Supports:** feasibility, nfr-design, infrastructure-design, environment-provisioning
 - **Special tools:** WebSearch (for regulatory research)
 
 ### [aidlc-devsecops-agent](agents/devsecops-agent.md)
@@ -155,7 +155,7 @@ The aidlc-compliance-agent operates purely in an advisory capacity — it has no
 The aidlc-devsecops-agent reviews designs for security, defines security requirements, and integrates security into CI/CD pipelines. Like the aidlc-compliance-agent, it operates in a support role.
 
 - **Leads:** None (support only)
-- **Supports:** practices-discovery, nfr-requirements, infrastructure-design, build-and-test, environment-provisioning
+- **Supports:** practices-discovery, nfr-design, infrastructure-design, build-and-test, environment-provisioning
 - **Special tools:** Bash (for security scanning)
 
 ### [aidlc-developer-agent](agents/developer-agent.md)
@@ -177,7 +177,7 @@ Workspace detection (workspace-detection) used to be a subagent of the aidlc-dev
 The aidlc-quality-agent defines test strategy, generates test suites, validates quality gates, and runs performance testing.
 
 - **Leads:** build-and-test, performance-validation
-- **Supports:** practices-discovery, nfr-requirements
+- **Supports:** practices-discovery, nfr-design
 - **Special tools:** Bash (for test execution)
 
 ### [aidlc-pipeline-deploy-agent](agents/pipeline-deploy-agent.md)
@@ -208,15 +208,15 @@ This table shows which agents are active in which phases, and whether they serve
 
 | Agent | Phase 0 | Phase 1 | Phase 2 | Phase 3 | Phase 4 |
 |-------|---------|---------|---------|---------|---------|
-| aidlc-product-agent | — | L (intent-capture, market-research, scope-definition), S (rough-mockups, approval-handoff) | L (requirements-analysis, user-stories), S (refined-mockups) | — | — |
-| aidlc-design-agent | — | L (rough-mockups) | L (refined-mockups), S (user-stories, application-design) | — | — |
+| aidlc-product-agent | — | L (intent-capture, market-research, scope-definition), S (rough-mockups, approval-handoff) | L (requirements-analysis, user-stories), S (refined-mockups, contract-design) | — | — |
+| aidlc-design-agent | — | L (rough-mockups) | L (refined-mockups), S (user-stories, domain-design) | — | — |
 | aidlc-delivery-agent | — | L (team-formation, approval-handoff), S (scope-definition) | L (delivery-planning), S (units-generation) | — | — |
-| aidlc-architect-agent | — | L (feasibility), S (intent-capture) | L (application-design, units-generation), S (reverse-engineering, delivery-planning) | L (functional-design, nfr-requirements, nfr-design) | — |
-| aidlc-aws-platform-agent | — | S (feasibility) | S (application-design) | L (infrastructure-design), S (nfr-design) | L (environment-provisioning), S (feedback-optimization) |
-| aidlc-compliance-agent | — | S (feasibility) | — | S (nfr-requirements, infrastructure-design) | S (environment-provisioning) |
-| aidlc-devsecops-agent | — | — | S (practices-discovery) | S (nfr-requirements, infrastructure-design, build-and-test) | S (environment-provisioning) |
+| aidlc-architect-agent | — | L (feasibility), S (intent-capture) | L (domain-design, units-generation, contract-design), S (reverse-engineering, delivery-planning) | L (functional-design, nfr-design) | — |
+| aidlc-aws-platform-agent | — | S (feasibility) | S (domain-design) | L (infrastructure-design), S (nfr-design) | L (environment-provisioning), S (feedback-optimization) |
+| aidlc-compliance-agent | — | S (feasibility) | — | S (nfr-design, infrastructure-design) | S (environment-provisioning) |
+| aidlc-devsecops-agent | — | — | S (practices-discovery) | S (nfr-design, infrastructure-design, build-and-test) | S (environment-provisioning) |
 | aidlc-developer-agent | — | — | L (reverse-engineering), S (practices-discovery) | L (code-generation), S (functional-design) | S (deployment-execution) |
-| aidlc-quality-agent | — | — | S (practices-discovery) | L (build-and-test), S (nfr-requirements) | L (performance-validation) |
+| aidlc-quality-agent | — | — | S (practices-discovery) | L (build-and-test), S (nfr-design) | L (performance-validation) |
 | aidlc-pipeline-deploy-agent | — | — | L (practices-discovery) | L (ci-pipeline) | L (deployment-pipeline, deployment-execution) |
 | aidlc-operations-agent | — | — | — | — | L (observability-setup, incident-response, feedback-optimization) |
 

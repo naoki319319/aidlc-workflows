@@ -20,7 +20,7 @@ conductor based on workflow context:
 |------|----------|-------------|
 | `stage-protocol.md` | Core protocol: approval gates, completion messages, question flow, state tracking, agent persona loading, depth guidance, terminology, content validation, subagent return formats, and the §13 Learnings Ritual | Every stage (mandatory) |
 | `stage-protocol-recovery.md` | Error Recovery + Change Handling | On session resume, or when a change event is detected mid-stage |
-| `stage-protocol-governance.md` | Phase Boundary Verification (§13) | At phase boundaries (1.7->2.1, 2.8->3.1, 3.7->4.1) |
+| `stage-protocol-governance.md` | Phase Boundary Verification (§13) | At phase boundaries (1.7->2.1, 2.9->3.1, 3.6->4.1) |
 
 ### Conditional Loading Logic (from SKILL.md Routing)
 
@@ -32,7 +32,7 @@ The conductor's Routing section defines the loading rules:
   event is detected mid-stage. This keeps error recovery and change handling
   out of context for normal forward-progress stages.
 - **`stage-protocol-governance.md`**: load at phase boundaries
-  (1.7->2.1, 2.8->3.1, 3.7->4.1) to run the Phase Boundary Verification
+  (1.7->2.1, 2.9->3.1, 3.6->4.1) to run the Phase Boundary Verification
   traceability check. This limits governance overhead to the points where it
   is needed.
 
@@ -578,7 +578,7 @@ existence, then offers to resume from the last incomplete stage.
 | **Ideation (1.1-1.7)** | `aidlc-docs/ideation/` artifacts; guardrails |
 | **Inception -- RE** | RE artifacts; ideation scope/feasibility |
 | **Inception -- Requirements** | RE artifacts (if performed); requirements-analysis docs |
-| **Inception -- Design** | Requirements; user stories; application-design docs |
+| **Inception -- Design** | Requirements; user stories; domain-design docs |
 | **Inception -- Delivery Planning** | All inception artifacts; delivery-planning if partial |
 | **Construction -- Code Gen** | Current unit's design artifacts, story design, acceptance criteria, prior code |
 | **Construction -- Build/Test** | Current unit's code, test plans, acceptance criteria, build config |
@@ -724,21 +724,23 @@ User can override depth or test strategy at any approval gate.
 **Minimal** (poc, bugfix, refactor, security-patch) -- minimal artifacts,
 brief analysis, skip optional stages:
 - Requirements: 5-10 items, brief descriptions, minimal NFRs
-- App Design: single component diagram, basic data model, no ADRs
-- Functional Design: brief business rules, simple entities, skip
-  `frontend-components.md`
+- Domain Design: a single `components.md` blueprint with a handful of
+  `cmp-NNN` components (name, behaviour, dependencies), no ADRs
+- Functional Design: brief business rules, simple entities, skip frontend
+  component flows in `functional-spec.md`
 
 **Standard** (feature, mvp, infra) -- full artifacts at moderate detail:
 - Requirements: 15-30 with acceptance criteria, moderate NFRs
-- App Design: component diagrams with interactions, relationships, 2-3 ADRs
+- Domain Design: a `components.md` blueprint with components, behaviours, and
+  dependency edges; 2-3 ADRs
 - Functional Design: detailed business logic, comprehensive rules, entity
   lifecycle
 
 **Comprehensive** (enterprise) -- deep analysis, all stages execute:
 - Requirements: 30+, detailed criteria, comprehensive NFRs across all
   categories
-- App Design: multi-layer diagrams, detailed data flow, integration sequences,
-  5+ ADRs with alternatives
+- Domain Design: a thorough `components.md` blueprint with all components,
+  behaviours, and dependency edges; 5+ ADRs with alternatives
 - Functional Design: decision trees, state machines, concurrency, error
   recovery, cross-unit patterns
 
@@ -755,7 +757,7 @@ brief analysis, skip optional stages:
 | **Stage** | A discrete step within a phase (e.g., Intent Capture, Code Generation) |
 | **Scope** | Controls which stages execute and at what depth (enterprise, feature, mvp, poc, bugfix, refactor, infra, security-patch, workshop) |
 | **Depth** | Artifact detail scale: Minimal, Standard, or Comprehensive |
-| **Unit of Work** | An independently implementable package of features; the Construction iteration unit. One pass through stages 3.1-3.7. |
+| **Unit of Work** | An independently implementable package of features; the Construction iteration unit. One pass through stages 3.1-3.6. |
 | **Service** | A deployable process or container (API server, worker, frontend app) |
 | **Module** | Code-level organizational boundary within a service (package, namespace) |
 | **Component** | Logical building block within a module (class, function group, UI component) |
