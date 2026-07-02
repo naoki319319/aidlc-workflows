@@ -317,6 +317,12 @@ export const WORKSPACE_VERBS: ReadonlySet<string> = new Set([
   "space-create",
   "intent",
 ]);
+// Slugs a record (intent or space) may never take. "help" is grammar: the
+// router treats `intent help` / `space help` as a help request, so a record
+// with that slug would be unswitchable by name. Refusing it at the creation
+// chokepoints (birthIntent, handleSpaceCreate) keeps the namespace and the
+// grammar from ever colliding.
+export const RESERVED_RECORD_NAMES: ReadonlySet<string> = new Set(["help"]);
 
 // A classified terminal command: the aidlc-utility.ts subcommand to run, plus an
 // optional positional arg (the <name> for a workspace verb). `source` records
@@ -335,6 +341,13 @@ export interface TerminalCommand {
 // (read-only flag anywhere; workspace verb only at index 0) so the seam and the
 // engine can never disagree about what is terminal.
 export function classifyTerminalCommand(args: string[]): TerminalCommand | null {
+  // A SOLE bare `help` / `-h` token is a help REQUEST (terminal, read-only);
+  // mirrors parseNextFlags in the engine. Without this the token reads as
+  // freeform intent text and the funnel offers to birth an intent named
+  // "help". Sole-token only: `help` inside a longer description stays freeform.
+  if (args.length === 1 && (args[0] === "help" || args[0] === "-h")) {
+    return { subcommand: "help", source: "read-only-flag" };
+  }
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (READ_ONLY_FLAGS.has(a)) {
@@ -343,6 +356,15 @@ export function classifyTerminalCommand(args: string[]): TerminalCommand | null 
     if (i === 0 && WORKSPACE_VERBS.has(a)) {
       const next = args[i + 1];
       const arg = next !== undefined && !next.startsWith("--") ? next : undefined;
+      // `intent help`/`-h` / `space help`/`-h` is a help request, not a switch
+      // to a record named "help" (no per-verb help exists; the failed switch's
+      // error text steers the conductor into birthing an intent, and "help" is
+      // a reserved record name - see RESERVED_RECORD_NAMES). Mirrors
+      // parseNextFlags. space-create is excluded: it dies on the reserved name
+      // with its own actionable error rather than silently printing help.
+      if ((a === "intent" || a === "space") && (arg === "help" || arg === "-h")) {
+        return { subcommand: "help", source: "read-only-flag" };
+      }
       return arg !== undefined
         ? { subcommand: a, arg, source: "workspace-verb" }
         : { subcommand: a, source: "workspace-verb" };
@@ -1042,6 +1064,11 @@ export function birthIntent(
   // when the caller passes raw text (cap 24). A same-day same-label clash resolves
   // by a numeric counter (never re-mints).
   const slug = slugify(label, 24);
+  if (RESERVED_RECORD_NAMES.has(slug)) {
+    throw new Error(
+      `"${slug}" is a reserved name and cannot be an intent label. Pick a label that describes the work.`
+    );
+  }
   const dirName = resolveUniqueIntentDir(intentsRoot, `${dateStamp()}-${slug}`);
   const recordPath = join(intentsRoot, dirName);
   mkdirSync(recordPath, { recursive: true });

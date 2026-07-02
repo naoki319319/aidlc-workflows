@@ -271,6 +271,16 @@ interface ParsedFlags {
 // (mirrors `/aidlc <freeform description>`). Mirrors the prose orchestrator's
 // flag extraction — the value of a valued flag is the following argv token.
 function parseNextFlags(args: string[]): ParsedFlags {
+  // A SOLE bare `help` / `-h` token is a help REQUEST, not intent text. Without
+  // this, the token falls into intentWords and the freeform funnel offers to
+  // birth an intent literally named "help" (fresh workspace) or silently
+  // advances the active stage (live workflow). Sole-token only: `help` inside a
+  // longer description ("help me build auth") stays freeform intent text.
+  // PARITY: classifyTerminalCommand (aidlc-lib.ts) mirrors this rule - the Kiro
+  // verb-intercept seam and the engine must never disagree on what is terminal.
+  if (args.length === 1 && (args[0] === "help" || args[0] === "-h")) {
+    return { readOnly: "--help" };
+  }
   const flags: ParsedFlags = {};
   const intentWords: string[] = [];
   for (let i = 0; i < args.length; i++) {
@@ -288,6 +298,17 @@ function parseNextFlags(args: string[]): ParsedFlags {
     if (i === 0 && WORKSPACE_VERBS.has(a)) {
       const next = args[i + 1];
       const arg = next !== undefined && !next.startsWith("--") ? next : undefined;
+      // `intent help`/`-h` / `space help`/`-h` is a help REQUEST, not a switch
+      // to a record named "help": no per-verb help exists, and the failed
+      // switch would die with an error whose recovery text steers the
+      // conductor into birthing an intent ("help" is also a reserved record
+      // name - RESERVED_RECORD_NAMES - so no real record is shadowed). Route
+      // it to the global help print. space-create is excluded: it dies on the
+      // reserved name with its own actionable error.
+      // PARITY: classifyTerminalCommand (aidlc-lib.ts) mirrors this rule.
+      if ((a === "intent" || a === "space") && (arg === "help" || arg === "-h")) {
+        return { readOnly: "--help" };
+      }
       flags.workspaceVerb = arg !== undefined ? { verb: a, arg } : { verb: a };
       if (arg !== undefined) i++;
       continue;

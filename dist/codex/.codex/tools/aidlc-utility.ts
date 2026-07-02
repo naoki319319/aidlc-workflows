@@ -45,6 +45,7 @@ import {
   isPackageJson,
   codekbRepoName,
   relativeCodekbDir,
+  RESERVED_RECORD_NAMES,
   listIntents,
   listSpaces,
   loadAgents,
@@ -2181,6 +2182,14 @@ function handleIntentBirth(projectDir: string, flags: Record<string, string>): v
     const label = flags.label?.trim();
     const slugSource = label || description || scope;
     const slug = slugify(slugSource, 24);
+    // "help" is grammar (`intent help` prints help), so an intent slugged
+    // "help" would be unswitchable by name. birthIntent throws on it too
+    // (library backstop); dying here keeps the clean JSON error shape.
+    if (RESERVED_RECORD_NAMES.has(slug)) {
+      die(
+        `"${slug}" is a reserved name and cannot be an intent label. Pick a label that describes the work.`
+      );
+    }
     birthIntent(projectDir, slug, activeSpace(projectDir), scope, repos);
 
     const ts = isoTimestamp();
@@ -2612,6 +2621,16 @@ function handleIntent(projectDir: string, positional: string[], flags: Record<st
     printIntentListing(projectDir, asJson);
     return;
   }
+  // `intent help`/`-h` is a help request, not a switch to a record named
+  // "help" ("help" is a reserved record name, so no real record is shadowed).
+  // The engine routes it to help before it ever reaches this tool; this arm is
+  // the backstop for a direct invocation, so a confused caller gets the help
+  // text instead of an "Unknown intent" error that reads like an invitation to
+  // start new work.
+  if (target === "help" || target === "-h") {
+    handleHelp();
+    return;
+  }
   const space = activeSpace(projectDir);
   const intents = listIntents(projectDir, space);
   // Exact record-dir match first; then a unique slug match.
@@ -2626,8 +2645,12 @@ function handleIntent(projectDir: string, positional: string[], flags: Record<st
     }
   }
   if (!match || match.dirName === null) {
+    // Deliberately NOT "describe what to build to start a new one": a conductor
+    // recovering from a failed switch read that as an instruction and birthed an
+    // unwanted intent. Point at the read-only listing only; starting new work
+    // stays a separate, human-confirmed move.
     die(
-      `Unknown intent "${target}" in space "${space}". Run /aidlc intent to list, or describe what to build to start a new one.`
+      `Unknown intent "${target}" in space "${space}". This command only switches between existing intents - run /aidlc intent to list them. Do not start a new workflow to recover from this error.`
     );
   }
   setActiveIntentCursor(projectDir, match.dirName, space);
@@ -2665,6 +2688,13 @@ function handleSpace(projectDir: string, positional: string[], flags: Record<str
     printSpaceListing(projectDir, asJson);
     return;
   }
+  // `space help`/`-h` is a help request, not a switch to a space named "help"
+  // - same backstop as handleIntent (the engine routes it to help upstream,
+  // and "help" is a reserved space name).
+  if (raw === "help" || raw === "-h") {
+    handleHelp();
+    return;
+  }
   // Spaces are STORED under their slug (handleSpaceCreate writes slugify(raw)),
   // so slugify the switch target before lookup AND before the cursor write —
   // otherwise `/aidlc space "My Space"` (stored as my-space) would miss.
@@ -2672,7 +2702,7 @@ function handleSpace(projectDir: string, positional: string[], flags: Record<str
   const spaces = listSpaces(projectDir);
   if (!spaces.some((s) => s.name === target)) {
     die(
-      `Unknown space "${target}". Existing: ${spaces.map((s) => s.name).join(", ")}. Create it with /aidlc space-create ${target}.`
+      `Unknown space "${target}". Existing: ${spaces.map((s) => s.name).join(", ")}. This command only switches between existing spaces. Do not create a space to recover from this error - creating one is a separate, deliberate move (/aidlc space-create <name>).`
     );
   }
   setActiveSpaceCursor(projectDir, target);
@@ -2749,6 +2779,13 @@ function handleSpaceCreate(projectDir: string, positional: string[], _flags: Rec
   const raw = positional[1];
   if (!raw) die("Usage: aidlc-utility space-create <name>");
   const name = slugify(raw);
+  // "help" is grammar (`space help` prints help), so a space with that slug
+  // would be unswitchable by name - refuse it here, the creation chokepoint.
+  if (RESERVED_RECORD_NAMES.has(name)) {
+    die(
+      `"${name}" is a reserved name and cannot be a space name. Pick a name that describes the team.`
+    );
+  }
   const dest = join(spacesRoot(projectDir), name);
   if (existsSync(dest)) die(`Space "${name}" already exists at ${dest}.`);
 

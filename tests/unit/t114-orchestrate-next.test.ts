@@ -229,6 +229,80 @@ describe("t114 read-only dispatch + guards", () => {
 });
 
 // ===========================================================================
+// Help-request routing: bare help tokens and `intent help`/`space help` must
+// print help, never enter the birth funnel or a switch attempt.
+// ===========================================================================
+describe("t114 help-request routing", () => {
+  test("sole bare `help` on a fresh workspace -> help print, not a birth ask", () => {
+    // Without the sole-token special case, `help` fell into intentWords and
+    // Branch 8 offered to birth an intent literally named "help".
+    proj = createTestProject();
+    const out = runNext(proj, ["help"]).out;
+    expect(out).toContain('"kind":"print"');
+    expect(out).toContain("aidlc-utility.ts help");
+    expect(out).not.toContain('"kind":"ask"');
+  });
+
+  test("sole bare `-h` on a fresh workspace -> help print, not a birth ask", () => {
+    proj = createTestProject();
+    const out = runNext(proj, ["-h"]).out;
+    expect(out).toContain('"kind":"print"');
+    expect(out).toContain("aidlc-utility.ts help");
+    expect(out).not.toContain('"kind":"ask"');
+  });
+
+  test("sole bare `help` over an active workflow -> help print, not a stage advance", () => {
+    proj = createTestProject();
+    seedStateFile(proj, MID_IDEATION);
+    const out = runNext(proj, ["help"]).out;
+    expect(out).toContain('"kind":"print"');
+    expect(out).not.toContain('"kind":"run-stage"');
+  });
+
+  test("`intent help` -> global help print, not a switch to an intent named help", () => {
+    proj = createTestProject();
+    const out = runNext(proj, ["intent", "help"]).out;
+    expect(out).toContain('"kind":"print"');
+    expect(out).toContain("aidlc-utility.ts help");
+    expect(out).not.toContain("aidlc-utility.ts intent help");
+  });
+
+  test("`space help` -> global help print, not a switch to a space named help", () => {
+    proj = createTestProject();
+    const out = runNext(proj, ["space", "help"]).out;
+    expect(out).toContain('"kind":"print"');
+    expect(out).toContain("aidlc-utility.ts help");
+    expect(out).not.toContain("aidlc-utility.ts space help");
+  });
+
+  test("`help` inside a longer description stays freeform intent text", () => {
+    // Only the SOLE token is a help request; a description mentioning help
+    // still reaches the freeform funnel (Branch 8 ask on a fresh workspace).
+    proj = createTestProject();
+    const out = runNext(proj, ["help", "me", "build", "an", "auth", "service"]).out;
+    expect(out).toContain('"kind":"ask"');
+  });
+
+  test("`intent -h` routes to help like `intent help`", () => {
+    proj = createTestProject();
+    const out = runNext(proj, ["intent", "-h"]).out;
+    expect(out).toContain('"kind":"print"');
+    expect(out).toContain("aidlc-utility.ts help");
+  });
+
+  test("a marker-led blob stays freeform and reaches the safe ask funnel", () => {
+    // The engine does NOT repair a conductor that echoes the whole invocation
+    // line - re-tokenizing prose deterministically hijacked real descriptions.
+    // The SKILL.md forwarding prose owns marker-stripping; a marker-led blob
+    // lands in the ask funnel (a human gate), never a silent misroute.
+    proj = createTestProject();
+    const out = runNext(proj, ["/aidlc intent help"]).out;
+    expect(out).toContain('"kind":"ask"');
+    expect(out).not.toContain("aidlc-utility.ts intent");
+  });
+});
+
+// ===========================================================================
 // With-state jump commits via an `execute` print directive (.sh test 12)
 // ===========================================================================
 describe("t114 with-state jump -> execute print", () => {

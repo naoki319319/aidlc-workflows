@@ -1,4 +1,4 @@
-// covers: function:classifyTerminalCommand
+// covers: function:classifyTerminalCommand function:RESERVED_RECORD_NAMES
 // covers: function:READ_ONLY_FLAGS function:WORKSPACE_VERBS
 //
 // t178 — classifyTerminalCommand() in aidlc-lib.ts, plus the two exported sets
@@ -35,6 +35,7 @@ import { describe, expect, test } from "bun:test";
 import {
   classifyTerminalCommand,
   READ_ONLY_FLAGS,
+  RESERVED_RECORD_NAMES,
   WORKSPACE_VERBS,
 } from "../../dist/claude/.claude/tools/aidlc-lib.ts";
 
@@ -121,12 +122,81 @@ describe("classifyTerminalCommand() — workspace verbs (leading token only)", (
     expect(classifyTerminalCommand(["add", "a", "space"])).toBeNull();
   });
 
+  test("intent help / space help classify as the help subcommand, not a switch", () => {
+    // "help" after a nav verb is a help REQUEST: no per-verb help exists, and
+    // treating it as a record name dies with an error that historically steered
+    // the conductor into birthing an intent. Both route to global help. Same
+    // for the -h spelling.
+    expect(classifyTerminalCommand(["intent", "help"])).toEqual({
+      subcommand: "help",
+      source: "read-only-flag",
+    });
+    expect(classifyTerminalCommand(["space", "help"])).toEqual({
+      subcommand: "help",
+      source: "read-only-flag",
+    });
+    expect(classifyTerminalCommand(["intent", "-h"])).toEqual({
+      subcommand: "help",
+      source: "read-only-flag",
+    });
+    expect(classifyTerminalCommand(["space", "-h"])).toEqual({
+      subcommand: "help",
+      source: "read-only-flag",
+    });
+  });
+
+  test("space-create help is NOT rerouted - the creation chokepoint refuses the reserved name itself", () => {
+    // The classifier passes it through as a normal verb+arg; handleSpaceCreate
+    // dies on the reserved name with an actionable error (RESERVED_RECORD_NAMES).
+    expect(classifyTerminalCommand(["space-create", "help"])).toEqual({
+      subcommand: "space-create",
+      arg: "help",
+      source: "workspace-verb",
+    });
+    expect(RESERVED_RECORD_NAMES.has("help")).toBe(true);
+  });
+
   test("the exported WORKSPACE_VERBS set is exactly the three navigation verbs", () => {
     expect([...WORKSPACE_VERBS].sort()).toEqual([
       "intent",
       "space",
       "space-create",
     ]);
+  });
+});
+
+describe("classifyTerminalCommand() - sole bare help tokens are terminal", () => {
+  test("a sole bare `help` or `-h` classifies as the help subcommand", () => {
+    // Neither is in READ_ONLY_FLAGS (only --help is); without the sole-token
+    // special case they would read as freeform intent text and the funnel
+    // would offer to birth an intent literally named "help".
+    expect(classifyTerminalCommand(["help"])).toEqual({
+      subcommand: "help",
+      source: "read-only-flag",
+    });
+    expect(classifyTerminalCommand(["-h"])).toEqual({
+      subcommand: "help",
+      source: "read-only-flag",
+    });
+  });
+
+  test("`help` inside a longer description stays freeform -> null", () => {
+    expect(classifyTerminalCommand(["help", "me", "build", "auth"])).toBeNull();
+    expect(classifyTerminalCommand(["build", "a", "help", "desk"])).toBeNull();
+  });
+});
+
+describe("classifyTerminalCommand() - marker-led shapes stay freeform", () => {
+  // The engine does NOT repair a conductor that echoes the whole invocation
+  // line (`/aidlc ...` as one blob or with the marker as a leading token):
+  // re-tokenizing prose deterministically hijacked real descriptions
+  // ("/aidlc space out the rollout plan" became a switch to space "out"), so
+  // marker-stripping belongs to the SKILL.md forwarding prose. Anything that
+  // still arrives marker-led lands in the freeform ask funnel - a safe human
+  // gate, never a birth.
+  test("a marker-led blob or token sequence returns null (freeform)", () => {
+    expect(classifyTerminalCommand(["/aidlc intent help"])).toBeNull();
+    expect(classifyTerminalCommand(["$aidlc --status"])).toBeNull();
   });
 });
 
