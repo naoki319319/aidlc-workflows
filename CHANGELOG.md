@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.3] - 2026-07-05
+
+Fixes a fragile process respawn in the Kiro CLI, Kiro IDE, and Codex hook adapters. Each adapter dispatches the framework's core lifecycle hooks (and, on Kiro, the off-band utility commands) by spawning a child process named `bun` by bare name. That child inherits the hook environment's `$PATH`, which on GUI-launched apps and minimal server environments often omits the bun install dir (`~/.bun/bin`), so the spawn fails with `Executable not found in $PATH: bun` and the whole hook layer dies (no audit logging, no session lifecycle, no stop guard, no statusline sync). The adapters now respawn via the absolute path of the bun binary already running them (`process.execPath`), so the child never depends on `bun` being on `PATH`. **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
+
+* Kiro CLI, Kiro IDE, and Codex hook adapters no longer fail with `Executable not found in $PATH: "bun"` when the hook environment lacks the bun install dir; they reuse the exact bun binary running the adapter instead of resolving `bun` off `PATH`.
+* No new commands or flags; no breaking change for CI or scripts.
+
 ## [2.2.0] - 2026-07-04
 
 Adaptive Workflows (roadmap Goal 3): a composer agent under `/aidlc` that fits the ceremony to the task. Describe the work and the engine routes by keyword inference - a clear match gets a one-line confirm naming the matched scope, rich or unmatched prose gets a compose offer instead of the old silent feature default. The composer reads the task and the workspace scan, proposes the EXECUTE/SKIP stage grid with a per-SKIP rationale, and after your approval authors it as a scope and starts the workflow in the same turn. Point it at a scan report (`/aidlc compose --report sonar.json`) to triage findings into a compact fix-and-ship run, or run `/aidlc compose` mid-workflow to re-shape the pending stages in place. Composed scopes ship with `keywords: []` so a one-off plan never rewires future keyword routing; making a scope inferable is an explicit gate choice. (The roadmap's 2.2.0/2.3.0 assignments swap: adaptive workflows ships now as 2.2.0; reviewer-as-verifier moves to 2.3.0 and carries the Full GA declaration - this cut does NOT declare GA.) **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
