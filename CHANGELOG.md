@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.4] - 2026-07-05
+
+The two review-only agents now record a real UTC timestamp on the `## Review` section they append, instead of a guessed date. The Review template's `Date` field was a bare `[ISO timestamp]` placeholder with no sourcing instruction, so reviewers filled it in from memory; it now instructs the reviewer to run `date -u +"%Y-%m-%dT%H:%M:%SZ"` in the shell and paste the actual output, matching the `[ISO timestamp from Bash]` convention already used elsewhere. **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
+
+* Reviewer `## Review` sections (product-lead and architecture-reviewer agents) now carry a real shell-sourced UTC timestamp in the `Date` field rather than an inferred date.
+
 ## [2.2.0] - 2026-07-04
 
 Adaptive Workflows (roadmap Goal 3): a composer agent under `/aidlc` that fits the ceremony to the task. Describe the work and the engine routes by keyword inference - a clear match gets a one-line confirm naming the matched scope, rich or unmatched prose gets a compose offer instead of the old silent feature default. The composer reads the task and the workspace scan, proposes the EXECUTE/SKIP stage grid with a per-SKIP rationale, and after your approval authors it as a scope and starts the workflow in the same turn. Point it at a scan report (`/aidlc compose --report sonar.json`) to triage findings into a compact fix-and-ship run, or run `/aidlc compose` mid-workflow to re-shape the pending stages in place. Composed scopes ship with `keywords: []` so a one-off plan never rewires future keyword routing; making a scope inferable is an explicit gate choice. (The roadmap's 2.2.0/2.3.0 assignments swap: adaptive workflows ships now as 2.2.0; reviewer-as-verifier moves to 2.3.0 and carries the Full GA declaration - this cut does NOT declare GA.) **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
