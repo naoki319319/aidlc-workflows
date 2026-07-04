@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.2] - 2026-07-05
+
+Fixes the learnings gate returning zero candidates (or the wrong phase) once a project moved to the per-intent workspace layout. The runtime-graph row's `memory_path` was recorded without the active intent's record dir, and the learnings surface read the phase from the wrong path segment, so `learnings surface` looked for the diary in the wrong place and mislabeled its phase. Both the write side (runtime-graph compile and the state advance transition) and the read side (surface's phase extraction) now use the per-intent record path. **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
+
+* `learnings surface` now finds a stage's captured learnings under the workspace layout instead of surfacing zero candidates: the runtime-graph `memory_path` it reads now includes the active intent's record dir.
+* The `phase` field in the `learnings surface` JSON is now correct under the workspace layout (it previously reported `spaces` for any per-intent project); the legacy flat layout still reports the right phase.
+
 ## [2.2.0] - 2026-07-04
 
 Adaptive Workflows (roadmap Goal 3): a composer agent under `/aidlc` that fits the ceremony to the task. Describe the work and the engine routes by keyword inference - a clear match gets a one-line confirm naming the matched scope, rich or unmatched prose gets a compose offer instead of the old silent feature default. The composer reads the task and the workspace scan, proposes the EXECUTE/SKIP stage grid with a per-SKIP rationale, and after your approval authors it as a scope and starts the workflow in the same turn. Point it at a scan report (`/aidlc compose --report sonar.json`) to triage findings into a compact fix-and-ship run, or run `/aidlc compose` mid-workflow to re-shape the pending stages in place. Composed scopes ship with `keywords: []` so a one-off plan never rewires future keyword routing; making a scope inferable is an explicit gate choice. (The roadmap's 2.2.0/2.3.0 assignments swap: adaptive workflows ships now as 2.2.0; reviewer-as-verifier moves to 2.3.0 and carries the Full GA declaration - this cut does NOT declare GA.) **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
