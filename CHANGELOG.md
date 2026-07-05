@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.8] - 2026-07-05
+
+Hardens two 2.2.0 Adaptive Workflows follow-ups so the "never under autonomous Construction" rules have deterministic anchors instead of prose alone. The in-flight compose carve-out is now bounded: a crashed or abandoned session can no longer leave a marker that permanently disables the Stop hook's forwarding-loop enforcement, and `/aidlc --doctor` surfaces an orphaned marker if one exists. Recompose refuses to run under an autonomous swarm/Bolt run rather than flipping stages with no human at the gate. **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
+
+* A crashed compose gate no longer permanently disables the Stop hook. The forwarding-loop carve-out for an in-flight compose proposal now honours the `aidlc/.aidlc-compose-pending` marker only while it is fresh (younger than 24h by mtime); an older orphaned marker is ignored and best-effort cleaned up, so enforcement is restored automatically instead of staying silently off until the file is hand-deleted. The hook stays fail-open on any read error.
+* `/aidlc --doctor` now flags a present `aidlc/.aidlc-compose-pending` marker with its age and a remediation hint (delete it if no compose gate is pending, or resolve the gate). Silent when the marker is absent; read-only.
+* `recompose` refuses under autonomous Construction. `bun .../aidlc-utility.ts recompose` (and the chat-first in-flight reshape it backs) now exits non-zero with a clear error when `Construction Autonomy Mode` is `autonomous`, naming the remediation (`aidlc-bolt set-autonomy --mode gated`, or let the swarm finish). Gated and unset modes proceed as before.
+
 ## [2.2.0] - 2026-07-04
 
 Adaptive Workflows (roadmap Goal 3): a composer agent under `/aidlc` that fits the ceremony to the task. Describe the work and the engine routes by keyword inference - a clear match gets a one-line confirm naming the matched scope, rich or unmatched prose gets a compose offer instead of the old silent feature default. The composer reads the task and the workspace scan, proposes the EXECUTE/SKIP stage grid with a per-SKIP rationale, and after your approval authors it as a scope and starts the workflow in the same turn. Point it at a scan report (`/aidlc compose --report sonar.json`) to triage findings into a compact fix-and-ship run, or run `/aidlc compose` mid-workflow to re-shape the pending stages in place. Composed scopes ship with `keywords: []` so a one-off plan never rewires future keyword routing; making a scope inferable is an explicit gate choice. (The roadmap's 2.2.0/2.3.0 assignments swap: adaptive workflows ships now as 2.2.0; reviewer-as-verifier moves to 2.3.0 and carries the Full GA declaration - this cut does NOT declare GA.) **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
