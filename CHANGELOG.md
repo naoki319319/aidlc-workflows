@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.9] - 2026-07-06
+
+Per-unit Construction stages no longer demand CONDITIONAL artifacts before a unit counts as covered. A new optional stage-frontmatter key `optional_produces:` names artifacts a stage writes only when the unit needs them - `functional-design`'s `frontend-components` (only when the unit has a UI) and `infrastructure-design`'s `shared-infrastructure` (only when units share infrastructure). Those names moved out of `produces:` into `optional_produces:`, so a backend-only unit completes without an N/A stub file and the stage gate is reachable. The conductor still gets the artifact's write path in the run-stage directive when the unit does produce it, and the artifact name stays in the vocabulary registry. **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
+
+* Per-unit `next` now advances past a unit that skipped a CONDITIONAL artifact (e.g. a backend-only unit with no `frontend-components.md`); previously the unit was re-emitted on every `next` and the stage gate never opened.
+* `approve` for `functional-design` / `infrastructure-design` is no longer blocked when a unit legitimately omitted its conditional artifact - coverage keys off the required `produces:` only. A missing REQUIRED artifact still blocks, unchanged.
+* NEW stage-frontmatter key `optional_produces:` (a plain kebab string list, parallel to `produces:`): artifacts a stage may write per unit but that are exempt from the per-unit coverage check. Documented in the stage-definition field reference; every entry must pair with a `(CONDITIONAL - ...)` marker in the stage body.
+* No new commands or flags; no breaking change for CI or scripts.
+
 ## [2.2.0] - 2026-07-04
 
 Adaptive Workflows (roadmap Goal 3): a composer agent under `/aidlc` that fits the ceremony to the task. Describe the work and the engine routes by keyword inference - a clear match gets a one-line confirm naming the matched scope, rich or unmatched prose gets a compose offer instead of the old silent feature default. The composer reads the task and the workspace scan, proposes the EXECUTE/SKIP stage grid with a per-SKIP rationale, and after your approval authors it as a scope and starts the workflow in the same turn. Point it at a scan report (`/aidlc compose --report sonar.json`) to triage findings into a compact fix-and-ship run, or run `/aidlc compose` mid-workflow to re-shape the pending stages in place. Composed scopes ship with `keywords: []` so a one-off plan never rewires future keyword routing; making a scope inferable is an explicit gate choice. (The roadmap's 2.2.0/2.3.0 assignments swap: adaptive workflows ships now as 2.2.0; reviewer-as-verifier moves to 2.3.0 and carries the Full GA declaration - this cut does NOT declare GA.) **Upgrade:** re-copy your `dist/<harness>/` shell into the project.

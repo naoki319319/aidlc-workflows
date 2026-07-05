@@ -861,6 +861,10 @@
         {
           "file": "tests/integration/t66.test.ts",
           "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t205-optional-produces-frontmatter.test.ts",
+          "mechanism": "none"
         }
       ],
       "status": "covered"
@@ -1208,6 +1212,10 @@
       "coveredBy": [
         {
           "file": "tests/integration/t65.test.ts",
+          "mechanism": "none"
+        },
+        {
+          "file": "tests/unit/t205-optional-produces-frontmatter.test.ts",
           "mechanism": "none"
         },
         {
@@ -1936,6 +1944,10 @@
           "mechanism": "none"
         },
         {
+          "file": "tests/unit/t205-optional-produces-frontmatter.test.ts",
+          "mechanism": "none"
+        },
+        {
           "file": "tests/unit/t64.test.ts",
           "mechanism": "none"
         }
@@ -1978,6 +1990,10 @@
         {
           "file": "tests/integration/t66.test.ts",
           "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t205-optional-produces-frontmatter.test.ts",
+          "mechanism": "none"
         }
       ],
       "status": "covered"
