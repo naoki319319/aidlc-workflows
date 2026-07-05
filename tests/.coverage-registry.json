@@ -4482,6 +4482,10 @@
           "mechanism": "cli"
         },
         {
+          "file": "tests/unit/t212-doctor-submodules.test.ts",
+          "mechanism": "cli"
+        },
+        {
           "file": "tests/unit/t27.test.ts",
           "mechanism": "cli"
         },
@@ -4631,6 +4635,10 @@
         },
         {
           "file": "tests/unit/t191-composed-scope-write.test.ts",
+          "mechanism": "cli"
+        },
+        {
+          "file": "tests/unit/t211-detect-submodules.test.ts",
           "mechanism": "cli"
         }
       ],

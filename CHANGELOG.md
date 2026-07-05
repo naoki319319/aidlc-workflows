@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.10] - 2026-07-06
+
+Workspace detection now recognizes git submodules. A workspace whose code lives in uninitialized submodules (empty dirs plus a `.gitmodules` file) previously scanned as Greenfield, so reverse-engineering was auto-skipped and every design stage ran with zero code understanding. The scanner gains a sixth brownfield signal: a parseable `.gitmodules` with at least one submodule path entry classifies the workspace Brownfield. When submodule paths are uninitialized, the scan warns and names the remedy (`git submodule update --init --recursive`) at birth, in the doctor report, and on `detect`. Languages stay as scanned (Unknown is truthful until the submodules are fetched). **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
+
+* Workspace detection classifies a workspace with a parseable `.gitmodules` (at least one submodule path entry) as Brownfield, so reverse-engineering is no longer skipped for submodule-based projects.
+* The `WORKSPACE_SCANNED` audit event gains a `Submodules` field (`N declared, M uninitialized`) when submodules are present, and its `Details` names the `git submodule update --init --recursive` remedy when any submodule path is uninitialized. Projects without a `.gitmodules` produce a byte-identical event.
+* Birth stdout prints a one-line warning when submodule paths are uninitialized, telling you to fetch them before proceeding so reverse-engineering can read the code.
+* `/aidlc --doctor` gains an advisory `Submodules:` row: no `.gitmodules`, all initialized, uninitialized (names the count, the paths, and the remedy), or present-but-unparseable. Advisory only - it never flips doctor's exit code.
+* The read-only `detect` utility gains a `submodules` key in its `--json` payload and a `Submodules:` line in its human output when submodules are present.
+
 ## [2.2.0] - 2026-07-04
 
 Adaptive Workflows (roadmap Goal 3): a composer agent under `/aidlc` that fits the ceremony to the task. Describe the work and the engine routes by keyword inference - a clear match gets a one-line confirm naming the matched scope, rich or unmatched prose gets a compose offer instead of the old silent feature default. The composer reads the task and the workspace scan, proposes the EXECUTE/SKIP stage grid with a per-SKIP rationale, and after your approval authors it as a scope and starts the workflow in the same turn. Point it at a scan report (`/aidlc compose --report sonar.json`) to triage findings into a compact fix-and-ship run, or run `/aidlc compose` mid-workflow to re-shape the pending stages in place. Composed scopes ship with `keywords: []` so a one-off plan never rewires future keyword routing; making a scope inferable is an explicit gate choice. (The roadmap's 2.2.0/2.3.0 assignments swap: adaptive workflows ships now as 2.2.0; reviewer-as-verifier moves to 2.3.0 and carries the Full GA declaration - this cut does NOT declare GA.) **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
