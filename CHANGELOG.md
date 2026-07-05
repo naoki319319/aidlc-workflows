@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.5] - 2026-07-05
+
+An autonomous Construction run now advances through every Bolt batch of a multi-batch swarm instead of stalling on the first. Previously, once the first parallel batch merged, the engine re-emitted that same batch forever and the run could not reach the later batches or the stage's approval gate; any project whose Units of Work have dependency edges (more than one topological batch) hit this. The engine now climbs the compiled Bolt DAG batch by batch, re-fanning only the units a partially-converged batch still owes, and presents the single stage gate once every batch has converged. **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
+
+* Autonomous Construction (`Construction Autonomy Mode: autonomous`) with a multi-batch Bolt DAG now progresses: `next` emits the next unconverged batch as `invoke-swarm`, then presents the stage's approval gate after the final batch converges, rather than re-emitting the first batch indefinitely.
+* Single-batch autonomous swarms and gated (non-autonomous) Construction are unchanged.
+
 ## [2.2.0] - 2026-07-04
 
 Adaptive Workflows (roadmap Goal 3): a composer agent under `/aidlc` that fits the ceremony to the task. Describe the work and the engine routes by keyword inference - a clear match gets a one-line confirm naming the matched scope, rich or unmatched prose gets a compose offer instead of the old silent feature default. The composer reads the task and the workspace scan, proposes the EXECUTE/SKIP stage grid with a per-SKIP rationale, and after your approval authors it as a scope and starts the workflow in the same turn. Point it at a scan report (`/aidlc compose --report sonar.json`) to triage findings into a compact fix-and-ship run, or run `/aidlc compose` mid-workflow to re-shape the pending stages in place. Composed scopes ship with `keywords: []` so a one-off plan never rewires future keyword routing; making a scope inferable is an explicit gate choice. (The roadmap's 2.2.0/2.3.0 assignments swap: adaptive workflows ships now as 2.2.0; reviewer-as-verifier moves to 2.3.0 and carries the Full GA declaration - this cut does NOT declare GA.) **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
