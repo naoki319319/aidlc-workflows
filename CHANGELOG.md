@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.7] - 2026-07-05
+
+Workspace detection now finds projects nested in a container folder. A project whose source lives one folder down (e.g. `wordbook/`, `backend/`) was classified Greenfield because the scanner only looked at the workspace root plus a fixed source-dir list, so Reverse Engineering was skipped and no codebase understanding was produced. When no top-level signal fires, the scanner now falls back to a one-level-deep scan of each subdirectory (skipping the excluded, sample, and hidden dirs), so a nested codebase is detected as Brownfield. Starting an incremental workflow (`bugfix`, `refactor`, `security-patch`) on a workspace that still scans Greenfield now prints a one-line advisory pointing at fixing the Project Type or the layout; routing is unchanged, since an empty workspace has nothing to reverse-engineer. **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
+
+* Workspace detection classifies a nested project (source in an arbitrarily-named subdirectory) as Brownfield instead of Greenfield, so Reverse Engineering runs. The fallback is depth-1 only and does not change classification for a normal top-level project. The detected subdirectory is surfaced as `Nested Root` in the `WORKSPACE_SCANNED` audit event and as `nestedRoot` in `/aidlc detect --json`.
+* Starting a `bugfix`, `refactor`, or `security-patch` workflow on a Greenfield-scanned workspace prints a stderr advisory (the scope targets existing code but none was found); it does not change routing or Project Type.
+
 ## [2.2.0] - 2026-07-04
 
 Adaptive Workflows (roadmap Goal 3): a composer agent under `/aidlc` that fits the ceremony to the task. Describe the work and the engine routes by keyword inference - a clear match gets a one-line confirm naming the matched scope, rich or unmatched prose gets a compose offer instead of the old silent feature default. The composer reads the task and the workspace scan, proposes the EXECUTE/SKIP stage grid with a per-SKIP rationale, and after your approval authors it as a scope and starts the workflow in the same turn. Point it at a scan report (`/aidlc compose --report sonar.json`) to triage findings into a compact fix-and-ship run, or run `/aidlc compose` mid-workflow to re-shape the pending stages in place. Composed scopes ship with `keywords: []` so a one-off plan never rewires future keyword routing; making a scope inferable is an explicit gate choice. (The roadmap's 2.2.0/2.3.0 assignments swap: adaptive workflows ships now as 2.2.0; reviewer-as-verifier moves to 2.3.0 and carries the Full GA declaration - this cut does NOT declare GA.) **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
