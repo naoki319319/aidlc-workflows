@@ -7,6 +7,7 @@ lead_agent: aidlc-aws-platform-agent
 support_agents:
   - aidlc-devsecops-agent
   - aidlc-compliance-agent
+  - aidlc-architect-agent
 mode: inline
 reviewer: aidlc-architecture-reviewer-agent
 reviewer_max_iterations: 2
@@ -179,8 +180,11 @@ Before the approval gate, read memory.md and surface candidates as a
 structured question. For each entry the user keeps, write to the appropriate
 harness destination per `stage-protocol.md` §13 — never to this stage file:
 
-- Prescriptive rule → `{{HARNESS_DIR}}/rules/aidlc-phase-<phase>.md` (phase-scoped)
-  or `{{HARNESS_DIR}}/rules/aidlc-<org|team|project>.md` (cross-cutting)
+- Prescriptive rule → a practice line under the fitting topical heading in
+  `aidlc/spaces/<space>/memory/project.md` (default), with a one-click
+  promote to `aidlc/spaces/<space>/memory/team.md` when the lesson applies
+  beyond this project. Routed by heading, not by filename; the loop never
+  writes phase- or org-scoped rules (no widen-to-org path).
 - Verification check → new manifest at `{{HARNESS_DIR}}/sensors/aidlc-<id>.md`
   (capability descriptor only — no `applies_to`); add the new id to
   the relevant stage's `sensors: [...]` frontmatter list to wire it

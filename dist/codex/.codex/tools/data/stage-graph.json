@@ -759,7 +759,7 @@
       "aidlc-developer-agent",
       "aidlc-devsecops-agent"
     ],
-    "mode": "inline",
+    "mode": "subagent",
     "produces": [
       "team-practices",
       "discovered-rules",
@@ -814,7 +814,7 @@
       "workshop"
     ],
     "inputs": "<record>/aidlc-state.md + (brownfield) reverse-engineering's 8 artifacts",
-    "outputs": "team-practices.md, discovered-rules.md, evidence.md, practices-discovery-timestamp.md (4 artifacts under this stage's record dir, engine-resolved). On affirmation, content is promoted to the harness rule layer's aidlc-team.md and aidlc-project.md.",
+    "outputs": "team-practices.md, discovered-rules.md, evidence.md, practices-discovery-timestamp.md (4 artifacts under this stage's record dir, engine-resolved). On affirmation, content is promoted to the space memory layer's team.md and project.md.",
     "rules_in_context": [
       {
         "path": "aidlc/spaces/default/memory/org.md",
@@ -1732,7 +1732,8 @@
     "lead_agent": "aidlc-aws-platform-agent",
     "support_agents": [
       "aidlc-devsecops-agent",
-      "aidlc-compliance-agent"
+      "aidlc-compliance-agent",
+      "aidlc-architect-agent"
     ],
     "mode": "inline",
     "for_each": "unit-of-work",

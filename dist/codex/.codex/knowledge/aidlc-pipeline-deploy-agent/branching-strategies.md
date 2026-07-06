@@ -279,14 +279,14 @@ The dispatch protocol described in this section is implemented by **SKILL.md Ste
 
 When a Bolt starts (Step 0) or completes (Step 6.5), the orchestrator dispatches a Task call to **aidlc-pipeline-deploy-agent** with two inputs:
 
-1. The contents of `.codex/aidlc-rules/aidlc-team.md`'s `## Way of Working` section (or `aidlc-org.md` if `aidlc-team.md` is empty — fallback chain in `shared/rules-reading.md`).
+1. The contents of `aidlc/spaces/<space>/memory/team.md`'s `## Way of Working` section (or `org.md` if `team.md` is empty — fallback chain in `shared/rules-reading.md`).
 2. The Bolt's metadata (slug, source branch, optional target-line hint for release-branch teams).
 
 The agent reads this file (`branching-strategies.md`) as the menu, matches the team's stated strategy to one of the five above, picks the right `aidlc-worktree` flags, invokes the tool, and returns the response envelope per § Response contract.
 
 If the team's stated strategy doesn't map cleanly to the menu (e.g. "we use a hybrid"), the agent picks the closest fit and notes the deviation in the response's `notes` field; the orchestrator surfaces it in the audit log.
 
-If neither `aidlc-team.md` nor `aidlc-org.md` provides branching practice, the agent applies hardcoded defaults — trunk-based with squash, base `main`, target `main` — and emits `PRACTICES_SECTION_EMPTY` (advisory-only).
+If neither `team.md` nor `org.md` provides branching practice, the agent applies hardcoded defaults — trunk-based with squash, base `main`, target `main` — and emits `PRACTICES_SECTION_EMPTY` (advisory-only).
 
 ---
 

@@ -64,19 +64,19 @@ Read all Inception phase artifacts:
 - Units from `<record>/inception/units-generation/`
 - Team formation from `<record>/ideation/team-formation/` (if exists)
 
-**If practices-discovery executed**, read `.claude/rules/aidlc-team.md` via `extractMarkdownSection` for three sections that influence Bolt planning:
+**If practices-discovery executed**, read `aidlc/spaces/<space>/memory/team.md` via `extractMarkdownSection` for three sections that influence Bolt planning:
 - `## Branching` — base/target branch and merge strategy for Construction worktrees
 - `## Walking Skeleton` — whether the first Bolt should be a minimal end-to-end slice (gated, separate user approval) or a regular Bolt
 - `## Deployment` — parallel-vs-serial Bolt execution stance and approval-gate preferences
 
-Use these affirmed practices when populating `bolt-plan.md`. If `aidlc-team.md` is empty (practices-discovery skipped), fall back to scope defaults from `rules/aidlc-org.md`.
+Use these affirmed practices when populating `bolt-plan.md`. If `team.md` is empty (practices-discovery skipped), fall back to scope defaults from `aidlc/spaces/<space>/memory/org.md`.
 
 ### Step 3: Generate Clarifying Questions
 
 This stage plans the Bolt sequence — the order in which Units of Work are executed through Construction. 2.7 produces the dependency DAG (topology); 2.8 chooses a path through it. Economic value cannot be derived from the DAG — that's a human value judgment.
 
 **Definitions for this stage:**
-- **Bolt** — per `stage-protocol.md` Glossary: "a deployable unit of work within Construction — one pass through stages 3.1–3.7." A Bolt wraps one or more Units of Work and runs once through the Construction stages.
+- **Bolt** — per `stage-protocol.md` Glossary: "one execution of Construction stages 3.1–3.5 for a Unit (or small group of dependency-linked Units). Stages 3.6 (Build and Test) and 3.7 (CI Pipeline) run **once** after all Bolts complete, not per-Bolt." A Bolt wraps one or more Units of Work and runs once through stages 3.1–3.5.
 - **Confidence hypothesis** — the observable behaviour that shipping the Bolt validates or falsifies (e.g., "latency stays under 200ms under 1k-rps load," "users complete signup without support tickets," "the event pipeline survives a 10x burst").
 - **WSJF** (Reinertsen / SAFe) — Weighted Shortest Job First. Sequence score = (user-business value + time criticality + risk-reduction value) ÷ job size. Higher score ships first.
 - **Walking skeleton** (Cockburn) — the first Bolt is a minimal end-to-end slice touching every architectural layer that proves the architecture works; features come in later Bolts.
@@ -163,8 +163,11 @@ Before the approval gate, read memory.md and surface candidates as a
 structured question. For each entry the user keeps, write to the appropriate
 harness destination per `stage-protocol.md` §13 — never to this stage file:
 
-- Prescriptive rule → `.claude/rules/aidlc-phase-<phase>.md` (phase-scoped)
-  or `.claude/rules/aidlc-<org|team|project>.md` (cross-cutting)
+- Prescriptive rule → a practice line under the fitting topical heading in
+  `aidlc/spaces/<space>/memory/project.md` (default), with a one-click
+  promote to `aidlc/spaces/<space>/memory/team.md` when the lesson applies
+  beyond this project. Routed by heading, not by filename; the loop never
+  writes phase- or org-scoped rules (no widen-to-org path).
 - Verification check → new manifest at `.claude/sensors/aidlc-<id>.md`
   (capability descriptor only — no `applies_to`); add the new id to
   the relevant stage's `sensors: [...]` frontmatter list to wire it

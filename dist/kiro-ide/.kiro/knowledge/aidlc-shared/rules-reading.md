@@ -1,16 +1,16 @@
 # Reading Rule Files
 
 > **Audience**: any agent that needs to read team-affirmed practices from
-> `.kiro/steering/`.
+> the space memory layer (`aidlc/spaces/<space>/memory/`).
 > **Owner of this file**: framework. Cited by
 > `aidlc-pipeline-deploy-agent/branching-strategies.md` and by other agents
 > that adopt practices-aware behaviour.
 
 The rules namespace resolves through a strict-additive five-layer chain
-at workflow start: `org → team → project → phase → stage`. `aidlc-org.md`
-holds framework defaults; `aidlc-team.md` carries this team's affirmed
-practices (populated by practices-discovery); `aidlc-project.md` adds
-project-scoped specialisation; `aidlc-phase-<phase>.md` attaches because
+at workflow start: `org → team → project → phase → stage`. `org.md`
+holds framework defaults; `team.md` carries this team's affirmed
+practices (populated by practices-discovery); `project.md` adds
+project-scoped specialisation; `phases/<phase>.md` attaches because
 the stage's frontmatter `phase: <name>` field is the pull import for the
 matching phase-rule filename. Stage rules (`aidlc-stage-<slug>.md`) are
 reserved-for-future-use. The compile bakes the resolved chain into each
@@ -55,7 +55,7 @@ being prose is the populated signal.
 
 ## 2. Semantic-topic matching
 
-Heading shapes can drift between `aidlc-team.md`, `aidlc-org.md`, and the
+Heading shapes can drift between `team.md`, `org.md`, and the
 per-agent KB that consumes them. Match by **topic**, not by exact-string
 heading.
 
@@ -92,9 +92,9 @@ occurrence in document order.
 For each topic, walk the layers in order and return the first non-empty
 section found:
 
-1. **`.kiro/steering/aidlc-team.md`** — team-affirmed practices. The
+1. **`aidlc/spaces/<space>/memory/team.md`** — team-affirmed practices. The
    primary source.
-2. **`.kiro/steering/aidlc-org.md`** — framework defaults written in team
+2. **`aidlc/spaces/<space>/memory/org.md`** — framework defaults written in team
    voice. Always populated.
 3. **Hardcoded defaults** — used only when both layers are empty
    (greenfield first run before practices-discovery has run, or when the
@@ -121,7 +121,7 @@ team practices.
 
 ```
 def read_practice(topic):
-  for layer in [aidlc-team.md, aidlc-org.md]:
+  for layer in [team.md, org.md]:
     section = match_section(layer, topic)  # § 2
     if section and not is_empty(section):  # § 1
       return section
@@ -141,13 +141,13 @@ The orchestrator dispatches `aidlc-pipeline-deploy-agent` at Bolt-create time.
 The agent's job is to map team intent to `aidlc-worktree create --slug
 <slug> --base <branch>`. It reads:
 
-1. `aidlc-team.md` `## Way of Working` → empty (fresh template).
-2. `aidlc-org.md` `## Way of Working` → "trunk-based; base `main`, target
+1. `team.md` `## Way of Working` → empty (fresh template).
+2. `org.md` `## Way of Working` → "trunk-based; base `main`, target
    `main`; squash-merge".
 3. Returns `{base: "main", strategy: "squash"}` to the orchestrator
    alongside the agent's invocation of `aidlc-worktree`.
 
-If `aidlc-team.md` `## Way of Working` had read "We use GitFlow with
+If `team.md` `## Way of Working` had read "We use GitFlow with
 `develop` as the integration branch", the agent would map that to
 `--base develop` instead — same fallback chain, populated layer wins.
 

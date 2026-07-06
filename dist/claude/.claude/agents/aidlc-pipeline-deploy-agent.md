@@ -56,7 +56,7 @@ You are a senior CI/CD engineer and release manager specializing in continuous i
 
 ### Worktree Branch Lifecycle (orchestrator-dispatched at Bolt boundaries)
 - Receive create / merge / discard dispatches from the orchestrator at Bolt boundaries (SKILL.md per-Bolt execution: pre-`BOLT_STARTED` create, post-`BOLT_COMPLETED` merge)
-- Read team practices via `.claude/rules/aidlc-team.md` (fall back to `org.md` per `knowledge/aidlc-shared/rules-reading.md`); match the affirmed branching strategy to one of the five in `branching-strategies.md`
+- Read team practices via `aidlc/spaces/<space>/memory/team.md` (fall back to `org.md` per `knowledge/aidlc-shared/rules-reading.md`); match the affirmed branching strategy to one of the five in `branching-strategies.md`
 - Resolve `aidlc-worktree` flags (`--slug`, `--base`, `--target`, `--strategy`, optional `--message`) per the chosen strategy's runbook
 - Invoke `bun .claude/tools/aidlc-worktree.ts` from the main repo checkout; `aidlc-worktree` itself emits the audit event audit-first before invoking git
 - Return the JSON envelope per `branching-strategies.md` § Response contract; the orchestrator then runs `aidlc-worktree verify` as a deterministic post-dispatch backstop

@@ -8,7 +8,7 @@ support_agents:
   - aidlc-quality-agent
   - aidlc-developer-agent
   - aidlc-devsecops-agent
-mode: inline
+mode: subagent
 produces:
   - team-practices
   - discovered-rules
@@ -46,14 +46,14 @@ scopes:
   - infra
   - workshop
 inputs: <record>/aidlc-state.md + (brownfield) reverse-engineering's 8 artifacts
-outputs: "team-practices.md, discovered-rules.md, evidence.md, practices-discovery-timestamp.md (4 artifacts under this stage's record dir, engine-resolved). On affirmation, content is promoted to the harness rule layer's aidlc-team.md and aidlc-project.md."
+outputs: "team-practices.md, discovered-rules.md, evidence.md, practices-discovery-timestamp.md (4 artifacts under this stage's record dir, engine-resolved). On affirmation, content is promoted to the space memory layer's team.md and project.md."
 ---
 
 # Practices Discovery
 
 MANDATORY: Follow stage-protocol.md for approval gates, question format, and completion messages.
 
-This stage discovers how the team works — way of working, walking-skeleton stance, testing posture, deployment, code style — and at an affirmation gate promotes the affirmed content from per-workflow audit trail into team-authored harness config (`.claude/rules/aidlc-team.md` and `.claude/rules/aidlc-project.md`). This is the only stage that writes to both rows of the two-axis configuration model. The affirmation gate is what makes the cross-row write legitimate.
+This stage discovers how the team works — way of working, walking-skeleton stance, testing posture, deployment, code style — and at an affirmation gate promotes the affirmed content from per-workflow audit trail into team-authored harness config (`aidlc/spaces/<space>/memory/team.md` and `aidlc/spaces/<space>/memory/project.md`). This is the only stage that writes to both rows of the two-axis configuration model. The affirmation gate is what makes the cross-row write legitimate.
 
 ## Steps
 
@@ -62,7 +62,7 @@ This stage discovers how the team works — way of working, walking-skeleton sta
 Read `<record>/aidlc-state.md` to determine project type:
 
 - **Brownfield**: run Step 2 (multi-agent evidence scan) before the interview.
-- **Greenfield**: skip Step 2; the interview asks all five practice areas using `aidlc-org.md` defaults as suggested answers.
+- **Greenfield**: skip Step 2; the interview asks all five practice areas using `org.md` defaults as suggested answers.
 
 Either way, Step 3 (interview) and Steps 4-7 always run.
 
@@ -82,13 +82,13 @@ The orchestrator issues four `Task` invocations in a single assistant message (p
 
 ### Step 3: Interview (Always)
 
-Present structured questions to surface five practice areas, one per `aidlc-team.md` section heading: Way of Working, Walking Skeleton, Testing Posture, Deployment, Code Style.
+Present structured questions to surface five practice areas, one per `team.md` section heading: Way of Working, Walking Skeleton, Testing Posture, Deployment, Code Style.
 
 **Brownfield**: ask only the gaps — questions whose answers Step 2's evidence couldn't determine (e.g. walking-skeleton stance is rarely visible in code; risk tolerance is a team judgement). Pre-fill option text from Step 2 findings where evidence was conclusive.
 
-**Greenfield**: ask all five practice areas. Use `aidlc-org.md` section content as the source of suggested-answer text. `aidlc-org.md` and `aidlc-team.md` share the same Title Case heading set (`## Way of Working`, `## Walking Skeleton`, `## Testing Posture`, `## Deployment`, `## Code Style`) — read via `extractMarkdownSection` with the matching heading.
+**Greenfield**: ask all five practice areas. Use `org.md` section content as the source of suggested-answer text. `org.md` and `team.md` share the same Title Case heading set (`## Way of Working`, `## Walking Skeleton`, `## Testing Posture`, `## Deployment`, `## Code Style`) — read via `extractMarkdownSection` with the matching heading.
 
-**Re-run pre-fill**: if `aidlc-team.md` already has affirmed content, read each section via `extractMarkdownSection(content, "## Way of Working")` etc. and present the existing text as the default option.
+**Re-run pre-fill**: if `team.md` already has affirmed content, read each section via `extractMarkdownSection(content, "## Way of Working")` etc. and present the existing text as the default option.
 
 Log each question via `bun .claude/tools/aidlc-log.ts decision` BEFORE presenting it. Log each answer via `bun .claude/tools/aidlc-log.ts answer` after the user responds.
 
@@ -96,7 +96,7 @@ Log each question via `bun .claude/tools/aidlc-log.ts decision` BEFORE presentin
 
 Write four artifacts to `<record>/inception/practices-discovery/`:
 
-1. **team-practices.md** — descriptive, team voice. Five sections matching `aidlc-team.md` headings (`## Way of Working`, `## Walking Skeleton`, `## Testing Posture`, `## Deployment`, `## Code Style`). Each section is 1-3 sentences of plain prose synthesising Step 2 evidence + Step 3 answers.
+1. **team-practices.md** — descriptive, team voice. Five sections matching `team.md` headings (`## Way of Working`, `## Walking Skeleton`, `## Testing Posture`, `## Deployment`, `## Code Style`). Each section is 1-3 sentences of plain prose synthesising Step 2 evidence + Step 3 answers.
 
 2. **discovered-rules.md** — corrective, agent-facing. Two sections: `## Mandated` (rules with `ALWAYS …` format) and `## Forbidden` (rules with `NEVER …` format). One rule per line. Rules are derived from interview answers where the user expressed a hard constraint (e.g. "we never throw exceptions across service boundaries" → `NEVER throw exceptions across service-layer boundaries`).
 
@@ -113,7 +113,7 @@ Compliance with `stage-protocol.md` checklist:
 1. `bun .claude/tools/aidlc-state.ts gate-start practices-discovery` BEFORE the affirmation question.
 2. `bun .claude/tools/aidlc-log.ts decision` for the affirmation question.
 3. A structured question presents `team-practices.md` and `discovered-rules.md` for review. Options:
-   - **Approve** — promote affirmed content to `.claude/rules/aidlc-team.md` and `.claude/rules/aidlc-project.md` (Step 6).
+   - **Approve** — promote affirmed content to `aidlc/spaces/<space>/memory/team.md` and `aidlc/spaces/<space>/memory/project.md` (Step 6).
    - **Edit-then-approve** — user revises the artifacts in `<record>/inception/practices-discovery/`, then re-enters this gate.
    - **Reject and rewrite** — discard the drafts, re-run Step 2 (if brownfield) or restart Step 3.
 4. `bun .claude/tools/aidlc-log.ts answer` after the user answers.
@@ -134,10 +134,10 @@ bun .claude/tools/aidlc-state.ts practices-promote \
 
 The subcommand:
 
-- Reads both drafts and both target files (`.claude/rules/aidlc-team.md` and `.claude/rules/aidlc-project.md`); fails closed before any write if any input is missing.
-- For `aidlc-team.md`: applies `replaceSection` to each of the five sections (`## Way of Working`, `## Walking Skeleton`, `## Testing Posture`, `## Deployment`, `## Code Style`). Sections absent from the draft leave the live file's section untouched (useful for partial re-runs).
-- For `aidlc-project.md`: parses rules from the draft's `## Mandated` and `## Forbidden` sections and applies `appendUnderHeading` for each, stamping `(affirmed YYYY-MM-DD)`. Append (not replace) is correct here because rules accumulate over runs.
-- Writes `aidlc-project.md` first, `aidlc-team.md` second.
+- Reads both drafts and both target files (`aidlc/spaces/<space>/memory/team.md` and `aidlc/spaces/<space>/memory/project.md`); fails closed before any write if any input is missing.
+- For `team.md`: applies `replaceSection` to each of the five sections (`## Way of Working`, `## Walking Skeleton`, `## Testing Posture`, `## Deployment`, `## Code Style`). Sections absent from the draft leave the live file's section untouched (useful for partial re-runs).
+- For `project.md`: parses rules from the draft's `## Mandated` and `## Forbidden` sections and applies `appendUnderHeading` for each, stamping `(affirmed YYYY-MM-DD)`. Append (not replace) is correct here because rules accumulate over runs.
+- Writes `project.md` first, `team.md` second.
 - Emits `PRACTICES_AFFIRMED` on success or `PRACTICES_OVERRIDE` on failure (with the failure reason as a field). On `PRACTICES_OVERRIDE` the subcommand exits non-zero — the orchestrator should treat that as a halt: do NOT proceed to Step 7's state update; the user re-enters the affirmation gate after addressing the failure.
 
 ### Step 7: Emit + Update State
@@ -153,7 +153,7 @@ If Step 6 failed (`PRACTICES_OVERRIDE` was emitted by the subcommand and exit wa
 Use the stage-protocol.md completion template:
 - Announcement with completion summary
 - Summary of all 4 artifacts produced + the two cross-row promotion targets
-- Review path: `<record>/inception/practices-discovery/` AND `.claude/rules/aidlc-team.md` AND `.claude/rules/aidlc-project.md`
+- Review path: `<record>/inception/practices-discovery/` AND `aidlc/spaces/<space>/memory/team.md` AND `aidlc/spaces/<space>/memory/project.md`
 - Structured approval question with options: Approve (continue to Requirements Analysis) / Request Changes
 
 ## Sensors
@@ -183,8 +183,11 @@ Before the approval gate, read memory.md and surface candidates as a
 structured question. For each entry the user keeps, write to the appropriate
 harness destination per `stage-protocol.md` §13 — never to this stage file:
 
-- Prescriptive rule → `.claude/rules/aidlc-phase-<phase>.md` (phase-scoped)
-  or `.claude/rules/aidlc-<org|team|project>.md` (cross-cutting)
+- Prescriptive rule → a practice line under the fitting topical heading in
+  `aidlc/spaces/<space>/memory/project.md` (default), with a one-click
+  promote to `aidlc/spaces/<space>/memory/team.md` when the lesson applies
+  beyond this project. Routed by heading, not by filename; the loop never
+  writes phase- or org-scoped rules (no widen-to-org path).
 - Verification check → new manifest at `.claude/sensors/aidlc-<id>.md`
   (capability descriptor only — no `applies_to`); add the new id to
   the relevant stage's `sensors: [...]` frontmatter list to wire it

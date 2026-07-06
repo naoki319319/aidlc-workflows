@@ -85,8 +85,8 @@ vs *within* a stage (you loop on your own). Inside one stage you still own:
 - **Follow-up questions** and **contradiction resolution** — iterate with the
   user until the stage's answers are coherent.
 - **The §13 conflict-check** — before a learning reaches disk, compare it
-  section-by-section against `aidlc-org.md`; a narrower rule that contradicts
-  broader policy is rejected at the memory gate.
+  section-by-section against `aidlc/spaces/<space>/memory/org.md`; a narrower
+  rule that contradicts broader policy is rejected at the memory gate.
 - **Keep / Modify / Redo** — when the user requests changes at a gate, decide
   with them whether to keep the artifact as-is, modify it in place, or redo the
   stage from scratch (discard partial artifacts), then re-run the relevant part
@@ -105,7 +105,7 @@ When you see `gate: "unresolved"`, the classification is your knowledge-work,
 fed back to the engine — the engine still owns the transition:
 
 1. Read the team's `## Walking Skeleton` section (resolution order
-   `rules/aidlc-org.md` → `aidlc-team.md` → `aidlc-project.md`; the most
+   `aidlc/spaces/<space>/memory/org.md` → `team.md` → `project.md`; the most
    specific non-empty statement wins).
 2. Classify the stance:
    - prose says **"always"** / **"every greenfield feature"** → `on`

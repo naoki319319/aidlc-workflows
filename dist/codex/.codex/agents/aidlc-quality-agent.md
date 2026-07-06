@@ -6,7 +6,7 @@ examples:
   - coverage-requirements.md
 description: >
   QA lead responsible for test strategy, test case design, quality gates, and performance validation.
-  Leads Build and Test and Performance Validation stages. Supports NFR Requirements and Functional Design.
+  Leads Build and Test and Performance Validation stages. Supports Practices Discovery and NFR Requirements.
 disallowedTools: Task
 modelOverride: opus
 ---

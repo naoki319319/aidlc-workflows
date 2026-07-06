@@ -68,8 +68,8 @@ When resuming, load context appropriate to the current phase and stage type:
 **INCEPTION — Practices Discovery (stage 2.2):**
 - Load `<record>/inception/reverse-engineering/` artifacts (brownfield evidence inputs)
 - Load `<record>/inception/practices-discovery/` if partially complete (team-practices.md, discovered-rules.md, evidence.md drafts awaiting affirmation)
-- Load `.claude/rules/aidlc-team.md` if affirmation already happened (re-run pre-fill from prior affirmed sections)
-- Load `.claude/rules/aidlc-org.md` for greenfield default suggestions
+- Load `aidlc/spaces/<space>/memory/team.md` if affirmation already happened (re-run pre-fill from prior affirmed sections)
+- Load `aidlc/spaces/<space>/memory/org.md` for greenfield default suggestions
 
 **INCEPTION — Requirements stages:**
 - Load RE artifacts (if RE was performed)
